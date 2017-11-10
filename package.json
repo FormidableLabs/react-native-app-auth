@@ -4,15 +4,21 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint ."
   },
-  "keywords": [
-    "react-native"
-  ],
+  "keywords": ["react-native"],
   "author": "",
   "license": "",
   "peerDependencies": {
     "react-native": "^0.50.3",
     "react-native-windows": "0.41.0-rc.1"
+  },
+  "devDependencies": {
+    "babel-eslint": "^8.0.2",
+    "eslint": "2.10.2",
+    "eslint-config-formidable": "^3.0.0",
+    "eslint-plugin-filenames": "^1.2.0",
+    "eslint-plugin-import": "^2.8.0"
   }
 }
