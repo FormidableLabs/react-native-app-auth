@@ -27,8 +27,8 @@ export default class AppAuth {
     return authState;
   }
 
-  async refreshToken(refreshToken) {
-    const authState = await RNAppAuth.refreshToken(
+  async refresh(refreshToken) {
+    const authState = await RNAppAuth.refresh(
       this.issuer,
       this.redirectUrl,
       this.clientId,

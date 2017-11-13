@@ -1,5 +1,25 @@
-
 # react-native-app-auth
+
+React native wrapper for ![AppAuth-iOS](https://github.com/openid/AppAuth-iOS) and ![AppAuth-Android](https://github.com/openid/AppAuth-Android) which implement OAuth2 with PKCE.
+
+Supported methods:
+
+### authorize()
+```
+await AppAuth.authorize();
+// returns accessToken, accessTokenExpirationDate and refreshToken
+```
+
+### refresh()
+```
+await AppAuth.refresh(refreshToken);
+// returns accessTokenExpirationDate
+```
+
+### revokeToken()
+```
+await AppAuth.revokeToken();
+```
 
 ## Getting started
 
@@ -11,7 +31,6 @@
 
 
 ### Manual installation
-
 
 #### iOS
 
