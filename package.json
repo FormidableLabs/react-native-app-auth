@@ -8,8 +8,8 @@
     "lint": "eslint ."
   },
   "keywords": ["react-native"],
-  "author": "",
-  "license": "",
+  "author": "kadi.kraman@formidable.com",
+  "license": "MIT",
   "peerDependencies": {
     "react-native": "^0.50.3",
     "react-native-windows": "0.41.0-rc.1"
