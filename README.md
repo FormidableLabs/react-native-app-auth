@@ -9,6 +9,7 @@
 
 `$ react-native link react-native-app-auth`
 
+
 ### Manual installation
 
 
@@ -42,12 +43,69 @@
   - Add `using App.Auth.RNAppAuth;` to the usings at the top of the file
   - Add `new RNAppAuthPackage()` to the `List<IReactPackage>` returned by the `Packages` method
 
+## Configuration - iOS
+
+Install the AppAuth dependency. Create a pod file if one didn't exist yet
+```
+cd ios
+pod init
+```
+
+Add the AppAuth pod
+```
+target '<appName>' do
+  pod 'AppAuth'
+end
+```
+
+Install it
+```
+pod install
+```
+
+You need to have a property in your AppDelegate to hold the auth session, in order to continue the authorization flow from the redirect. To add this, open `AppDelegate.h` and add
+
+```
+@protocol OIDAuthorizationFlowSession;
+@property(nonatomic, strong, nullable) id<OIDAuthorizationFlowSession> currentAuthorizationFlow;
+```
+
+The authorization response URL is returned to the app via the iOS openURL app delegate method, so you need to pipe this through to the current authorization session (created in the previous instruction). To do this, open `AppDelegate.m` and add an import statement:
+```
+#import "AppAuth.h"
+```
+
+And in the bottom of the file, add:
+```
+- (BOOL)application:(UIApplication *)app
+            openURL:(NSURL *)url
+            options:(NSDictionary<NSString *, id> *)options {
+  if ([_currentAuthorizationFlow resumeAuthorizationFlowWithURL:url]) {
+    _currentAuthorizationFlow = nil;
+    return YES;
+  }
+  return NO;
+}
+```
+
 
 ## Usage
 ```javascript
-import RNAppAuth from 'react-native-app-auth';
+import AppAuth from 'react-native-app-auth';
 
-// TODO: What to do with the module?
-RNAppAuth;
+// initialise the client with your configuration
+const AppAuthClient = new AppAuth({
+  issuer: '<YOUR_ISSUER_URL>',
+  clientId: '<YOUR_CLIENT_ID',
+  redirectUrl: '<YOUR_REDIRECT_URL>',
+  revokeTokenUrl: '<YOUR_REVOKE_TOKEN_URL>',
+});
+
+// use the client to make the auth request and receive the authState
+try {
+  const authState = await AppAuthClient.authorize();
+  // authState includes accessToken, accessTokenExpirationDate and refreshToken
+} catch (error) {
+  console.log(error);
+}
 ```
-  
