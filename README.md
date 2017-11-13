@@ -1,6 +1,17 @@
+**WORK IN PROGRESS**
+
+### Done:
+- iOS bridge with ![AppAuth-iOS](https://github.com/openid/AppAuth-iOS)
+
+
+### To Do:
+- Android bridge with ![AppAuth-Android](https://github.com/openid/AppAuth-Android)
+- revoke token method (will be in JS only, no bridge)
+
 # react-native-app-auth
 
-React native wrapper for ![AppAuth-iOS](https://github.com/openid/AppAuth-iOS) and ![AppAuth-Android](https://github.com/openid/AppAuth-Android) which implement OAuth2 with PKCE.
+
+React native bridge for ![AppAuth-iOS](https://github.com/openid/AppAuth-iOS) and ![AppAuth-Android](https://github.com/openid/AppAuth-Android) which implement OAuth2 with PKCE.
 
 Supported methods:
 
@@ -64,13 +75,13 @@ await AppAuth.revokeToken();
 
 ## Configuration - iOS
 
-Install the AppAuth dependency. Create a pod file if one didn't exist yet
+Install the AppAuth dependency. Create a `.podfile` if one didn't exist yet
 ```
 cd ios
 pod init
 ```
 
-Add the AppAuth pod
+Add the AppAuth pod to your `.podfile`
 ```
 target '<appName>' do
   pod 'AppAuth'

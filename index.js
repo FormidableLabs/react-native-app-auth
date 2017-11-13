@@ -4,6 +4,7 @@ const { RNAppAuth } = NativeModules;
 
 export default class AppAuth {
   constructor(config) {
+    // TODO: check that config variables have correct format
     if (!config.issuer) {
       throw new Error('Config error: issuer must be defined');
     }
@@ -22,8 +23,13 @@ export default class AppAuth {
     this.revokeRokenUrl = config.revokeRokenUrl;
   }
 
+  // TODO: add getters for authState variables
+
   async authorize() {
+    // TODO: check how errors get handled. Is there a need for wrapping error messages?
     const authState = await RNAppAuth.authorize(this.issuer, this.redirectUrl, this.clientId);
+
+    // TODO: add authState return variables to state
     return authState;
   }
 
