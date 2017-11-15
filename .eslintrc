@@ -5,3 +5,5 @@ rules:
   quotes:
       - error
       - single
+  no-unsafe-negation:
+      - off
