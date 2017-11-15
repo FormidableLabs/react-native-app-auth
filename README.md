@@ -118,6 +118,23 @@ And in the bottom of the file, add:
 }
 ```
 
+## Configuration - Android
+Make sure you've added `google()` to the `repositories` in `android/build.gradle`
+
+In `android/app/build.gradle`, make sure the appcompat version is
+```
+compile "com.android.support:appcompat-v7:25.3.1"
+```
+And update when necessary (you may need to update the `compileSdkVersion` to 25 as well)
+
+Still in `android/app/build.gradle`, add the following property to the defaultConfig:
+```
+manifestPlaceholders = [
+        'appAuthRedirectScheme': '<YOUR_REDIRECT_SCHEME>'
+]
+```
+
+
 
 ## Usage
 ```javascript
