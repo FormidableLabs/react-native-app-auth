@@ -7,9 +7,7 @@
     "test": "jest",
     "lint": "eslint ."
   },
-  "keywords": [
-    "react-native"
-  ],
+  "keywords": ["react-native"],
   "author": "kadi.kraman@formidable.com",
   "license": "MIT",
   "peerDependencies": {
@@ -26,8 +24,5 @@
     "jest": "^21.2.1",
     "react": "^16.1.1",
     "react-native": "^0.50.3"
-  },
-  "jest": {
-    "setupTestFrameworkScriptFile": "./test-setup.js"
   }
 }

@@ -24,34 +24,36 @@ export default class AppAuth {
     return this.config;
   }
 
+  getScopes(scopes) {
+    return this.config.allowOfflineAccess ? [...scopes, 'offline_access'] : scopes;
+  }
+
   authorize(scopes) {
     if (!scopes || scopes.length === 0) {
       throw new Error('Scope error: please add at least one scope');
-    }
-    if (this.config.allowOfflineAccess) {
-      scopes.push('offline_access');
     }
     return RNAppAuth.authorize(
       this.config.issuer,
       this.config.redirectUrl,
       this.config.clientId,
-      scopes
+      this.getScopes(scopes)
     );
   }
 
   refresh(refreshToken, scopes) {
+    if (!refreshToken) {
+      throw new Error('Please pass in a refresh token');
+    }
+
     if (!scopes || scopes.length === 0) {
       throw new Error('Scope error: please add at least one scope');
-    }
-    if (this.config.allowOfflineAccess) {
-      scopes.push('offline_access');
     }
     return RNAppAuth.refresh(
       this.config.issuer,
       this.config.redirectUrl,
       this.config.clientId,
       refreshToken,
-      scopes
+      this.getScopes(scopes)
     );
   }
 

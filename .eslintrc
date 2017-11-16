@@ -7,7 +7,9 @@ env:
   jest/globals: true
 rules:
   quotes:
-      - error
-      - single
+    - error
+    - single
   no-unsafe-negation:
-      - off
+    - off
+  max-nested-callbacks:
+    - off
