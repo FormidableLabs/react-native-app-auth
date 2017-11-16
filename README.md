@@ -2,16 +2,15 @@
 
 ### Done:
 - iOS bridge with ![AppAuth-iOS](https://github.com/openid/AppAuth-iOS)
+- Android bridge with ![AppAuth-Android](https://github.com/openid/AppAuth-Android)
 
 
 ### To Do:
-- Android bridge with ![AppAuth-Android](https://github.com/openid/AppAuth-Android)
 - revoke token method (will be in JS only, no bridge)
 
 # react-native-app-auth
 
-
-React native bridge for ![AppAuth-iOS](https://github.com/openid/AppAuth-iOS) and ![AppAuth-Android](https://github.com/openid/AppAuth-Android) which implement OAuth2 with PKCE.
+React Native bridge for ![AppAuth-iOS](https://github.com/openid/AppAuth-iOS) and ![AppAuth-Android](https://github.com/openid/AppAuth-Android) which implement OAuth2 with PKCE support.
 
 Supported methods:
 
@@ -65,17 +64,9 @@ await AppAuth.revokeToken();
       compile project(':react-native-app-auth')
   	```
 
-#### Windows
-[Read it! :D](https://github.com/ReactWindows/react-native)
-
-1. In Visual Studio add the `RNAppAuth.sln` in `node_modules/react-native-app-auth/windows/RNAppAuth.sln` folder to their solution, reference from their app.
-2. Open up your `MainPage.cs` app
-  - Add `using App.Auth.RNAppAuth;` to the usings at the top of the file
-  - Add `new RNAppAuthPackage()` to the `List<IReactPackage>` returned by the `Packages` method
-
 ## Configuration - iOS
 
-Install the AppAuth dependency. Create a `.podfile` if one didn't exist yet
+Install the AppAuth dependency. Create a `Podfile` if one didn't exist yet
 ```
 cd ios
 pod init
@@ -95,18 +86,18 @@ pod install
 
 You need to have a property in your AppDelegate to hold the auth session, in order to continue the authorization flow from the redirect. To add this, open `AppDelegate.h` and add
 
-```
+```objective-c.
 @protocol OIDAuthorizationFlowSession;
 @property(nonatomic, strong, nullable) id<OIDAuthorizationFlowSession> currentAuthorizationFlow;
 ```
 
 The authorization response URL is returned to the app via the iOS openURL app delegate method, so you need to pipe this through to the current authorization session (created in the previous instruction). To do this, open `AppDelegate.m` and add an import statement:
-```
+```objective-c.
 #import "AppAuth.h"
 ```
 
 And in the bottom of the file, add:
-```
+```objective-c.
 - (BOOL)application:(UIApplication *)app
             openURL:(NSURL *)url
             options:(NSDictionary<NSString *, id> *)options {
@@ -141,7 +132,7 @@ manifestPlaceholders = [
 import AppAuth from 'react-native-app-auth';
 
 // initialise the client with your configuration
-const AppAuthClient = new AppAuth({
+const appAuth = new AppAuth({
   issuer: '<YOUR_ISSUER_URL>',
   clientId: '<YOUR_CLIENT_ID',
   redirectUrl: '<YOUR_REDIRECT_URL>',
@@ -152,7 +143,7 @@ const AppAuthClient = new AppAuth({
 // use the client to make the auth request and receive the authState
 try {
   const scopes = ['profile'];
-  const authState = await AppAuthClient.authorize(scopes);
+  const authState = await appAuth.authorize(scopes);
   // authState includes accessToken, accessTokenExpirationDate and refreshToken
 } catch (error) {
   console.log(error);
