@@ -1,6 +1,10 @@
 ---
 extends:
   - formidable
+plugins:
+  - jest
+env:
+  jest/globals: true
 rules:
   quotes:
       - error
