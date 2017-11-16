@@ -1,21 +1,17 @@
+import invariant from 'invariant';
 import { NativeModules } from 'react-native';
 
 const { RNAppAuth } = NativeModules;
 
 export default class AppAuth {
   constructor(config) {
-    // TODO: check that config variables have correct format
-    if (!config.issuer) {
-      throw new Error('Config error: issuer must be defined');
-    }
-
-    if (!config.clientId) {
-      throw new Error('Config error: client id must be defined');
-    }
-
-    if (!config.redirectUrl) {
-      throw new Error('Config error: redirect url must be defined');
-    }
+    invariant(typeof config.issuer === 'string', 'Config error: issuer must be a string');
+    invariant(typeof config.clientId === 'string', 'Config error: clientId must be a string');
+    invariant(typeof config.redirectUrl === 'string', 'Config error: redirectUrl must be a string');
+    invariant(
+      ['boolean', 'undefined'].includes(typeof config.allowOfflineAccess),
+      'Config error: allowOfflineAccess must be a boolean or undefined'
+    );
 
     this.config = { ...config };
   }
@@ -29,9 +25,9 @@ export default class AppAuth {
   }
 
   authorize(scopes) {
-    if (!scopes || scopes.length === 0) {
-      throw new Error('Scope error: please add at least one scope');
-    }
+    invariant(scopes, 'Scope error: please add at least one scope');
+    invariant(scopes.length, 'Scope error: please add at least one scope');
+
     return RNAppAuth.authorize(
       this.config.issuer,
       this.config.redirectUrl,
@@ -41,13 +37,10 @@ export default class AppAuth {
   }
 
   refresh(refreshToken, scopes) {
-    if (!refreshToken) {
-      throw new Error('Please pass in a refresh token');
-    }
+    invariant(refreshToken, 'Please pass in a refresh token');
+    invariant(scopes, 'Scope error: please add at least one scope');
+    invariant(scopes.length, 'Scope error: please add at least one scope');
 
-    if (!scopes || scopes.length === 0) {
-      throw new Error('Scope error: please add at least one scope');
-    }
     return RNAppAuth.refresh(
       this.config.issuer,
       this.config.redirectUrl,

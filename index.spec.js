@@ -33,22 +33,28 @@ describe('AppAuth', () => {
       expect(appAuth.getConfig()).toEqual(config);
     });
 
-    it('throws an error when issuer is not defined', () => {
+    it('throws an error when issuer is not a string', () => {
       expect(() => {
-        new AppAuth({ ...config, issuer: undefined }); // eslint-disable-line no-new
-      }).toThrow('Config error: issuer must be defined');
+        new AppAuth({ ...config, issuer: () => ({}) }); // eslint-disable-line no-new
+      }).toThrow('Config error: issuer must be a string');
     });
 
-    it('throws an error when redirect url is not defined', () => {
+    it('throws an error when redirectUrl is not a string', () => {
       expect(() => {
-        new AppAuth({ ...config, redirectUrl: undefined }); // eslint-disable-line no-new
-      }).toThrow('Config error: redirect url must be defined');
+        new AppAuth({ ...config, redirectUrl: {} }); // eslint-disable-line no-new
+      }).toThrow('Config error: redirectUrl must be a string');
     });
 
-    it('throws an error when client id is not defined', () => {
+    it('throws an error when clientId is not a string', () => {
       expect(() => {
-        new AppAuth({ ...config, clientId: undefined }); // eslint-disable-line no-new
-      }).toThrow('Config error: client id must be defined');
+        new AppAuth({ ...config, clientId: 123 }); // eslint-disable-line no-new
+      }).toThrow('Config error: clientId must be a string');
+    });
+
+    it('throws an error when allowOfflineAccess is not a a boolean or undefined', () => {
+      expect(() => {
+        new AppAuth({ ...config, allowOfflineAccess: 123 }); // eslint-disable-line no-new
+      }).toThrow('Config error: allowOfflineAccess must be a boolean or undefined');
     });
   });
 
