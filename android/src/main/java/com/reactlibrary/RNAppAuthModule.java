@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
 import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.Arguments;
@@ -64,8 +63,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                             @Nullable AuthorizationServiceConfiguration serviceConfiguration,
                             @Nullable AuthorizationException ex) {
                         if (ex != null) {
-                            // TODO: handle error & reject
-                            Log.e("AppAuth", "failed to fetch configuration");
+                            promise.reject("RNAppAuth Error", "Failed to fetch configuration", ex);
                             return;
                         }
 
@@ -101,8 +99,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                             @Nullable AuthorizationServiceConfiguration serviceConfiguration,
                             @Nullable AuthorizationException ex) {
                         if (ex != null) {
-                            // TODO: handle error & reject
-                            Log.e("AppAuth", "failed to fetch configuration");
+                            promise.reject("RNAppAuth Error", "Failed to fetch configuration", ex);
                             return;
                         }
 
@@ -130,8 +127,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                     map.putString("refreshToken", response.refreshToken);
                                     promise.resolve(map);
                                 } else {
-                                    // authorization failed, check ex for more details
-                                    // TODO: process failure
+                                    promise.reject("RNAppAuth Error", "Failed refresh token");
                                 }
                             }
                         });
@@ -145,8 +141,12 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         if (requestCode == 0) {
             AuthorizationResponse response = AuthorizationResponse.fromIntent(data);
             AuthorizationException exception = AuthorizationException.fromIntent(data);
+            if (exception != null) {
+                promise.reject("RNAppAuth Error", "Failed to authenticate", exception);
+                return;
+            }
+
             final Promise authorizePromise = this.promise;
-            // TODO: process exception
 
             AuthorizationService authService = new AuthorizationService(this.reactContext);
 
@@ -163,16 +163,12 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                 map.putString("accessTokenExpirationDate", resp.accessTokenExpirationTime.toString());
                                 map.putString("refreshToken", resp.refreshToken);
                                 authorizePromise.resolve(map);
-                                // exchange succeeded
                             } else {
-                                // authorization failed, check ex for more details
-                                // TODO: process failure
+                                promise.reject("RNAppAuth Error", "Failed exchange token", ex);
                             }
                         }
                     });
 
-        } else {
-            // ...
         }
     }
 

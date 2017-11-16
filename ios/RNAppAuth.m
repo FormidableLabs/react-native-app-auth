@@ -24,6 +24,7 @@ RCT_REMAP_METHOD(authorize,
   [OIDAuthorizationService discoverServiceConfigurationForIssuer:[NSURL URLWithString:issuer]
                                                       completion:^(OIDServiceConfiguration *_Nullable configuration, NSError *_Nullable error) {
                                                         if (!configuration) {
+                                                         reject(@"RNAppAuth Error", [error localizedDescription], error);
                                                          return;
                                                         }
 
@@ -63,7 +64,7 @@ RCT_REMAP_METHOD(authorize,
                                                                                                                                            };
                                                                                                            resolve(authStateDict);
                                                                                                          } else {
-                                                                                                           reject(@"Authorization error", [error localizedDescription], error);
+                                                                                                           reject(@"RNAppAuth Error", [error localizedDescription], error);
                                                                                                          }
 
                                                                                                        }]; // end [OIDAuthState authStateByPresentingAuthorizationRequest:request
@@ -84,7 +85,8 @@ RCT_REMAP_METHOD(refresh,
   [OIDAuthorizationService discoverServiceConfigurationForIssuer:[NSURL URLWithString:issuer]
                                                       completion:^(OIDServiceConfiguration *_Nullable configuration, NSError *_Nullable error) {
                                                         if (!configuration) {
-                                                          return;
+                                                            reject(@"RNAppAuth Error", [error localizedDescription], error);
+                                                            return;
                                                         }
 
                                                         OIDTokenRequest *tokenRefreshRequest =
@@ -118,7 +120,7 @@ RCT_REMAP_METHOD(refresh,
                                                                                                           @"accessTokenExpirationDate": exporationDateString,
                                                                                                           });
                                                                                               } else {
-                                                                                                reject(@"Authorization error", [error localizedDescription], error);
+                                                                                                reject(@"RNAppAuth Error", [error localizedDescription], error);
                                                                                               }
                                                                                             }];
 
