@@ -17,13 +17,13 @@ Supported methods:
 
 ### authorize()
 ```
-await AppAuth.authorize();
+await AppAuth.authorize(scopes);
 // returns accessToken, accessTokenExpirationDate and refreshToken
 ```
 
 ### refresh()
 ```
-await AppAuth.refresh(refreshToken);
+await AppAuth.refresh(refreshToken, scopes);
 // returns accessTokenExpirationDate
 ```
 
@@ -146,11 +146,13 @@ const AppAuthClient = new AppAuth({
   clientId: '<YOUR_CLIENT_ID',
   redirectUrl: '<YOUR_REDIRECT_URL>',
   revokeTokenUrl: '<YOUR_REVOKE_TOKEN_URL>',
+  allowOfflineAccess: true,
 });
 
 // use the client to make the auth request and receive the authState
 try {
-  const authState = await AppAuthClient.authorize();
+  const scopes = ['profile'];
+  const authState = await AppAuthClient.authorize(scopes);
   // authState includes accessToken, accessTokenExpirationDate and refreshToken
 } catch (error) {
   console.log(error);

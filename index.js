@@ -17,30 +17,42 @@ export default class AppAuth {
       throw new Error('Config error: redirect url must be defined');
     }
 
-    this.issuer = config.issuer;
-    this.clientId = config.clientId;
-    this.redirectUrl = config.redirectUrl;
-    this.revokeRokenUrl = config.revokeRokenUrl;
+    this.config = { ...config };
   }
 
-  // TODO: add getters for authState variables
-
-  async authorize() {
-    // TODO: check how errors get handled. Is there a need for wrapping error messages?
-    const authState = await RNAppAuth.authorize(this.issuer, this.redirectUrl, this.clientId);
-
-    // TODO: add authState return variables to state
-    return authState;
+  getConfig() {
+    return this.config;
   }
 
-  async refresh(refreshToken) {
-    const authState = await RNAppAuth.refresh(
-      this.issuer,
-      this.redirectUrl,
-      this.clientId,
-      refreshToken
+  authorize(scopes) {
+    if (!scopes || scopes.length === 0) {
+      throw new Error('Scope error: please add at least one scope');
+    }
+    if (this.config.allowOfflineAccess) {
+      scopes.push('offline_access');
+    }
+    return RNAppAuth.authorize(
+      this.config.issuer,
+      this.config.redirectUrl,
+      this.config.clientId,
+      scopes
     );
-    return authState;
+  }
+
+  refresh(refreshToken, scopes) {
+    if (!scopes || scopes.length === 0) {
+      throw new Error('Scope error: please add at least one scope');
+    }
+    if (this.config.allowOfflineAccess) {
+      scopes.push('offline_access');
+    }
+    return RNAppAuth.refresh(
+      this.config.issuer,
+      this.config.redirectUrl,
+      this.config.clientId,
+      refreshToken,
+      scopes
+    );
   }
 
   revokeToken() {
