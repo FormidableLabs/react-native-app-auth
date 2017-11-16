@@ -81,7 +81,7 @@ cd ios
 pod init
 ```
 
-Add the AppAuth pod to your `.podfile`
+Add the AppAuth pod to your `Podfile`
 ```
 target '<appName>' do
   pod 'AppAuth'

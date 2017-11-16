@@ -31,7 +31,8 @@ RCT_REMAP_METHOD(authorize,
                                                         [[OIDAuthorizationRequest alloc] initWithConfiguration:configuration
                                                                                                       clientId:clientId
                                                                                                         scopes:@[OIDScopeOpenID,
-                                                                                                                 OIDScopeProfile]
+                                                                                                                 OIDScopeProfile,
+                                                                                                                 @"offline_access"]
                                                                                                    redirectURL:[NSURL URLWithString:redirectUrl]
                                                                                                   responseType:OIDResponseTypeCode
                                                                                           additionalParameters:nil];
@@ -94,7 +95,8 @@ RCT_REMAP_METHOD(refresh,
                                                                                               clientID:clientId
                                                                                           clientSecret:nil
                                                                                                 scopes:@[OIDScopeOpenID,
-                                                                                                         OIDScopeProfile]
+                                                                                                         OIDScopeProfile,
+                                                                                                         @"offline_access"]
                                                                                           refreshToken:refreshToken
                                                                                           codeVerifier:nil
                                                                                   additionalParameters:nil];
@@ -113,6 +115,7 @@ RCT_REMAP_METHOD(refresh,
                                                                                                 NSString *exporationDateString = [dateFormat stringFromDate:expirationDate];
 
                                                                                                 resolve(@{
+                                                                                                          @"accessToken": response.accessToken ? response.accessToken : @"",
                                                                                                           @"refreshToken": response.refreshToken ? response.refreshToken : @"",
                                                                                                           @"accessTokenExpirationDate": exporationDateString,
                                                                                                           });
