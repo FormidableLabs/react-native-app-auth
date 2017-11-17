@@ -1,16 +1,11 @@
-**WORK IN PROGRESS**
-
-### Done:
-- iOS bridge with ![AppAuth-iOS](https://github.com/openid/AppAuth-iOS)
-- Android bridge with ![AppAuth-Android](https://github.com/openid/AppAuth-Android)
-
-
-### To Do:
-- revoke token method (will be in JS only, no bridge)
-
 # react-native-app-auth
 
-React Native bridge for ![AppAuth-iOS](https://github.com/openid/AppAuth-iOS) and ![AppAuth-Android](https://github.com/openid/AppAuth-Android) which implement OAuth2 with PKCE support.
+React Native bridge for ![AppAuth-iOS](https://github.com/openid/AppAuth-iOS) and ![AppAuth-Android](https://github.com/openid/AppAuth-Android) - an SDK for communicating with OAuth2 providers. It also supports the PKCE extension to OAuth.
+
+In theory, the library should support any OAuth provider that implements the ![OAuth2 spec](https://tools.ietf.org/html/rfc6749#section-2.2) and it has been tested with:
+
+- ![Identity Server4](https://demo.identityserver.io/)
+- ![Google](https://developers.google.com/identity/protocols/OAuth2)
 
 Supported methods:
 
@@ -28,7 +23,8 @@ await AppAuth.refresh(refreshToken, scopes);
 
 ### revokeToken()
 ```
-await AppAuth.revokeToken();
+// note, sendClientId=true will only be required when using IdentityServer
+await AppAuth.revokeToken(tokenToRevoke, sendClientId);
 ```
 
 ## Getting started
@@ -149,3 +145,13 @@ try {
   console.log(error);
 }
 ```
+
+## Support
+
+### Identity Server 4
+This library supports authenticating for Identity Server 4 out of the box. Some quirks:
+1. In order to enable `offline_access`, it must be passed in as a scope variable
+2. In order to revoke the access token, must sent client id in the method body of the request. This is not part of the OAuth spec.
+
+### Google
+Full support out of the box

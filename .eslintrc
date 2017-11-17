@@ -5,6 +5,7 @@ plugins:
   - jest
 env:
   jest/globals: true
+  browser: true
 rules:
   quotes:
     - error
@@ -12,4 +13,6 @@ rules:
   no-unsafe-negation:
     - off
   max-nested-callbacks:
+    - off
+  arrow-parens:
     - off

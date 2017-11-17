@@ -50,12 +50,6 @@ describe('AppAuth', () => {
         new AppAuth({ ...config, clientId: 123 }); // eslint-disable-line no-new
       }).toThrow('Config error: clientId must be a string');
     });
-
-    it('throws an error when allowOfflineAccess is not a a boolean or undefined', () => {
-      expect(() => {
-        new AppAuth({ ...config, allowOfflineAccess: 123 }); // eslint-disable-line no-new
-      }).toThrow('Config error: allowOfflineAccess must be a boolean or undefined');
-    });
   });
 
   describe('authorize', () => {
@@ -88,17 +82,6 @@ describe('AppAuth', () => {
         config.redirectUrl,
         config.clientId,
         scopes
-      );
-    });
-
-    it('calls the native wrapper with the offline scope when allowOfflineAccess is applied', () => {
-      const appAuth = new AppAuth({ ...config, allowOfflineAccess: true });
-      appAuth.authorize(scopes);
-      expect(mockAuthorize).toHaveBeenCalledWith(
-        config.issuer,
-        config.redirectUrl,
-        config.clientId,
-        [...scopes, 'offline_access']
       );
     });
   });
@@ -142,18 +125,6 @@ describe('AppAuth', () => {
         config.clientId,
         refreshToken,
         scopes
-      );
-    });
-
-    it('calls the native wrapper with the offline scope when allowOfflineAccess is applied', () => {
-      const appAuth = new AppAuth({ ...config, allowOfflineAccess: true });
-      appAuth.refresh(refreshToken, scopes);
-      expect(mockRefresh).toHaveBeenCalledWith(
-        config.issuer,
-        config.redirectUrl,
-        config.clientId,
-        refreshToken,
-        [...scopes, 'offline_access']
       );
     });
   });
