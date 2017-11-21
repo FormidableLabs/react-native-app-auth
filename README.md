@@ -13,26 +13,26 @@ The library uses auto-discovery which mean it relies on the the ![.well-known/op
 
 ### authorize
 This is the main function to use for authentication. Evoking this function will do the whole login flow and returns the access token, refresh token and access token expiry date when successful, or it throws an error when not successful.
-```
+```js
 import AppAuth from 'react-native-app-auth';
 
 const appAuth = new AppAuth(config);
-const result = await AppAuth.authorize(scopes);
+const result = await appAuth.authorize(scopes);
 // returns accessToken, accessTokenExpirationDate and refreshToken
 ```
 
 ### refresh
 This method will refresh the accessToken using the refreshToken. Some auth providers will also give you a new refreshToken
-```
-await AppAuth.refresh(refreshToken, scopes);
-// returns accessToken, accessTokenExpirationDate and  (maybe) refreshToken
+```js
+const result = await appAuth.refresh(refreshToken, scopes);
+// returns accessToken, accessTokenExpirationDate and (maybe) refreshToken
 ```
 
 ### revokeToken
 This method will revoke a token. The tokenToRevoke can be either an accessToken or a refreshToken
-```
+```js
 // note, sendClientId=true will only be required when using IdentityServer
-await AppAuth.revokeToken(tokenToRevoke, sendClientId);
+const result = await appAuth.revokeToken(tokenToRevoke, sendClientId);
 ```
 
 # Getting started
@@ -145,8 +145,8 @@ const appAuth = new AppAuth({
 // use the client to make the auth request and receive the authState
 try {
   const scopes = ['profile'];
-  const authState = await appAuth.authorize(scopes);
-  // authState includes accessToken, accessTokenExpirationDate and refreshToken
+  const result = await appAuth.authorize(scopes);
+  // result includes accessToken, accessTokenExpirationDate and refreshToken
 } catch (error) {
   console.log(error);
 }
