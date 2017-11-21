@@ -17,8 +17,7 @@ export default class AppAuth {
   }
 
   authorize(scopes) {
-    invariant(scopes, 'Scope error: please add at least one scope');
-    invariant(scopes.length, 'Scope error: please add at least one scope');
+    invariant(scopes && scopes.length, 'Scope error: please add at least one scope');
 
     return RNAppAuth.authorize(
       this.config.issuer,
@@ -30,8 +29,7 @@ export default class AppAuth {
 
   refresh(refreshToken, scopes) {
     invariant(refreshToken, 'Please pass in a refresh token');
-    invariant(scopes, 'Scope error: please add at least one scope');
-    invariant(scopes.length, 'Scope error: please add at least one scope');
+    invariant(scopes && scopes.length, 'Scope error: please add at least one scope');
 
     return RNAppAuth.refresh(
       this.config.issuer,
@@ -43,7 +41,7 @@ export default class AppAuth {
   }
 
   async revokeToken(tokenToRevoke, sendClientId = false) {
-    invariant(tokenToRevoke, 'Plese include the token to revoke');
+    invariant(tokenToRevoke, 'Please include the token to revoke');
 
     const response = await fetch(`${this.config.issuer}/.well-known/openid-configuration`);
     const openidConfig = await response.json();
@@ -65,7 +63,7 @@ export default class AppAuth {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
       },
-      body: `token=${tokenToRevoke}${sendClientId ? `client_id=${this.config.clientId}` : ''}`
+      body: `token=${tokenToRevoke}${sendClientId ? `&client_id=${this.config.clientId}` : ''}`
     }).catch(error => {
       throw new Error('Failed to revoke token', error);
     });

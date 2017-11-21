@@ -1,33 +1,41 @@
-# react-native-app-auth
+# React Native App Auth
 
 React Native bridge for ![AppAuth-iOS](https://github.com/openid/AppAuth-iOS) and ![AppAuth-Android](https://github.com/openid/AppAuth-Android) - an SDK for communicating with OAuth2 providers. It also supports the PKCE extension to OAuth.
 
-In theory, the library should support any OAuth provider that implements the ![OAuth2 spec](https://tools.ietf.org/html/rfc6749#section-2.2) and it has been tested with:
+This library *should* support any OAuth provider that implements the ![OAuth2 spec](https://tools.ietf.org/html/rfc6749#section-2.2) but it has only been tested with:
 
 - ![Identity Server4](https://demo.identityserver.io/)
 - ![Google](https://developers.google.com/identity/protocols/OAuth2)
 
-Supported methods:
+The library uses auto-discovery which mean it relies on the the ![.well-known/openid-configuration](https://openid.net/specs/openid-connect-discovery-1_0.html) endpoint to discover all auth endpoints automatically. It will be possible to extend the library later to add custom configuration.
 
-### authorize()
+# Supported methods:
+
+### authorize
+This is the main function to use for authentication. Evoking this function will do the whole login flow and returns the access token, refresh token and access token expiry date when successful, or it throws an error when not successful.
 ```
-await AppAuth.authorize(scopes);
+import AppAuth from 'react-native-app-auth';
+
+const appAuth = new AppAuth(config);
+const result = await AppAuth.authorize(scopes);
 // returns accessToken, accessTokenExpirationDate and refreshToken
 ```
 
-### refresh()
+### refresh
+This method will refresh the accessToken using the refreshToken. Some auth providers will also give you a new refreshToken
 ```
 await AppAuth.refresh(refreshToken, scopes);
-// returns accessTokenExpirationDate
+// returns accessToken, accessTokenExpirationDate and  (maybe) refreshToken
 ```
 
-### revokeToken()
+### revokeToken
+This method will revoke a token. The tokenToRevoke can be either an accessToken or a refreshToken
 ```
 // note, sendClientId=true will only be required when using IdentityServer
 await AppAuth.revokeToken(tokenToRevoke, sendClientId);
 ```
 
-## Getting started
+# Getting started
 
 `$ npm install react-native-app-auth --save`
 
@@ -123,7 +131,7 @@ manifestPlaceholders = [
 
 
 
-## Usage
+# Usage
 ```javascript
 import AppAuth from 'react-native-app-auth';
 
@@ -132,8 +140,6 @@ const appAuth = new AppAuth({
   issuer: '<YOUR_ISSUER_URL>',
   clientId: '<YOUR_CLIENT_ID',
   redirectUrl: '<YOUR_REDIRECT_URL>',
-  revokeTokenUrl: '<YOUR_REVOKE_TOKEN_URL>',
-  allowOfflineAccess: true,
 });
 
 // use the client to make the auth request and receive the authState
@@ -146,12 +152,12 @@ try {
 }
 ```
 
-## Support
+# Support
 
-### Identity Server 4
+## Identity Server 4
 This library supports authenticating for Identity Server 4 out of the box. Some quirks:
 1. In order to enable `offline_access`, it must be passed in as a scope variable
 2. In order to revoke the access token, must sent client id in the method body of the request. This is not part of the OAuth spec.
 
-### Google
+## Google
 Full support out of the box
