@@ -37,12 +37,14 @@ const result = await appAuth.revokeToken(tokenToRevoke, sendClientId);
 
 # Getting started
 
-`$ npm install react-native-app-auth --save`
+```sh
+npm install react-native-app-auth --save
+react-native link react-native-app-auth
+```
 
-### Mostly automatic installation
+**Then follow the [Setup](#setup) steps to configure the native iOS and Android projects.**
 
-`$ react-native link react-native-app-auth`
-
+If you are not using `react-native link`, perform the [Manual installation](#manual-installation) steps instead.
 
 ### Manual installation
 
@@ -68,27 +70,54 @@ const result = await appAuth.revokeToken(tokenToRevoke, sendClientId);
       compile project(':react-native-app-auth')
   	```
 
-## Configuration - iOS
+# Setup
 
-Install the AppAuth dependency. Create a `Podfile` if one didn't exist yet
-```
-cd ios
-pod init
-```
+## iOS Setup
 
-Add the AppAuth pod to your `Podfile`
-```
-target '<appName>' do
-  pod 'AppAuth'
-end
-```
+To setup the iOS project, you need to perform two steps:
+1. [Install native dependencies](#install-native-dependencies)
+2. [Define openURL callback in AppDelegate](#define-openurl-callback-in-appdelegate)
 
-Install it
-```
-pod install
-```
+### Install native dependencies
 
-You need to have a property in your AppDelegate to hold the auth session, in order to continue the authorization flow from the redirect. To add this, open `AppDelegate.h` and add
+This library depends on the native [AppAuth-ios](https://github.com/openid/AppAuth-iOS) project. To keep the React Native library agnostic of your dependency management method, the native libraries are not distributed as part of the bridge.
+
+AppAuth supports three options for dependency management.
+
+#### CocoaPods
+
+With [CocoaPods](https://guides.cocoapods.org/using/getting-started.html),
+add the following line to your `Podfile`:
+
+    pod 'AppAuth'
+
+Then run `pod install`.
+
+#### Carthage
+
+With [Carthage](https://github.com/Carthage/Carthage), add the following
+line to your `Cartfile`:
+
+    github "openid/AppAuth-iOS" "master"
+
+Then run `carthage bootstrap`.
+
+#### Static Library
+
+You can also use [AppAuth-iOS](https://github.com/openid/AppAuth-iOS) as a static library. This requires linking the library
+and your project and including the headers.  Suggested configuration:
+
+1. Create an XCode Workspace.
+2. Add `AppAuth.xcodeproj` to your Workspace.
+3. Include libAppAuth as a linked library for your target (in the "General ->
+Linked Framework and Libraries" section of your target).
+4. Add `AppAuth-iOS/Source` to your search paths of your target ("Build Settings ->
+"Header Search Paths").
+
+
+### Define openURL callback in AppDelegate
+
+You need to have a property in your AppDelegate to hold the auth session, in order to continue the authorization flow from the redirect. To add this, open `AppDelegate.h` in your project and add
 
 ```objective-c.
 @protocol OIDAuthorizationFlowSession;
@@ -113,22 +142,47 @@ And in the bottom of the file, add:
 }
 ```
 
-## Configuration - Android
-Make sure you've added `google()` to the `repositories` in `android/build.gradle`
+## Android Setup
 
-In `android/app/build.gradle`, make sure the appcompat version is
-```
-compile "com.android.support:appcompat-v7:25.3.1"
-```
-And update when necessary (you may need to update the `compileSdkVersion` to 25 as well)
+To setup the Android project, you need to perform two steps:
+1. [Install Android support libraries](#install-android-support-libraries)
+2. [Add redirect scheme manifest placeholder](#add-redirect-scheme-manifest-placeholder)
 
-Still in `android/app/build.gradle`, add the following property to the defaultConfig:
-```
-manifestPlaceholders = [
-        'appAuthRedirectScheme': '<YOUR_REDIRECT_SCHEME>'
-]
-```
+### Install Android support libraries
 
+This library depends on the [AppAuth-Android](https://github.com/openid/AppAuth-android) project. The native dependencies for Android are automatically installed by Gradle, but you need to add the correct Android Support library version to your project:
+
+1. Add the Google Maven repository in your `android/build.gradle`
+   ```
+   repositories {
+     google()
+   }
+   ```
+2. Make sure the appcompat version in `android/app/build.gradle` matches the one expected by AppAuth. If you generated your project using `react-native init`, you may have an older version of the appcompat libraries and need to upgdrade:
+   ```
+   dependencies {
+     compile "com.android.support:appcompat-v7:25.3.1"
+   }
+   ```
+3. If necessary, update the `compileSdkVersion` to 25:
+   ```
+   android {
+     compileSdkVersion 25
+   }
+   ```
+
+### Add redirect scheme manifest placeholder
+  
+To [capture the authorization redirect](https://github.com/openid/AppAuth-android#capturing-the-authorization-redirect), add the following property to the defaultConfig in `android/app/build.gradle`:
+```
+android {
+  defaultConfig {
+    manifestPlaceholders = [
+      'appAuthRedirectScheme': '<YOUR_REDIRECT_SCHEME>'
+    ]    
+  }
+}
+```
 
 
 # Usage
