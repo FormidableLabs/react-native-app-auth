@@ -63,7 +63,7 @@ If you are not using `react-native link`, perform the [Manual installation](#man
 2. Append the following lines to `android/settings.gradle`:
   	```
   	include ':react-native-app-auth'
-  	project(':react-native-app-auth').projectDir = new File(rootProject.projectDir, 	'../node_modules/react-native-app-auth/android')
+  	project(':react-native-app-auth').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-app-auth/android')
   	```
 3. Insert the following lines inside the dependencies block in `android/app/build.gradle`:
   	```
@@ -74,9 +74,10 @@ If you are not using `react-native link`, perform the [Manual installation](#man
 
 ## iOS Setup
 
-To setup the iOS project, you need to perform two steps:
+To setup the iOS project, you need to perform three steps:
 1. [Install native dependencies](#install-native-dependencies)
-2. [Define openURL callback in AppDelegate](#define-openurl-callback-in-appdelegate)
+2. [Register redirect URL scheme](#register-redirect-url-scheme)
+3. [Define openURL callback in AppDelegate](#define-openurl-callback-in-appdelegate)
 
 ### Install native dependencies
 
@@ -114,6 +115,28 @@ Linked Framework and Libraries" section of your target).
 4. Add `AppAuth-iOS/Source` to your search paths of your target ("Build Settings ->
 "Header Search Paths").
 
+
+### Register redirect URL scheme
+
+If you intend to support iOS 10 and older, you need to define the supported redirect URL schemes in your `Info.plist` as follows:
+
+```
+<key>CFBundleURLTypes</key>
+<array>
+  <dict>
+    <key>CFBundleURLName</key>
+    <string>com.your.app.identifier</string>
+    <key>CFBundleURLSchemes</key>
+    <array>
+      <string>io.identityserver.demo</string>
+      <string>com.googleusercontent.apps.example</string>
+    </array>
+  </dict>
+</array>
+```
+
+- `CFBundleURLName` is any globally unique string. A common practice is to use your app identifier.
+- `CFBundleURLSchemes` is an array of URL schemes your app needs to handle. The scheme is the beginning of your OAuth Redirect URL, up to the scheme separator (`:`) character.
 
 ### Define openURL callback in AppDelegate
 
