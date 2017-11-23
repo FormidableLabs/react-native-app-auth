@@ -4,15 +4,15 @@ React Native bridge for ![AppAuth-iOS](https://github.com/openid/AppAuth-iOS) an
 
 This library *should* support any OAuth provider that implements the ![OAuth2 spec](https://tools.ietf.org/html/rfc6749#section-2.2) but it has only been tested with:
 
-- ![Identity Server4](https://demo.identityserver.io/)
-- ![Google](https://developers.google.com/identity/protocols/OAuth2)
+- ![Identity Server4](https://demo.identityserver.io/) ([Example configuration](#identity-server-4))
+- ![Google](https://developers.google.com/identity/protocols/OAuth2) ([Example configuration](#google))
 
 The library uses auto-discovery which mean it relies on the the ![.well-known/openid-configuration](https://openid.net/specs/openid-connect-discovery-1_0.html) endpoint to discover all auth endpoints automatically. It will be possible to extend the library later to add custom configuration.
 
 # Supported methods:
 
 ### authorize
-This is the main function to use for authentication. Evoking this function will do the whole login flow and returns the access token, refresh token and access token expiry date when successful, or it throws an error when not successful.
+This is the main function to use for authentication. Invoking this function will do the whole login flow and returns the access token, refresh token and access token expiry date when successful, or it throws an error when not successful.
 ```js
 import AppAuth from 'react-native-app-auth';
 
@@ -129,7 +129,6 @@ If you intend to support iOS 10 and older, you need to define the supported redi
     <key>CFBundleURLSchemes</key>
     <array>
       <string>io.identityserver.demo</string>
-      <string>com.googleusercontent.apps.example</string>
     </array>
   </dict>
 </array>
@@ -156,7 +155,7 @@ The authorization response URL is returned to the app via the iOS openURL app de
 #import "AppAuth.h"
 ```
 
-And in the bottom of the file, add:
+And in the bottom of the class, add the following handler:
 ```objective-c.
 - (BOOL)application:(UIApplication *)app
             openURL:(NSURL *)url
@@ -205,14 +204,16 @@ To [capture the authorization redirect](https://github.com/openid/AppAuth-androi
 android {
   defaultConfig {
     manifestPlaceholders = [
-      'appAuthRedirectScheme': '<YOUR_REDIRECT_SCHEME>'
+      appAuthRedirectScheme: 'io.identityserver.demo'
     ]    
   }
 }
 ```
 
+The scheme is the beginning of your OAuth Redirect URL, up to the scheme separator (`:`) character.
 
 # Usage
+
 ```javascript
 import AppAuth from 'react-native-app-auth';
 
@@ -233,17 +234,57 @@ try {
 }
 ```
 
-# Support
+See example configurations for different providers below.
 
 ## Identity Server 4
+
 This library supports authenticating for Identity Server 4 out of the box. Some quirks:
-1. In order to enable `offline_access`, it must be passed in as a scope variable
-2. In order to revoke the access token, must sent client id in the method body of the request. This is not part of the OAuth spec.
+1. In order to enable refresh tokens, `offline_access` must be passed in as a scope variable
+2. In order to revoke the access token, we must sent client id in the method body of the request. This is not part of the OAuth spec.
+
+```js
+// Note "offline_access" scope is required to get a refresh token
+const scopes = ["openid", "profile", "offline_access"];
+const appAuth = new AppAuth({
+  issuer: "https://demo.identityserver.io",
+  clientId: "native.code",
+  redirectUrl: "io.identityserver.demo:/oauthredirect"
+});
+
+// Log in to get an authentication token
+const authState = await appAuth.authorize(scopes);
+
+// Refresh token
+const refreshedState = appAuth.refresh(authState.refreshToken, scopes);
+
+// Revoke token, note that Identity Server expects a client id on revoke
+const sendClientIdOnRevoke = true;
+await appAuth.revokeToken(refreshedState.refreshToken, sendClientIdOnRevoke);
+```
 
 ## Google
-Full support out of the box
 
-## Contributors
+Full support out of the box.
+
+```js
+const scopes = ["openid", "profile"];
+const appAuth = new AppAuth({
+  issuer: "https://accounts.google.com",
+  clientId: "GOOGLE_OAUTH_APP_GUID.apps.googleusercontent.com",
+  redirectUrl: "com.googleusercontent.apps.GOOGLE_OAUTH_APP_GUID:/oauth2redirect/google"
+});
+
+// Log in to get an authentication token
+const authState = await appAuth.authorize(scopes);
+
+// Refresh token
+const refreshedState = appAuth.refresh(authState.refreshToken, scopes);
+
+// Revoke token
+await appAuth.revokeToken(refreshedState.refreshToken);
+```
+
+# Contributors
 
 Thanks goes to these wonderful people
 ([emoji key](https://github.com/kentcdodds/all-contributors#emoji-key)):
