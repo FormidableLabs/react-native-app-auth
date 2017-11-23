@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/kadikraman/draftjs-md-converter.svg?branch=master)](https://travis-ci.org/kadikraman/draftjs-md-converter)
+[![npm version](https://badge.fury.io/js/react-native-app-auth.svg)](https://badge.fury.io/js/react-native-app-auth)
+
 # React Native App Auth
 
 React Native bridge for [AppAuth-iOS](https://github.com/openid/AppAuth-iOS) and [AppAuth-Android](https://github.com/openid/AppAuth-Android) - an SDK for communicating with OAuth2 providers. It also supports the PKCE extension to OAuth.
@@ -198,7 +201,7 @@ This library depends on the [AppAuth-Android](https://github.com/openid/AppAuth-
    ```
 
 #### Add redirect scheme manifest placeholder
-  
+
 To [capture the authorization redirect](https://github.com/openid/AppAuth-android#capturing-the-authorization-redirect), add the following property to the defaultConfig in `android/app/build.gradle`:
 ```
 android {
