@@ -38,6 +38,7 @@
     "react-native": "^0.50.3"
   },
   "devDependencies": {
+    "all-contributors-cli": "^4.9.1",
     "babel-eslint": "^8.0.2",
     "babel-jest": "^21.2.0",
     "babel-preset-env": "^1.6.1",
