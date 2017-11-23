@@ -1,18 +1,18 @@
 # React Native App Auth
 
-React Native bridge for ![AppAuth-iOS](https://github.com/openid/AppAuth-iOS) and ![AppAuth-Android](https://github.com/openid/AppAuth-Android) - an SDK for communicating with OAuth2 providers. It also supports the PKCE extension to OAuth.
+React Native bridge for [AppAuth-iOS](https://github.com/openid/AppAuth-iOS) and [AppAuth-Android](https://github.com/openid/AppAuth-Android) - an SDK for communicating with OAuth2 providers. It also supports the PKCE extension to OAuth.
 
-This library *should* support any OAuth provider that implements the ![OAuth2 spec](https://tools.ietf.org/html/rfc6749#section-2.2) but it has only been tested with:
+This library *should* support any OAuth provider that implements the [OAuth2 spec](https://tools.ietf.org/html/rfc6749#section-2.2) but it has only been tested with:
 
-- ![Identity Server4](https://demo.identityserver.io/)
-- ![Google](https://developers.google.com/identity/protocols/OAuth2)
+- [Identity Server4](https://demo.identityserver.io/) ([Example configuration](#identity-server-4))
+- [Google](https://developers.google.com/identity/protocols/OAuth2) ([Example configuration](#google))
 
-The library uses auto-discovery which mean it relies on the the ![.well-known/openid-configuration](https://openid.net/specs/openid-connect-discovery-1_0.html) endpoint to discover all auth endpoints automatically. It will be possible to extend the library later to add custom configuration.
+The library uses auto-discovery which mean it relies on the the [.well-known/openid-configuration](https://openid.net/specs/openid-connect-discovery-1_0.html) endpoint to discover all auth endpoints automatically. It will be possible to extend the library later to add custom configuration.
 
-# Supported methods:
+## Supported methods:
 
 ### authorize
-This is the main function to use for authentication. Evoking this function will do the whole login flow and returns the access token, refresh token and access token expiry date when successful, or it throws an error when not successful.
+This is the main function to use for authentication. Invoking this function will do the whole login flow and returns the access token, refresh token and access token expiry date when successful, or it throws an error when not successful.
 ```js
 import AppAuth from 'react-native-app-auth';
 
@@ -35,14 +35,16 @@ This method will revoke a token. The tokenToRevoke can be either an accessToken 
 const result = await appAuth.revokeToken(tokenToRevoke, sendClientId);
 ```
 
-# Getting started
+## Getting started
 
-`$ npm install react-native-app-auth --save`
+```sh
+npm install react-native-app-auth --save
+react-native link react-native-app-auth
+```
 
-### Mostly automatic installation
+**Then follow the [Setup](#setup) steps to configure the native iOS and Android projects.**
 
-`$ react-native link react-native-app-auth`
-
+If you are not using `react-native link`, perform the [Manual installation](#manual-installation) steps instead.
 
 ### Manual installation
 
@@ -61,38 +63,91 @@ const result = await appAuth.revokeToken(tokenToRevoke, sendClientId);
 2. Append the following lines to `android/settings.gradle`:
   	```
   	include ':react-native-app-auth'
-  	project(':react-native-app-auth').projectDir = new File(rootProject.projectDir, 	'../node_modules/react-native-app-auth/android')
+  	project(':react-native-app-auth').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-app-auth/android')
   	```
 3. Insert the following lines inside the dependencies block in `android/app/build.gradle`:
   	```
       compile project(':react-native-app-auth')
   	```
 
-## Configuration - iOS
+## Setup
 
-Install the AppAuth dependency. Create a `Podfile` if one didn't exist yet
+### iOS Setup
+
+To setup the iOS project, you need to perform three steps:
+1. [Install native dependencies](#install-native-dependencies)
+2. [Register redirect URL scheme](#register-redirect-url-scheme)
+3. [Define openURL callback in AppDelegate](#define-openurl-callback-in-appdelegate)
+
+#### Install native dependencies
+
+This library depends on the native [AppAuth-ios](https://github.com/openid/AppAuth-iOS) project. To keep the React Native library agnostic of your dependency management method, the native libraries are not distributed as part of the bridge.
+
+AppAuth supports three options for dependency management.
+
+##### CocoaPods
+
+With [CocoaPods](https://guides.cocoapods.org/using/getting-started.html),
+add the following line to your `Podfile`:
+
+    pod 'AppAuth'
+
+Then run `pod install`.
+
+##### Carthage
+
+With [Carthage](https://github.com/Carthage/Carthage), add the following
+line to your `Cartfile`:
+
+    github "openid/AppAuth-iOS" "master"
+
+Then run `carthage bootstrap`.
+
+##### Static Library
+
+You can also use [AppAuth-iOS](https://github.com/openid/AppAuth-iOS) as a static library. This requires linking the library
+and your project and including the headers.  Suggested configuration:
+
+1. Create an XCode Workspace.
+2. Add `AppAuth.xcodeproj` to your Workspace.
+3. Include libAppAuth as a linked library for your target (in the "General ->
+Linked Framework and Libraries" section of your target).
+4. Add `AppAuth-iOS/Source` to your search paths of your target ("Build Settings ->
+"Header Search Paths").
+
+
+#### Register redirect URL scheme
+
+If you intend to support iOS 10 and older, you need to define the supported redirect URL schemes in your `Info.plist` as follows:
+
 ```
-cd ios
-pod init
+<key>CFBundleURLTypes</key>
+<array>
+  <dict>
+    <key>CFBundleURLName</key>
+    <string>com.your.app.identifier</string>
+    <key>CFBundleURLSchemes</key>
+    <array>
+      <string>io.identityserver.demo</string>
+    </array>
+  </dict>
+</array>
 ```
 
-Add the AppAuth pod to your `Podfile`
-```
-target '<appName>' do
-  pod 'AppAuth'
-end
-```
+- `CFBundleURLName` is any globally unique string. A common practice is to use your app identifier.
+- `CFBundleURLSchemes` is an array of URL schemes your app needs to handle. The scheme is the beginning of your OAuth Redirect URL, up to the scheme separator (`:`) character.
 
-Install it
-```
-pod install
-```
+#### Define openURL callback in AppDelegate
 
-You need to have a property in your AppDelegate to hold the auth session, in order to continue the authorization flow from the redirect. To add this, open `AppDelegate.h` and add
+You need to have a property in your AppDelegate to hold the auth session, in order to continue the authorization flow from the redirect. To add this, open `AppDelegate.h` in your project and add the following lines:
 
-```objective-c.
-@protocol OIDAuthorizationFlowSession;
-@property(nonatomic, strong, nullable) id<OIDAuthorizationFlowSession> currentAuthorizationFlow;
+```diff
++ @protocol OIDAuthorizationFlowSession;
+
+  @interface AppDelegate : UIResponder <UIApplicationDelegate>
++ @property(nonatomic, strong, nullable) id<OIDAuthorizationFlowSession> currentAuthorizationFlow;
+  @property (nonatomic, strong) UIWindow *window;
+  @end
 ```
 
 The authorization response URL is returned to the app via the iOS openURL app delegate method, so you need to pipe this through to the current authorization session (created in the previous instruction). To do this, open `AppDelegate.m` and add an import statement:
@@ -100,7 +155,7 @@ The authorization response URL is returned to the app via the iOS openURL app de
 #import "AppAuth.h"
 ```
 
-And in the bottom of the file, add:
+And in the bottom of the class, add the following handler:
 ```objective-c.
 - (BOOL)application:(UIApplication *)app
             openURL:(NSURL *)url
@@ -113,25 +168,52 @@ And in the bottom of the file, add:
 }
 ```
 
-## Configuration - Android
-Make sure you've added `google()` to the `repositories` in `android/build.gradle`
+### Android Setup
 
-In `android/app/build.gradle`, make sure the appcompat version is
+To setup the Android project, you need to perform two steps:
+1. [Install Android support libraries](#install-android-support-libraries)
+2. [Add redirect scheme manifest placeholder](#add-redirect-scheme-manifest-placeholder)
+
+#### Install Android support libraries
+
+This library depends on the [AppAuth-Android](https://github.com/openid/AppAuth-android) project. The native dependencies for Android are automatically installed by Gradle, but you need to add the correct Android Support library version to your project:
+
+1. Add the Google Maven repository in your `android/build.gradle`
+   ```
+   repositories {
+     google()
+   }
+   ```
+2. Make sure the appcompat version in `android/app/build.gradle` matches the one expected by AppAuth. If you generated your project using `react-native init`, you may have an older version of the appcompat libraries and need to upgdrade:
+   ```
+   dependencies {
+     compile "com.android.support:appcompat-v7:25.3.1"
+   }
+   ```
+3. If necessary, update the `compileSdkVersion` to 25:
+   ```
+   android {
+     compileSdkVersion 25
+   }
+   ```
+
+#### Add redirect scheme manifest placeholder
+  
+To [capture the authorization redirect](https://github.com/openid/AppAuth-android#capturing-the-authorization-redirect), add the following property to the defaultConfig in `android/app/build.gradle`:
 ```
-compile "com.android.support:appcompat-v7:25.3.1"
-```
-And update when necessary (you may need to update the `compileSdkVersion` to 25 as well)
-
-Still in `android/app/build.gradle`, add the following property to the defaultConfig:
-```
-manifestPlaceholders = [
-        'appAuthRedirectScheme': '<YOUR_REDIRECT_SCHEME>'
-]
+android {
+  defaultConfig {
+    manifestPlaceholders = [
+      appAuthRedirectScheme: 'io.identityserver.demo'
+    ]    
+  }
+}
 ```
 
+The scheme is the beginning of your OAuth Redirect URL, up to the scheme separator (`:`) character.
 
+## Usage
 
-# Usage
 ```javascript
 import AppAuth from 'react-native-app-auth';
 
@@ -152,15 +234,55 @@ try {
 }
 ```
 
-# Support
+See example configurations for different providers below.
 
-## Identity Server 4
+### Identity Server 4
+
 This library supports authenticating for Identity Server 4 out of the box. Some quirks:
-1. In order to enable `offline_access`, it must be passed in as a scope variable
-2. In order to revoke the access token, must sent client id in the method body of the request. This is not part of the OAuth spec.
+1. In order to enable refresh tokens, `offline_access` must be passed in as a scope variable
+2. In order to revoke the access token, we must sent client id in the method body of the request. This is not part of the OAuth spec.
+
+```js
+// Note "offline_access" scope is required to get a refresh token
+const scopes = ["openid", "profile", "offline_access"];
+const appAuth = new AppAuth({
+  issuer: "https://demo.identityserver.io",
+  clientId: "native.code",
+  redirectUrl: "io.identityserver.demo:/oauthredirect"
+});
+
+// Log in to get an authentication token
+const authState = await appAuth.authorize(scopes);
+
+// Refresh token
+const refreshedState = appAuth.refresh(authState.refreshToken, scopes);
+
+// Revoke token, note that Identity Server expects a client id on revoke
+const sendClientIdOnRevoke = true;
+await appAuth.revokeToken(refreshedState.refreshToken, sendClientIdOnRevoke);
+```
 
 ## Google
-Full support out of the box
+
+Full support out of the box.
+
+```js
+const scopes = ["openid", "profile"];
+const appAuth = new AppAuth({
+  issuer: "https://accounts.google.com",
+  clientId: "GOOGLE_OAUTH_APP_GUID.apps.googleusercontent.com",
+  redirectUrl: "com.googleusercontent.apps.GOOGLE_OAUTH_APP_GUID:/oauth2redirect/google"
+});
+
+// Log in to get an authentication token
+const authState = await appAuth.authorize(scopes);
+
+// Refresh token
+const refreshedState = appAuth.refresh(authState.refreshToken, scopes);
+
+// Revoke token
+await appAuth.revokeToken(refreshedState.refreshToken);
+```
 
 ## Contributors
 
