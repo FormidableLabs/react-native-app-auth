@@ -9,7 +9,7 @@ This library *should* support any OAuth provider that implements the ![OAuth2 sp
 
 The library uses auto-discovery which mean it relies on the the ![.well-known/openid-configuration](https://openid.net/specs/openid-connect-discovery-1_0.html) endpoint to discover all auth endpoints automatically. It will be possible to extend the library later to add custom configuration.
 
-# Supported methods:
+## Supported methods:
 
 ### authorize
 This is the main function to use for authentication. Invoking this function will do the whole login flow and returns the access token, refresh token and access token expiry date when successful, or it throws an error when not successful.
@@ -35,7 +35,7 @@ This method will revoke a token. The tokenToRevoke can be either an accessToken 
 const result = await appAuth.revokeToken(tokenToRevoke, sendClientId);
 ```
 
-# Getting started
+## Getting started
 
 ```sh
 npm install react-native-app-auth --save
@@ -70,22 +70,22 @@ If you are not using `react-native link`, perform the [Manual installation](#man
       compile project(':react-native-app-auth')
   	```
 
-# Setup
+## Setup
 
-## iOS Setup
+### iOS Setup
 
 To setup the iOS project, you need to perform three steps:
 1. [Install native dependencies](#install-native-dependencies)
 2. [Register redirect URL scheme](#register-redirect-url-scheme)
 3. [Define openURL callback in AppDelegate](#define-openurl-callback-in-appdelegate)
 
-### Install native dependencies
+#### Install native dependencies
 
 This library depends on the native [AppAuth-ios](https://github.com/openid/AppAuth-iOS) project. To keep the React Native library agnostic of your dependency management method, the native libraries are not distributed as part of the bridge.
 
 AppAuth supports three options for dependency management.
 
-#### CocoaPods
+##### CocoaPods
 
 With [CocoaPods](https://guides.cocoapods.org/using/getting-started.html),
 add the following line to your `Podfile`:
@@ -94,7 +94,7 @@ add the following line to your `Podfile`:
 
 Then run `pod install`.
 
-#### Carthage
+##### Carthage
 
 With [Carthage](https://github.com/Carthage/Carthage), add the following
 line to your `Cartfile`:
@@ -103,7 +103,7 @@ line to your `Cartfile`:
 
 Then run `carthage bootstrap`.
 
-#### Static Library
+##### Static Library
 
 You can also use [AppAuth-iOS](https://github.com/openid/AppAuth-iOS) as a static library. This requires linking the library
 and your project and including the headers.  Suggested configuration:
@@ -116,7 +116,7 @@ Linked Framework and Libraries" section of your target).
 "Header Search Paths").
 
 
-### Register redirect URL scheme
+#### Register redirect URL scheme
 
 If you intend to support iOS 10 and older, you need to define the supported redirect URL schemes in your `Info.plist` as follows:
 
@@ -137,7 +137,7 @@ If you intend to support iOS 10 and older, you need to define the supported redi
 - `CFBundleURLName` is any globally unique string. A common practice is to use your app identifier.
 - `CFBundleURLSchemes` is an array of URL schemes your app needs to handle. The scheme is the beginning of your OAuth Redirect URL, up to the scheme separator (`:`) character.
 
-### Define openURL callback in AppDelegate
+#### Define openURL callback in AppDelegate
 
 You need to have a property in your AppDelegate to hold the auth session, in order to continue the authorization flow from the redirect. To add this, open `AppDelegate.h` in your project and add the following lines:
 
@@ -168,13 +168,13 @@ And in the bottom of the class, add the following handler:
 }
 ```
 
-## Android Setup
+### Android Setup
 
 To setup the Android project, you need to perform two steps:
 1. [Install Android support libraries](#install-android-support-libraries)
 2. [Add redirect scheme manifest placeholder](#add-redirect-scheme-manifest-placeholder)
 
-### Install Android support libraries
+#### Install Android support libraries
 
 This library depends on the [AppAuth-Android](https://github.com/openid/AppAuth-android) project. The native dependencies for Android are automatically installed by Gradle, but you need to add the correct Android Support library version to your project:
 
@@ -197,7 +197,7 @@ This library depends on the [AppAuth-Android](https://github.com/openid/AppAuth-
    }
    ```
 
-### Add redirect scheme manifest placeholder
+#### Add redirect scheme manifest placeholder
   
 To [capture the authorization redirect](https://github.com/openid/AppAuth-android#capturing-the-authorization-redirect), add the following property to the defaultConfig in `android/app/build.gradle`:
 ```
@@ -212,7 +212,7 @@ android {
 
 The scheme is the beginning of your OAuth Redirect URL, up to the scheme separator (`:`) character.
 
-# Usage
+## Usage
 
 ```javascript
 import AppAuth from 'react-native-app-auth';
@@ -236,7 +236,7 @@ try {
 
 See example configurations for different providers below.
 
-## Identity Server 4
+### Identity Server 4
 
 This library supports authenticating for Identity Server 4 out of the box. Some quirks:
 1. In order to enable refresh tokens, `offline_access` must be passed in as a scope variable
@@ -284,7 +284,7 @@ const refreshedState = appAuth.refresh(authState.refreshToken, scopes);
 await appAuth.revokeToken(refreshedState.refreshToken);
 ```
 
-# Contributors
+## Contributors
 
 Thanks goes to these wonderful people
 ([emoji key](https://github.com/kentcdodds/all-contributors#emoji-key)):
