@@ -24,6 +24,9 @@ import net.openid.appauth.ResponseTypeValues;
 import net.openid.appauth.TokenResponse;
 import net.openid.appauth.TokenRequest;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class RNAppAuthModule extends ReactContextBaseJavaModule implements ActivityEventListener {
 
     private final ReactApplicationContext reactContext;
@@ -45,6 +48,19 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             strBuilder.append(array.getString(i));
         }
         return strBuilder.toString();
+    }
+
+    private WritableMap tokenResponseToMap(TokenResponse response) {
+
+        Date expirationDate = new Date(response.accessTokenExpirationTime);
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+        String expirationDateString = formatter.format(expirationDate);
+
+        WritableMap map = Arguments.createMap();
+        map.putString("accessToken", response.accessToken);
+        map.putString("accessTokenExpirationDate", expirationDateString);
+        map.putString("refreshToken", response.refreshToken);
+        return map;
     }
 
     @ReactMethod
@@ -121,10 +137,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                             @Override
                             public void onTokenRequestCompleted(@Nullable TokenResponse response, @Nullable AuthorizationException ex) {
                                 if (response != null) {
-                                    WritableMap map = Arguments.createMap();
-                                    map.putString("accessToken", response.accessToken);
-                                    map.putString("accessTokenExpirationDate", response.accessTokenExpirationTime.toString());
-                                    map.putString("refreshToken", response.refreshToken);
+                                    WritableMap map = tokenResponseToMap(response);
                                     promise.resolve(map);
                                 } else {
                                     promise.reject("RNAppAuth Error", "Failed refresh token");
@@ -158,10 +171,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                         public void onTokenRequestCompleted(
                                 TokenResponse resp, AuthorizationException ex) {
                             if (resp != null) {
-                                WritableMap map = Arguments.createMap();
-                                map.putString("accessToken", resp.accessToken);
-                                map.putString("accessTokenExpirationDate", resp.accessTokenExpirationTime.toString());
-                                map.putString("refreshToken", resp.refreshToken);
+                                WritableMap map = tokenResponseToMap(resp);
                                 authorizePromise.resolve(map);
                             } else {
                                 promise.reject("RNAppAuth Error", "Failed exchange token", ex);
