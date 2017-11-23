@@ -117,11 +117,15 @@ Linked Framework and Libraries" section of your target).
 
 ### Define openURL callback in AppDelegate
 
-You need to have a property in your AppDelegate to hold the auth session, in order to continue the authorization flow from the redirect. To add this, open `AppDelegate.h` in your project and add
+You need to have a property in your AppDelegate to hold the auth session, in order to continue the authorization flow from the redirect. To add this, open `AppDelegate.h` in your project and add the following lines:
 
-```objective-c.
-@protocol OIDAuthorizationFlowSession;
-@property(nonatomic, strong, nullable) id<OIDAuthorizationFlowSession> currentAuthorizationFlow;
+```diff
++ @protocol OIDAuthorizationFlowSession;
+
+  @interface AppDelegate : UIResponder <UIApplicationDelegate>
++ @property(nonatomic, strong, nullable) id<OIDAuthorizationFlowSession> currentAuthorizationFlow;
+  @property (nonatomic, strong) UIWindow *window;
+  @end
 ```
 
 The authorization response URL is returned to the app via the iOS openURL app delegate method, so you need to pipe this through to the current authorization session (created in the previous instruction). To do this, open `AppDelegate.m` and add an import statement:
