@@ -1,13 +1,13 @@
 # React Native App Auth
 
-React Native bridge for ![AppAuth-iOS](https://github.com/openid/AppAuth-iOS) and ![AppAuth-Android](https://github.com/openid/AppAuth-Android) - an SDK for communicating with OAuth2 providers. It also supports the PKCE extension to OAuth.
+React Native bridge for [AppAuth-iOS](https://github.com/openid/AppAuth-iOS) and [AppAuth-Android](https://github.com/openid/AppAuth-Android) - an SDK for communicating with OAuth2 providers. It also supports the PKCE extension to OAuth.
 
-This library *should* support any OAuth provider that implements the ![OAuth2 spec](https://tools.ietf.org/html/rfc6749#section-2.2) but it has only been tested with:
+This library *should* support any OAuth provider that implements the [OAuth2 spec](https://tools.ietf.org/html/rfc6749#section-2.2) but it has only been tested with:
 
-- ![Identity Server4](https://demo.identityserver.io/) ([Example configuration](#identity-server-4))
-- ![Google](https://developers.google.com/identity/protocols/OAuth2) ([Example configuration](#google))
+- [Identity Server4](https://demo.identityserver.io/) ([Example configuration](#identity-server-4))
+- [Google](https://developers.google.com/identity/protocols/OAuth2) ([Example configuration](#google))
 
-The library uses auto-discovery which mean it relies on the the ![.well-known/openid-configuration](https://openid.net/specs/openid-connect-discovery-1_0.html) endpoint to discover all auth endpoints automatically. It will be possible to extend the library later to add custom configuration.
+The library uses auto-discovery which mean it relies on the the [.well-known/openid-configuration](https://openid.net/specs/openid-connect-discovery-1_0.html) endpoint to discover all auth endpoints automatically. It will be possible to extend the library later to add custom configuration.
 
 ## Supported methods:
 
