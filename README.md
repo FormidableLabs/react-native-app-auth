@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/kadikraman/draftjs-md-converter.svg?branch=master)](https://travis-ci.org/kadikraman/draftjs-md-converter)
 [![npm version](https://badge.fury.io/js/react-native-app-auth.svg)](https://badge.fury.io/js/react-native-app-auth)
 
 # React Native App Auth
