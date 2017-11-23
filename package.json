@@ -46,6 +46,7 @@
     "eslint-config-formidable": "^3.0.0",
     "eslint-plugin-filenames": "^1.2.0",
     "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-jest": "^21.3.2",
     "invariant": "^2.2.2",
     "jest": "^21.2.1",
     "react": "^16.1.1",
