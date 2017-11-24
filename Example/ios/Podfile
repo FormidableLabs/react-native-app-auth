@@ -1,0 +1,6 @@
+# Uncomment the next line to define a global platform for your project
+platform :ios, '11.0'
+
+target 'AppAuthExample' do
+  pod 'AppAuth', '>= 0.91'
+end
