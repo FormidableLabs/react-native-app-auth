@@ -3,16 +3,24 @@
 
 # React Native App Auth
 
-React Native bridge for [AppAuth-iOS](https://github.com/openid/AppAuth-iOS) and [AppAuth-Android](https://github.com/openid/AppAuth-Android) - an SDK for communicating with OAuth2 providers. It also supports the PKCE extension to OAuth.
+React Native bridge for [AppAuth-iOS](https://github.com/openid/AppAuth-iOS) and [AppAuth-Android](https://github.com/openid/AppAuth-Android) SDKS for communicating with
+[OAuth 2.0](https://tools.ietf.org/html/rfc6749) and [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html) providers.
 
-This library *should* support any OAuth provider that implements the [OAuth2 spec](https://tools.ietf.org/html/rfc6749#section-2.2) but it has only been tested with:
+This library *should* support any OAuth provider that implements the [OAuth2 spec](https://tools.ietf.org/html/rfc6749#section-2.2) and it has been tested with:
 
 - [Identity Server4](https://demo.identityserver.io/) ([Example configuration](#identity-server-4))
 - [Google](https://developers.google.com/identity/protocols/OAuth2) ([Example configuration](#google))
 
 The library uses auto-discovery which mean it relies on the the [.well-known/openid-configuration](https://openid.net/specs/openid-connect-discovery-1_0.html) endpoint to discover all auth endpoints automatically. It will be possible to extend the library later to add custom configuration.
 
-## Supported methods:
+## Why you may want to use this library
+
+AppAuth is a mature OAuth client implementation that follows the best practices set out in [RFC 8252 - OAuth 2.0 for Native Apps](https://tools.ietf.org/html/rfc8252)
+including using `SFAuthenticationSession` and `SFSafariViewController` on iOS, and [Custom Tabs](http://developer.android.com/tools/support-library/features.html#custom-tabs) on Android. `WebView`s are explicitly *not* supported due to the security and usability reasons explained in [Section 8.12 of RFC 8252](https://tools.ietf.org/html/rfc8252#section-8.12).
+
+AppAuth also supports the [PKCE](https://tools.ietf.org/html/rfc7636) ("Pixy") extension to OAuth which was created to secure authorization codes in public clients when custom URI scheme redirects are used.
+
+## Supported methods
 
 ### authorize
 This is the main function to use for authentication. Invoking this function will do the whole login flow and returns the access token, refresh token and access token expiry date when successful, or it throws an error when not successful.
