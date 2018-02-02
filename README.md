@@ -17,7 +17,7 @@ This library _should_ support any OAuth provider that implements the
 * [Okta](https://developer.okta.com) ([Example configuration](#okta))
 * [Keycloak](http://www.keycloak.org/) ([Example configuration](#keycloak))
 
-The library uses auto-discovery which mean it relies on the the
+The library uses auto-discovery which means it relies on the the
 [.well-known/openid-configuration](https://openid.net/specs/openid-connect-discovery-1_0.html)
 endpoint to discover all auth endpoints automatically. It will be possible to extend the library
 later to add custom configuration.
