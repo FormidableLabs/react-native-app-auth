@@ -14,6 +14,8 @@ This library _should_ support any OAuth provider that implements the
 * [Identity Server4](https://demo.identityserver.io/) ([Example configuration](#identity-server-4))
 * [Google](https://developers.google.com/identity/protocols/OAuth2)
   ([Example configuration](#google))
+* [Okta](https://developer.okta.com) ([Example configuration](#okta))
+* [Keycloak](http://www.keycloak.org/) ([Example configuration](#keycloak))
 
 The library uses auto-discovery which mean it relies on the the
 [.well-known/openid-configuration](https://openid.net/specs/openid-connect-discovery-1_0.html)
