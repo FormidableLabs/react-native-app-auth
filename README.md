@@ -322,7 +322,7 @@ const sendClientIdOnRevoke = true;
 await appAuth.revokeToken(refreshedState.refreshToken, sendClientIdOnRevoke);
 ```
 
-## Google
+### Google
 
 Full support out of the box.
 
@@ -342,6 +342,49 @@ const refreshedState = appAuth.refresh(authState.refreshToken, scopes);
 
 // Revoke token
 await appAuth.revokeToken(refreshedState.refreshToken);
+```
+
+### Okta
+
+Full support out of the box.
+
+```js
+const scopes = ["openid", "profile"];
+const appAuth = new AppAuth({
+  issuer: 'https://{yourOktaDomain}.com/oauth2/default',
+  clientId: '{clientId}',
+  redirectUrl: 'com.{yourReversedOktaDomain}:/callback'
+});
+
+// Log in to get an authentication token
+const authState = await appAuth.authorize(scopes);
+
+// Refresh token
+const refreshedState = appAuth.refresh(authState.refreshToken, scopes);
+
+// Revoke token
+await appAuth.revokeToken(refreshedState.refreshToken);
+```
+
+### Keycloak
+
+Keycloak [does not specify a revocation endpoint](http://keycloak-user.88327.x6.nabble.com/keycloak-user-Revoking-an-OAuth-Token-td3041.html) so revoke functionality doesn't work.
+
+If you use [JHipster](http://www.jhipster.tech/)'s default Keycloak Docker image, everything will work with the following settings, except for revoke.
+
+```js
+const scopes = ["openid", "profile"];
+const appAuth = new AppAuth({
+  issuer: 'http://localhost:9080/auth/realms/jhipster',
+  clientId: 'web_app',
+  redirectUrl: '<YOUR_REDIRECT_SCHEME>:/callback'
+});
+
+// Log in to get an authentication token
+const authState = await appAuth.authorize(scopes);
+
+// Refresh token
+const refreshedState = appAuth.refresh(authState.refreshToken, scopes);
 ```
 
 ## Contributors
