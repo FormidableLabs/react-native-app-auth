@@ -40,7 +40,7 @@ are used.
 See [Usage](#usage) for example configurations, and the included [Example](Example) application for
 a working sample.
 
-### authorize
+### `authorize`
 
 This is the main function to use for authentication. Invoking this function will do the whole login
 flow and returns the access token, refresh token and access token expiry date when successful, or it
@@ -54,7 +54,7 @@ const result = await appAuth.authorize(scopes);
 // returns accessToken, accessTokenExpirationDate and refreshToken
 ```
 
-### refresh
+### `refresh`
 
 This method will refresh the accessToken using the refreshToken. Some auth providers will also give
 you a new refreshToken
@@ -64,7 +64,7 @@ const result = await appAuth.refresh(refreshToken, scopes);
 // returns accessToken, accessTokenExpirationDate and (maybe) refreshToken
 ```
 
-### revokeToken
+### `revokeToken`
 
 This method will revoke a token. The tokenToRevoke can be either an accessToken or a refreshToken
 
