@@ -14,6 +14,8 @@ This library _should_ support any OAuth provider that implements the
 * [Identity Server4](https://demo.identityserver.io/) ([Example configuration](#identity-server-4))
 * [Google](https://developers.google.com/identity/protocols/OAuth2)
   ([Example configuration](#google))
+* [Okta](https://developer.okta.com) ([Example configuration](#okta))
+* [Keycloak](http://www.keycloak.org/) ([Example configuration](#keycloak))
 
 The library uses auto-discovery which mean it relies on the the
 [.well-known/openid-configuration](https://openid.net/specs/openid-connect-discovery-1_0.html)
@@ -322,7 +324,7 @@ const sendClientIdOnRevoke = true;
 await appAuth.revokeToken(refreshedState.refreshToken, sendClientIdOnRevoke);
 ```
 
-## Google
+### Google
 
 Full support out of the box.
 
@@ -342,6 +344,55 @@ const refreshedState = appAuth.refresh(authState.refreshToken, scopes);
 
 // Revoke token
 await appAuth.revokeToken(refreshedState.refreshToken);
+```
+
+### Okta
+
+Full support out of the box.
+
+> If you're using Okta and want to add App Auth to your React Native application, you'll need an application to authorize against. If you don't have an Okta Developer account, [you can signup for free](https://developer.okta.com/signup/).
+>
+> Log in to your Okta Developer account and navigate to **Applications** > **Add Application**. Click **Native** and click the **Next** button. Give the app a name you’ll remember (e.g., `React Native`), select `Refresh Token` as a grant type, in addition to the default `Authorization Code`. Copy the **Login redirect URI** (e.g., `com.oktapreview.dev-158606:/callback`) and save it somewhere. You'll need this value when configuring your app.
+>
+> Click **Done** and you'll see a client ID on the next screen. Copy the redirect URI and clientId values into your App Auth config.
+
+```js
+const scopes = ["openid", "profile"];
+const appAuth = new AppAuth({
+  issuer: 'https://{yourOktaDomain}.com/oauth2/default',
+  clientId: '{clientId}',
+  redirectUrl: 'com.{yourReversedOktaDomain}:/callback'
+});
+
+// Log in to get an authentication token
+const authState = await appAuth.authorize(scopes);
+
+// Refresh token
+const refreshedState = appAuth.refresh(authState.refreshToken, scopes);
+
+// Revoke token
+await appAuth.revokeToken(refreshedState.refreshToken);
+```
+
+### Keycloak
+
+Keycloak [does not specify a revocation endpoint](http://keycloak-user.88327.x6.nabble.com/keycloak-user-Revoking-an-OAuth-Token-td3041.html) so revoke functionality doesn't work.
+
+If you use [JHipster](http://www.jhipster.tech/)'s default Keycloak Docker image, everything will work with the following settings, except for revoke.
+
+```js
+const scopes = ["openid", "profile"];
+const appAuth = new AppAuth({
+  issuer: 'http://localhost:9080/auth/realms/jhipster',
+  clientId: 'web_app',
+  redirectUrl: '<YOUR_REDIRECT_SCHEME>:/callback'
+});
+
+// Log in to get an authentication token
+const authState = await appAuth.authorize(scopes);
+
+// Refresh token
+const refreshedState = appAuth.refresh(authState.refreshToken, scopes);
 ```
 
 ## Contributors
