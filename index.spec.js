@@ -4,9 +4,9 @@ jest.mock('react-native', () => ({
   NativeModules: {
     RNAppAuth: {
       authorize: jest.fn(),
-      refresh: jest.fn()
-    }
-  }
+      refresh: jest.fn(),
+    },
+  },
 }));
 
 describe('AppAuth', () => {
@@ -16,7 +16,7 @@ describe('AppAuth', () => {
   const config = {
     issuer: 'test-issuer',
     redirectUrl: 'test-redirectUrl',
-    clientId: 'test-clientId'
+    clientId: 'test-clientId',
   };
 
   beforeAll(() => {
