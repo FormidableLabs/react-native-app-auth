@@ -120,6 +120,9 @@ RCT_REMAP_METHOD(refresh,
                                                                                                           @"accessToken": response.accessToken ? response.accessToken : @"",
                                                                                                           @"refreshToken": response.refreshToken ? response.refreshToken : @"",
                                                                                                           @"accessTokenExpirationDate": exporationDateString,
+                                                                                                          @"tokenType": response.tokenType ? response.tokenType : @"",
+                                                                                                          @"idToken": response.idToken ? response.idToken : @"",
+                                                                                                          @"additionalParameters": response.additionalParameters,
                                                                                                           });
                                                                                               } else {
                                                                                                 reject(@"RNAppAuth Error", [error localizedDescription], error);
