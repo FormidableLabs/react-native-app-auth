@@ -1,6 +1,7 @@
 ---
 extends:
   - formidable
+  - prettier
 plugins:
   - jest
 env:
