@@ -29,6 +29,7 @@ import net.openid.appauth.TokenRequest;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 
 public class RNAppAuthModule extends ReactContextBaseJavaModule implements ActivityEventListener {
 
@@ -61,8 +62,29 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
         WritableMap map = Arguments.createMap();
         map.putString("accessToken", response.accessToken);
+        map.putString("tokenType", response.tokenType);
         map.putString("accessTokenExpirationDate", expirationDateString);
         map.putString("refreshToken", response.refreshToken);
+        map.putString("idToken", response.idToken);
+
+        WritableMap additionalParametersMap = Arguments.createMap();
+
+        if (!response.additionalParameters.isEmpty()) {
+
+            Iterator<String> iterator = response.additionalParameters.keySet().iterator();
+
+            while(iterator.hasNext()) {
+                String key = iterator.next();
+                additionalParametersMap.putString(key, response.additionalParameters.get(key));
+            }
+
+            map.putMap("additionalParameters", additionalParametersMap);
+        }
+
+        map.putMap("additionalParameters", additionalParametersMap);
+
+        System.out.println(map);
+
         return map;
     }
 

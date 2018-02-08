@@ -54,15 +54,25 @@ const result = await appAuth.authorize(scopes);
 // returns accessToken, accessTokenExpirationDate and refreshToken
 ```
 
-#### config
+#### `config`
 
 This is your configuration object for the client
-- **issuer**: (`string`) *REQUIRED* the url of the auth server
-- **clientId**: (`string`) *REQUIRED* your client id on the auth server
-- **redirectUrl**: (`string`) *REQUIRED* the url that links back to your app with the auth code
-- **additionalParameters**: (`object` | `null`) additional parameters that will be passed in the authorization request.
+- **issuer** - (`string`) *REQUIRED* the url of the auth server
+- **clientId** - (`string`) *REQUIRED* your client id on the auth server
+- **redirectUrl** - (`string`) *REQUIRED* the url that links back to your app with the auth code
+- **additionalParameters** - (`object` | `null`) additional parameters that will be passed in the authorization request.
 Must be string values! E.g. setting `additionalParameters: { hello: 'world', foo: 'bar' }` would add
 `hello=world&foo=bar` to the authorization request.
+
+### `result`
+
+This is the result from the auth server
+- **accessToken** - (`string`) the access token
+- **tokenType** - (`string`) the token type, e.g. Bearer
+- **accessTokenExpirationDate** - (`string`) the token expiration date
+- **refreshToken** - (`string`) the refresh token
+- **idToken** - (`string`) the id token
+- **additionalParameters** - (`Object`) additional url parameters from the auth server
 
 ### `refresh`
 
