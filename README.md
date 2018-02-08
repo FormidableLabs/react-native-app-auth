@@ -60,7 +60,9 @@ This is your configuration object for the client
 - **issuer**: (`string`) *REQUIRED* the url of the auth server
 - **clientId**: (`string`) *REQUIRED* your client id on the auth server
 - **redirectUrl**: (`string`) *REQUIRED* the url that links back to your app with the auth code
-- **additionalParameters**: (`object` | `null`) additional parameters that will be passed in the authorization request
+- **additionalParameters**: (`object` | `null`) additional parameters that will be passed in the authorization request.
+Must be string values! E.g. setting `additionalParameters: { hello: 'world', foo: 'bar' }` would add
+`hello=world&foo=bar` to the authorization request.
 
 ### `refresh`
 
