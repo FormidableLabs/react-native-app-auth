@@ -72,7 +72,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
         ReadableMapKeySetIterator iterator = additionalParameters.keySetIterator();
 
-        if (iterator.hasNextKey()) {
+        while (iterator.hasNextKey()) {
             String nextKey = iterator.nextKey();
             additionalParametersHash.put(nextKey, additionalParameters.getString(nextKey));
         }
