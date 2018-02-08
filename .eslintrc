@@ -4,6 +4,7 @@ extends:
   - prettier
 plugins:
   - jest
+  - prettier
 env:
   jest/globals: true
   browser: true
@@ -20,3 +21,6 @@ rules:
   comma-dangle:
     - 2
     - always-multiline
+  prettier/prettier:
+    - error
+    - trailingComma: es5
