@@ -83,8 +83,6 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
         map.putMap("additionalParameters", additionalParametersMap);
 
-        System.out.println(map);
-
         return map;
     }
 
