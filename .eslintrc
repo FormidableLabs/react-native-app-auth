@@ -1,6 +1,7 @@
 ---
 extends:
   - formidable
+  - prettier
 plugins:
   - jest
 env:
@@ -16,3 +17,6 @@ rules:
     - off
   arrow-parens:
     - off
+  comma-dangle:
+    - 2
+    - always-multiline

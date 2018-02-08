@@ -5,7 +5,14 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "precommit": "lint-staged"
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "git add"
+    ]
   },
   "files": [
     "package.json",
@@ -44,11 +51,14 @@
     "babel-preset-env": "^1.6.1",
     "eslint": "2.10.2",
     "eslint-config-formidable": "^3.0.0",
+    "eslint-config-prettier": "^2.9.0",
     "eslint-plugin-filenames": "^1.2.0",
     "eslint-plugin-import": "^2.8.0",
     "eslint-plugin-jest": "^21.3.2",
+    "husky": "^0.14.3",
     "invariant": "^2.2.2",
     "jest": "^21.2.1",
+    "lint-staged": "^6.1.0",
     "react": "^16.1.1",
     "react-native": "^0.50.3"
   },

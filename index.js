@@ -61,9 +61,9 @@ export default class AppAuth {
     return await fetch(openidConfig.revocation_endpoint, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: `token=${tokenToRevoke}${sendClientId ? `&client_id=${this.config.clientId}` : ''}`
+      body: `token=${tokenToRevoke}${sendClientId ? `&client_id=${this.config.clientId}` : ''}`,
     }).catch(error => {
       throw new Error('Failed to revoke token', error);
     });
