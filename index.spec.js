@@ -17,6 +17,7 @@ describe('AppAuth', () => {
     issuer: 'test-issuer',
     redirectUrl: 'test-redirectUrl',
     clientId: 'test-clientId',
+    additionalParameters: { hello: 'world' },
   };
 
   beforeAll(() => {
@@ -31,6 +32,11 @@ describe('AppAuth', () => {
     it('saves the config correctly', () => {
       const appAuth = new AppAuth(config);
       expect(appAuth.getConfig()).toEqual(config);
+    });
+
+    it('saves the additionalParameters correctly if they are empty', () => {
+      const appAuth = new AppAuth({ ...config, additionalParameters: undefined });
+      expect(appAuth.getConfig()).toEqual({ ...config, additionalParameters: undefined });
     });
 
     it('throws an error when issuer is not a string', () => {
@@ -81,7 +87,8 @@ describe('AppAuth', () => {
         config.issuer,
         config.redirectUrl,
         config.clientId,
-        scopes
+        scopes,
+        config.additionalParameters
       );
     });
   });
@@ -124,7 +131,8 @@ describe('AppAuth', () => {
         config.redirectUrl,
         config.clientId,
         refreshToken,
-        scopes
+        scopes,
+        config.additionalParameters
       );
     });
   });

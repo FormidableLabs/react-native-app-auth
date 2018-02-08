@@ -23,7 +23,8 @@ export default class AppAuth {
       this.config.issuer,
       this.config.redirectUrl,
       this.config.clientId,
-      scopes
+      scopes,
+      this.config.additionalParameters
     );
   }
 
@@ -36,7 +37,8 @@ export default class AppAuth {
       this.config.redirectUrl,
       this.config.clientId,
       refreshToken,
-      scopes
+      scopes,
+      this.config.additionalParameters
     );
   }
 
