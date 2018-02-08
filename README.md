@@ -54,7 +54,7 @@ const result = await appAuth.authorize(scopes);
 // returns accessToken, accessTokenExpirationDate and refreshToken
 ```
 
-## config
+#### config
 
 This is your configuration object for the client
 - **issuer**: (`string`) *REQUIRED* the url of the auth server

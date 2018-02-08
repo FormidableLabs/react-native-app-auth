@@ -13,6 +13,8 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReadableArray;
+import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.WritableMap;
 
 import net.openid.appauth.AuthorizationException;
@@ -26,6 +28,7 @@ import net.openid.appauth.TokenRequest;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 
 public class RNAppAuthModule extends ReactContextBaseJavaModule implements ActivityEventListener {
 
@@ -63,8 +66,29 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         return map;
     }
 
+    private HashMap<String, String> additionalParametersToMap(ReadableMap additionalParameters) {
+
+        HashMap<String, String> additionalParametersHash = new HashMap<>();
+
+        ReadableMapKeySetIterator iterator = additionalParameters.keySetIterator();
+
+        if (iterator.hasNextKey()) {
+            String nextKey = iterator.nextKey();
+            additionalParametersHash.put(nextKey, additionalParameters.getString(nextKey));
+        }
+
+        return additionalParametersHash;
+    }
+
     @ReactMethod
-    public void authorize(String issuer, final String redirectUrl, final String clientId, final ReadableArray scopes, final Promise promise) {
+    public void authorize(
+            String issuer,
+            final String redirectUrl,
+            final String clientId,
+            final ReadableArray scopes,
+            final ReadableMap additionalParameters,
+            final Promise promise
+    ) {
 
         final Context context = this.reactContext;
         this.promise = promise;
@@ -88,11 +112,16 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                         serviceConfiguration,
                                         clientId,
                                         ResponseTypeValues.CODE,
-                                        Uri.parse(redirectUrl));
+                                        Uri.parse(redirectUrl)
+                                )
+                                        .setScope(scopesString);
 
-                        AuthorizationRequest authRequest = authRequestBuilder
-                                .setScope(scopesString)
-                                .build();
+                        if (additionalParameters != null) {
+                            authRequestBuilder.setAdditionalParameters(additionalParametersToMap(additionalParameters));
+                        }
+
+                        AuthorizationRequest authRequest = authRequestBuilder.build();
+
                         AuthorizationService authService = new AuthorizationService(context);
                         Intent authIntent = authService.getAuthorizationRequestIntent(authRequest);
                         currentActivity.startActivityForResult(authIntent, 0);
@@ -103,7 +132,15 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     }
 
     @ReactMethod
-    public void refresh(String issuer, final String redirectUrl, final String clientId, final String refreshToken, final ReadableArray scopes, final Promise promise) {
+    public void refresh(
+            String issuer,
+            final String redirectUrl,
+            final String clientId,
+            final String refreshToken,
+            final ReadableArray scopes,
+            final ReadableMap additionalParameters,
+            final Promise promise
+    ) {
         final Context context = this.reactContext;
 
         final String scopesString = this.arrayToString(scopes);
@@ -123,13 +160,17 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                 new TokenRequest.Builder(
                                         serviceConfiguration,
                                         clientId
-                                );
+                                )
+                                        .setScope(scopesString)
+                                        .setRefreshToken(refreshToken)
+                                        .setRedirectUri(Uri.parse(redirectUrl));
 
-                        TokenRequest tokenRequest = tokenRequestBuilder
-                                .setScope(scopesString)
-                                .setRefreshToken(refreshToken)
-                                .setRedirectUri(Uri.parse(redirectUrl))
-                                .build();
+                        if (additionalParameters != null) {
+                            tokenRequestBuilder.setAdditionalParameters(additionalParametersToMap(additionalParameters));
+                        }
+
+                        TokenRequest tokenRequest = tokenRequestBuilder.build();
+
 
                         AuthorizationService authService = new AuthorizationService(context);
 
