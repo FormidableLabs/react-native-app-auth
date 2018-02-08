@@ -54,6 +54,16 @@ const result = await appAuth.authorize(scopes);
 // returns accessToken, accessTokenExpirationDate and refreshToken
 ```
 
+#### config
+
+This is your configuration object for the client
+- **issuer**: (`string`) *REQUIRED* the url of the auth server
+- **clientId**: (`string`) *REQUIRED* your client id on the auth server
+- **redirectUrl**: (`string`) *REQUIRED* the url that links back to your app with the auth code
+- **additionalParameters**: (`object` | `null`) additional parameters that will be passed in the authorization request.
+Must be string values! E.g. setting `additionalParameters: { hello: 'world', foo: 'bar' }` would add
+`hello=world&foo=bar` to the authorization request.
+
 ### `refresh`
 
 This method will refresh the accessToken using the refreshToken. Some auth providers will also give
@@ -280,7 +290,7 @@ import AppAuth from 'react-native-app-auth';
 // initialise the client with your configuration
 const appAuth = new AppAuth({
   issuer: '<YOUR_ISSUER_URL>',
-  clientId: '<YOUR_CLIENT_ID',
+  clientId: '<YOUR_CLIENT_ID>',
   redirectUrl: '<YOUR_REDIRECT_URL>',
 });
 

@@ -18,6 +18,7 @@ RCT_REMAP_METHOD(authorize,
                  redirectUrl: (NSString *) redirectUrl
                  clientId: (NSString *) clientId
                  scopes: (NSArray *) scopes
+                 additionalParameters: (NSDictionary *_Nullable) additionalParameters
                  resolve:(RCTPromiseResolveBlock) resolve
                  reject: (RCTPromiseRejectBlock)  reject)
 {
@@ -35,7 +36,7 @@ RCT_REMAP_METHOD(authorize,
                                                                                                         scopes:scopes
                                                                                                    redirectURL:[NSURL URLWithString:redirectUrl]
                                                                                                   responseType:OIDResponseTypeCode
-                                                                                          additionalParameters:nil];
+                                                                                          additionalParameters:additionalParameters];
 
 
                                                         // performs authentication request
@@ -79,6 +80,7 @@ RCT_REMAP_METHOD(refresh,
                  clientId: (NSString *) clientId
                  refreshToken: (NSString *) refreshToken
                  scopes: (NSArray *) scopes
+                 additionalParameters: (NSDictionary *_Nullable) additionalParameters
                  resolve:(RCTPromiseResolveBlock) resolve
                  reject: (RCTPromiseRejectBlock)  reject)
 {
@@ -99,7 +101,7 @@ RCT_REMAP_METHOD(refresh,
                                                                                                 scopes:scopes
                                                                                           refreshToken:refreshToken
                                                                                           codeVerifier:nil
-                                                                                  additionalParameters:nil];
+                                                                                  additionalParameters:additionalParameters];
 
                                                         [OIDAuthorizationService performTokenRequest:tokenRefreshRequest
                                                                                             callback:^(OIDTokenResponse *_Nullable response,
