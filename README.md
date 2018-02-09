@@ -68,11 +68,11 @@ Must be string values! E.g. setting `additionalParameters: { hello: 'world', foo
 
 This is the result from the auth server
 - **accessToken** - (`string`) the access token
-- **tokenType** - (`string`) the token type, e.g. Bearer
 - **accessTokenExpirationDate** - (`string`) the token expiration date
-- **refreshToken** - (`string`) the refresh token
-- **idToken** - (`string`) the id token
 - **additionalParameters** - (`Object`) additional url parameters from the auth server
+- **idToken** - (`string`) the id token
+- **refreshToken** - (`string`) the refresh token
+- **tokenType** - (`string`) the token type, e.g. Bearer
 
 ### `refresh`
 

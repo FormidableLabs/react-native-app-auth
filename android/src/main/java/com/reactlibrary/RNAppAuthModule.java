@@ -59,14 +59,6 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         Date expirationDate = new Date(response.accessTokenExpirationTime);
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
         String expirationDateString = formatter.format(expirationDate);
-
-        WritableMap map = Arguments.createMap();
-        map.putString("accessToken", response.accessToken);
-        map.putString("tokenType", response.tokenType);
-        map.putString("accessTokenExpirationDate", expirationDateString);
-        map.putString("refreshToken", response.refreshToken);
-        map.putString("idToken", response.idToken);
-
         WritableMap additionalParametersMap = Arguments.createMap();
 
         if (!response.additionalParameters.isEmpty()) {
@@ -81,7 +73,13 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             map.putMap("additionalParameters", additionalParametersMap);
         }
 
+        WritableMap map = Arguments.createMap();
+        map.putString("accessToken", response.accessToken);
+        map.putString("accessTokenExpirationDate", expirationDateString);
         map.putMap("additionalParameters", additionalParametersMap);
+        map.putString("idToken", response.idToken);
+        map.putString("refreshToken", response.refreshToken);
+        map.putString("tokenType", response.tokenType);
 
         return map;
     }

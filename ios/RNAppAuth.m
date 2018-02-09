@@ -57,11 +57,11 @@ RCT_REMAP_METHOD(authorize,
 
                                                                                                            NSDictionary *authStateDict = @{
                                                                                                                                            @"accessToken": authState.lastTokenResponse.accessToken,
-                                                                                                                                           @"tokenType": authState.lastTokenResponse.tokenType,
                                                                                                                                            @"accessTokenExpirationDate": exporationDateString,
+                                                                                                                                           @"additionalParameters": authState.lastTokenResponse.additionalParameters,
                                                                                                                                            @"idToken": authState.lastTokenResponse.idToken,
                                                                                                                                            @"refreshToken": authState.lastTokenResponse.refreshToken ? authState.lastTokenResponse.refreshToken : @"",
-                                                                                                                                           @"additionalParameters": authState.lastTokenResponse.additionalParameters,
+                                                                                                                                           @"tokenType": authState.lastTokenResponse.tokenType,
                                                                                                                                            };
                                                                                                            resolve(authStateDict);
                                                                                                          } else {
@@ -118,11 +118,11 @@ RCT_REMAP_METHOD(refresh,
 
                                                                                                 resolve(@{
                                                                                                           @"accessToken": response.accessToken ? response.accessToken : @"",
-                                                                                                          @"refreshToken": response.refreshToken ? response.refreshToken : @"",
                                                                                                           @"accessTokenExpirationDate": exporationDateString,
-                                                                                                          @"tokenType": response.tokenType ? response.tokenType : @"",
-                                                                                                          @"idToken": response.idToken ? response.idToken : @"",
                                                                                                           @"additionalParameters": response.additionalParameters,
+                                                                                                          @"idToken": response.idToken ? response.idToken : @"",
+                                                                                                          @"refreshToken": response.refreshToken ? response.refreshToken : @"",
+                                                                                                          @"tokenType": response.tokenType ? response.tokenType : @"",
                                                                                                           });
                                                                                               } else {
                                                                                                 reject(@"RNAppAuth Error", [error localizedDescription], error);
