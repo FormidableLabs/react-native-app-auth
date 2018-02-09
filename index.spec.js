@@ -91,7 +91,7 @@ describe('AppAuth', () => {
 
     it('throws an error when redirectUrl is not a string', () => {
       expect(() => {
-        authorize({ ...config }, { redirectUrl: {} });
+        authorize({ ...config, redirectUrl: {} });
       }).toThrow('Config error: redirectUrl must be a string');
     });
 
@@ -103,7 +103,7 @@ describe('AppAuth', () => {
 
     it('throws an error when no refreshToken is passed in', () => {
       expect(() => {
-        refresh(config);
+        refresh(config, {});
       }).toThrow('Please pass in a refresh token');
     });
 
