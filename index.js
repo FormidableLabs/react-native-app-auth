@@ -3,71 +3,77 @@ import { NativeModules } from 'react-native';
 
 const { RNAppAuth } = NativeModules;
 
-export default class AppAuth {
-  constructor(config) {
-    invariant(typeof config.issuer === 'string', 'Config error: issuer must be a string');
-    invariant(typeof config.clientId === 'string', 'Config error: clientId must be a string');
-    invariant(typeof config.redirectUrl === 'string', 'Config error: redirectUrl must be a string');
+const validateScopes = scopes =>
+  invariant(scopes && scopes.length, 'Scope error: please add at least one scope');
+const validateIssuer = issuer =>
+  invariant(typeof issuer === 'string', 'Config error: issuer must be a string');
+const validateClientId = clientId =>
+  invariant(typeof clientId === 'string', 'Config error: clientId must be a string');
+const validateRedirectUrl = redirectUrl =>
+  invariant(typeof redirectUrl === 'string', 'Config error: redirectUrl must be a string');
 
-    this.config = { ...config };
-  }
+export const authorize = ({ issuer, redirectUrl, clientId, scopes, additionalParameters }) => {
+  validateScopes(scopes);
+  validateIssuer(issuer);
+  validateClientId(clientId);
+  validateRedirectUrl(redirectUrl);
+  // TODO: validateAdditionalParameters
 
-  getConfig() {
-    return this.config;
-  }
+  return RNAppAuth.authorize(issuer, redirectUrl, clientId, scopes, additionalParameters);
+};
 
-  authorize(scopes) {
-    invariant(scopes && scopes.length, 'Scope error: please add at least one scope');
+export const refresh = ({
+  issuer,
+  redirectUrl,
+  clientId,
+  refreshToken,
+  scopes,
+  additionalParameters,
+}) => {
+  validateScopes(scopes);
+  validateIssuer(issuer);
+  validateClientId(clientId);
+  validateRedirectUrl(redirectUrl);
+  invariant(refreshToken, 'Please pass in a refresh token');
+  // TODO: validateAdditionalParameters
 
-    return RNAppAuth.authorize(
-      this.config.issuer,
-      this.config.redirectUrl,
-      this.config.clientId,
-      scopes,
-      this.config.additionalParameters
-    );
-  }
+  return RNAppAuth.refresh(
+    issuer,
+    redirectUrl,
+    clientId,
+    refreshToken,
+    scopes,
+    additionalParameters
+  );
+};
 
-  refresh(refreshToken, scopes) {
-    invariant(refreshToken, 'Please pass in a refresh token');
-    invariant(scopes && scopes.length, 'Scope error: please add at least one scope');
+export const revoke = async ({ tokenToRevoke, sendClientId = false, clientId, issuer }) => {
+  invariant(tokenToRevoke, 'Please include the token to revoke');
+  validateClientId(clientId);
+  validateIssuer(issuer);
 
-    return RNAppAuth.refresh(
-      this.config.issuer,
-      this.config.redirectUrl,
-      this.config.clientId,
-      refreshToken,
-      scopes,
-      this.config.additionalParameters
-    );
-  }
+  const response = await fetch(`${issuer}/.well-known/openid-configuration`);
+  const openidConfig = await response.json();
 
-  async revokeToken(tokenToRevoke, sendClientId = false) {
-    invariant(tokenToRevoke, 'Please include the token to revoke');
+  invariant(
+    openidConfig.revocation_endpoint,
+    'The openid config does not specify a revocation endpoint'
+  );
 
-    const response = await fetch(`${this.config.issuer}/.well-known/openid-configuration`);
-    const openidConfig = await response.json();
+  /**
+    Identity Server insists on client_id being passed in the body,
+    but Google does not. According to the spec, Google is right
+    so defaulting to no client_id
+    https://tools.ietf.org/html/rfc7009#section-2.1
+  **/
 
-    invariant(
-      openidConfig.revocation_endpoint,
-      'The openid config does not specify a revocation endpoint'
-    );
-
-    /**
-      Identity Server insists on client_id being passed in the body,
-      but Google does not. According to the spec, Google is right
-      so defaulting to no client_id
-      https://tools.ietf.org/html/rfc7009#section-2.1
-    **/
-
-    return await fetch(openidConfig.revocation_endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: `token=${tokenToRevoke}${sendClientId ? `&client_id=${this.config.clientId}` : ''}`,
-    }).catch(error => {
-      throw new Error('Failed to revoke token', error);
-    });
-  }
-}
+  return await fetch(openidConfig.revocation_endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: `token=${tokenToRevoke}${sendClientId ? `&client_id=${clientId}` : ''}`,
+  }).catch(error => {
+    throw new Error('Failed to revoke token', error);
+  });
+};
