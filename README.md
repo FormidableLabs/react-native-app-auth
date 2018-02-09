@@ -104,9 +104,8 @@ const config = {
   scopes: '<YOUR_SCOPES_ARRAY>',
 };
 
-const result = await refresh({
-  ...config,
-  refreshToken: `<REFRESH_TOKEN>`,
+const result = await refresh(config, {
+  refreshToken: `<REFRESH_TOKEN>`
 });
 ```
 
@@ -124,8 +123,7 @@ const config = {
   scopes: '<YOUR_SCOPES_ARRAY>',
 };
 
-const result = await revoke({
-  ...config,
+const result = await revoke(config, {
   tokenToRevoke: `<TOKEN_TO_REVOKE>`
 });
 ```
@@ -379,8 +377,7 @@ const refreshedState = await refresh({
 });
 
 // Revoke token, note that Identity Server expects a client id on revoke
-await revoke({
-  ...config,
+await revoke(config, {
   tokenToRevoke: refreshedState.refreshToken,
   sendClientId: true
 });
@@ -402,14 +399,12 @@ const config = {
 const authState = await authorize(config);
 
 // Refresh token
-const refreshedState = await refresh({
-  ...config,
+const refreshedState = await refresh(config, {
   refreshToken: authState.refreshToken
 });
 
 // Revoke token
-await revoke({
-  ...config,
+await revoke(config, {
   tokenToRevoke: refreshedState.refreshToken
 });
 ```
@@ -436,14 +431,12 @@ const config = {
 const authState = await authorize(config);
 
 // Refresh token
-const refreshedState = await refresh({
-  ...config,
+const refreshedState = await refresh(config, {
   refreshToken: authState.refreshToken,
 });
 
 // Revoke token
-await revoke({
-  ...config,
+await revoke(config, {
   tokenToRevoke: refreshedState.refreshToken
 });
 ```
@@ -466,8 +459,7 @@ const config = {
 const authState = await authorize(config);
 
 // Refresh token
-const refreshedState = await refresh({
-  ...config,
+const refreshedState = await refresh(config, {
   refreshToken: authState.refreshToken,
 });
 ```

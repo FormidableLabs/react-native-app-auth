@@ -21,7 +21,7 @@ describe('AppAuth', () => {
     mockRefresh.mockReturnValue('REFRESHED');
   });
 
-  const baseConfig = {
+  const config = {
     issuer: 'test-issuer',
     redirectUrl: 'test-redirectUrl',
     clientId: 'test-clientId',
@@ -37,42 +37,42 @@ describe('AppAuth', () => {
 
     it('throws an error when issuer is not a string', () => {
       expect(() => {
-        authorize({ ...baseConfig, issuer: () => ({}) });
+        authorize({ ...config, issuer: () => ({}) });
       }).toThrow('Config error: issuer must be a string');
     });
 
     it('throws an error when redirectUrl is not a string', () => {
       expect(() => {
-        authorize({ ...baseConfig, redirectUrl: {} });
+        authorize({ ...config, redirectUrl: {} });
       }).toThrow('Config error: redirectUrl must be a string');
     });
 
     it('throws an error when clientId is not a string', () => {
       expect(() => {
-        authorize({ ...baseConfig, clientId: 123 });
+        authorize({ ...config, clientId: 123 });
       }).toThrow('Config error: clientId must be a string');
     });
 
     it('throws an error when no scopes are passed in', () => {
       expect(() => {
-        authorize({ ...baseConfig, scopes: undefined });
+        authorize({ ...config, scopes: undefined });
       }).toThrow('Scope error: please add at least one scope');
     });
 
     it('throws an error when an empty scope array is passed in', () => {
       expect(() => {
-        authorize({ ...baseConfig, scopes: [] });
+        authorize({ ...config, scopes: [] });
       }).toThrow('Scope error: please add at least one scope');
     });
 
     it('calls the native wrapper with the correct args', () => {
-      authorize(baseConfig);
+      authorize(config);
       expect(mockAuthorize).toHaveBeenCalledWith(
-        baseConfig.issuer,
-        baseConfig.redirectUrl,
-        baseConfig.clientId,
-        baseConfig.scopes,
-        baseConfig.additionalParameters
+        config.issuer,
+        config.redirectUrl,
+        config.clientId,
+        config.scopes,
+        config.additionalParameters
       );
     });
   });
@@ -85,49 +85,49 @@ describe('AppAuth', () => {
 
     it('throws an error when issuer is not a string', () => {
       expect(() => {
-        authorize({ ...baseConfig, issuer: () => ({}) });
+        authorize({ ...config, issuer: () => ({}) });
       }).toThrow('Config error: issuer must be a string');
     });
 
     it('throws an error when redirectUrl is not a string', () => {
       expect(() => {
-        authorize({ ...baseConfig, redirectUrl: {} });
+        authorize({ ...config }, { redirectUrl: {} });
       }).toThrow('Config error: redirectUrl must be a string');
     });
 
     it('throws an error when clientId is not a string', () => {
       expect(() => {
-        authorize({ ...baseConfig, clientId: 123 });
+        authorize({ ...config, clientId: 123 });
       }).toThrow('Config error: clientId must be a string');
     });
 
     it('throws an error when no refreshToken is passed in', () => {
       expect(() => {
-        refresh(baseConfig);
+        refresh(config);
       }).toThrow('Please pass in a refresh token');
     });
 
     it('throws an error when no scopes are passed in', () => {
       expect(() => {
-        refresh({ ...baseConfig, refreshToken: 'such-token', scopes: undefined });
+        refresh({ ...config, scopes: undefined }, { refreshToken: 'such-token' });
       }).toThrow('Scope error: please add at least one scope');
     });
 
     it('throws an error when an empty scope array is passed in', () => {
       expect(() => {
-        refresh({ ...baseConfig, refreshToken: 'such-token', scopes: [] });
+        refresh({ ...config, scopes: [] }, { refreshToken: 'such-token' });
       }).toThrow('Scope error: please add at least one scope');
     });
 
     it('calls the native wrapper with the correct args', () => {
-      refresh({ ...baseConfig, refreshToken: 'such-token' });
+      refresh({ ...config }, { refreshToken: 'such-token' });
       expect(mockRefresh).toHaveBeenCalledWith(
-        baseConfig.issuer,
-        baseConfig.redirectUrl,
-        baseConfig.clientId,
+        config.issuer,
+        config.redirectUrl,
+        config.clientId,
         'such-token',
-        baseConfig.scopes,
-        baseConfig.additionalParameters
+        config.scopes,
+        config.additionalParameters
       );
     });
   });

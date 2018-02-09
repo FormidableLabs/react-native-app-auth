@@ -22,14 +22,10 @@ export const authorize = ({ issuer, redirectUrl, clientId, scopes, additionalPar
   return RNAppAuth.authorize(issuer, redirectUrl, clientId, scopes, additionalParameters);
 };
 
-export const refresh = ({
-  issuer,
-  redirectUrl,
-  clientId,
-  refreshToken,
-  scopes,
-  additionalParameters,
-}) => {
+export const refresh = (
+  { issuer, redirectUrl, clientId, scopes, additionalParameters },
+  { refreshToken }
+) => {
   validateScopes(scopes);
   validateIssuer(issuer);
   validateClientId(clientId);
@@ -47,7 +43,7 @@ export const refresh = ({
   );
 };
 
-export const revoke = async ({ tokenToRevoke, sendClientId = false, clientId, issuer }) => {
+export const revoke = async ({ clientId, issuer }, { tokenToRevoke, sendClientId = false }) => {
   invariant(tokenToRevoke, 'Please include the token to revoke');
   validateClientId(clientId);
   validateIssuer(issuer);
