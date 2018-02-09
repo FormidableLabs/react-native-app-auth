@@ -1,14 +1,10 @@
-// @flow
-
 import React, { Component } from 'react';
 import { UIManager, LayoutAnimation } from 'react-native';
-import AppAuth from 'react-native-app-auth';
+import { authorize, refresh, revoke } from 'react-native-app-auth';
 import { Page, Button, ButtonContainer, Form, Heading } from './components';
 
 UIManager.setLayoutAnimationEnabledExperimental &&
   UIManager.setLayoutAnimationEnabledExperimental(true);
-
-const scopes = ['openid', 'profile', 'email', 'offline_access'];
 
 type State = {
   hasLoggedInOnce: boolean,
@@ -17,13 +13,15 @@ type State = {
   refreshToken: ?string
 };
 
-export default class App extends Component<{}, State> {
-  auth = new AppAuth({
-    issuer: 'https://demo.identityserver.io',
-    clientId: 'native.code',
-    redirectUrl: 'io.identityserver.demo:/oauthredirect'
-  });
+const config = {
+  issuer: 'https://demo.identityserver.io',
+  clientId: 'native.code',
+  redirectUrl: 'io.identityserver.demo:/oauthredirect',
+  additionalParameters: {},
+  scopes: ['openid', 'profile', 'email', 'offline_access']
+};
 
+export default class App extends Component<{}, State> {
   state = {
     hasLoggedInOnce: false,
     accessToken: '',
@@ -42,7 +40,8 @@ export default class App extends Component<{}, State> {
 
   authorize = async () => {
     try {
-      const authState = await this.auth.authorize(scopes);
+      const authState = await authorize(config);
+      console.log('auth result ', authState);
       this.animateState(
         {
           hasLoggedInOnce: true,
@@ -59,7 +58,12 @@ export default class App extends Component<{}, State> {
 
   refresh = async () => {
     try {
-      const authState = await this.auth.refresh(this.state.refreshToken, scopes);
+      const authState = await refresh({
+        ...config,
+        refreshToken: this.state.refreshToken
+      });
+      console.log('refresh result ', authState);
+
       this.animateState({
         accessToken: authState.accessToken || this.state.accessToken,
         accessTokenExpirationDate:
@@ -73,7 +77,11 @@ export default class App extends Component<{}, State> {
 
   revoke = async () => {
     try {
-      await this.auth.revokeToken(this.state.accessToken, true);
+      await revoke({
+        ...config,
+        tokenToRevoke: this.state.accessToken,
+        sendClientId: true
+      });
       this.animateState({
         accessToken: '',
         accessTokenExpirationDate: '',

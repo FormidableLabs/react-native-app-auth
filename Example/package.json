@@ -9,7 +9,7 @@
 	"dependencies": {
 		"react": "16.0.0",
 		"react-native": "0.50.3",
-		"react-native-app-auth": "^1.0.1",
+		"react-native-app-auth": "git+https://git@github.com/FormidableLabs/react-native-app-auth.git#96f57eab7f0b2388bb2f3c87897ff3decaeebef6",
 		"styled-components": "^2.2.3"
 	},
 	"devDependencies": {

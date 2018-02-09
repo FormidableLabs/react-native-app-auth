@@ -55,19 +55,19 @@ throws an error when not successful.
 ```js
 import { authorize } from 'react-native-app-auth';
 
-const baseConfig = {
+const config = {
   issuer: '<YOUR_ISSUER_URL>',
   clientId: '<YOUR_CLIENT_ID>',
   redirectUrl: '<YOUR_REDIRECT_URL>',
   scopes: `<YOUR_SCOPES_ARRAY>`
 };
 
-const result = await authorize(baseConfig);
+const result = await authorize(config);
 ```
 
-#### `baseConfig`
+#### `config`
 
-This is your configuration object for the client. The baseConfig is passed into each of the methods
+This is your configuration object for the client. The config is passed into each of the methods
 with optional overrides.
 
 * **issuer** - (`string`) _REQUIRED_ the url of the auth server
@@ -97,7 +97,7 @@ you a new refreshToken
 ```js
 import { refresh } from 'react-native-app-auth';
 
-const baseConfig = {
+const config = {
   issuer: '<YOUR_ISSUER_URL>',
   clientId: '<YOUR_CLIENT_ID>',
   redirectUrl: '<YOUR_REDIRECT_URL>',
@@ -105,7 +105,7 @@ const baseConfig = {
 };
 
 const result = await refresh({
-  ...baseConfig,
+  ...config,
   refreshToken: `<REFRESH_TOKEN>`,
 });
 ```
@@ -117,7 +117,7 @@ This method will revoke a token. The tokenToRevoke can be either an accessToken 
 ```js
 import { revoke } from 'react-native-app-auth';
 
-const baseConfig = {
+const config = {
   issuer: '<YOUR_ISSUER_URL>',
   clientId: '<YOUR_CLIENT_ID>',
   redirectUrl: '<YOUR_REDIRECT_URL>',
@@ -125,7 +125,7 @@ const baseConfig = {
 };
 
 const result = await revoke({
-  ...baseConfig,
+  ...config,
   refreshToken: `<REFRESH_TOKEN>`
 });
 ```
@@ -334,7 +334,7 @@ The scheme is the beginning of your OAuth Redirect URL, up to the scheme separat
 import { authorize } from 'react-native-app-auth';
 
 // base config
-const baseConfig = {
+const config = {
   issuer: '<YOUR_ISSUER_URL>',
   clientId: '<YOUR_CLIENT_ID>',
   redirectUrl: '<YOUR_REDIRECT_URL>',
@@ -343,7 +343,7 @@ const baseConfig = {
 
 // use the client to make the auth request and receive the authState
 try {
-  const result = await authorize(baseConfig);
+  const result = await authorize(config);
   // result includes accessToken, accessTokenExpirationDate and refreshToken
 } catch (error) {
   console.log(error);
@@ -362,7 +362,7 @@ This library supports authenticating for Identity Server 4 out of the box. Some 
 
 ```js
 // Note "offline_access" scope is required to get a refresh token
-const baseConfig = {
+const config = {
   issuer: 'https://demo.identityserver.io',
   clientId: 'native.code',
   redirectUrl: 'io.identityserver.demo:/oauthredirect',
@@ -370,14 +370,14 @@ const baseConfig = {
 };
 
 // Log in to get an authentication token
-const authState = await authorize(baseConfig);
+const authState = await authorize(config);
 
 // Refresh token
-const refreshedState = refresh({ ...baseConfig, refreshToken: authState.refreshToken });
+const refreshedState = refresh({ ...config, refreshToken: authState.refreshToken });
 
 // Revoke token, note that Identity Server expects a client id on revoke
 await appAuth.revoke({
-  ...baseConfig,
+  ...config,
   tokenToRevoke: refreshedState.refreshToken,
   sendClientId: true
 });
@@ -388,7 +388,7 @@ await appAuth.revoke({
 Full support out of the box.
 
 ```js
-const baseConfig = {
+const config = {
   issuer: 'https://accounts.google.com',
   clientId: 'GOOGLE_OAUTH_APP_GUID.apps.googleusercontent.com',
   redirectUrl: 'com.googleusercontent.apps.GOOGLE_OAUTH_APP_GUID:/oauth2redirect/google',
@@ -396,17 +396,17 @@ const baseConfig = {
 };
 
 // Log in to get an authentication token
-const authState = await authorize(baseConfig);
+const authState = await authorize(config);
 
 // Refresh token
 const refreshedState = appAuth.refresh({
-  ...baseConfig,
+  ...config,
   refreshToken: authState.refreshToken
 });
 
 // Revoke token
 await revoke({
-  ...baseConfig,
+  ...config,
   tokenToRevoke: refreshedState.refreshToken
 });
 ```
@@ -422,7 +422,7 @@ Full support out of the box.
 > Click **Done** and you'll see a client ID on the next screen. Copy the redirect URI and clientId values into your App Auth config.
 
 ```js
-const baseConfig = {
+const config = {
   issuer: 'https://{yourOktaDomain}.com/oauth2/default',
   clientId: '{clientId}',
   redirectUrl: 'com.{yourReversedOktaDomain}:/callback',
@@ -430,17 +430,17 @@ const baseConfig = {
 };
 
 // Log in to get an authentication token
-const authState = await authorize(baseConfig);
+const authState = await authorize(config);
 
 // Refresh token
 const refreshedState = await refresh({
-  ...baseConfig,
+  ...config,
   refreshToken: authState.refreshToken,
 });
 
 // Revoke token
 await revoke({
-  ...baseConfig,
+  ...config,
   tokenToRevoke: refreshedState.refreshToken
 });
 ```
@@ -452,7 +452,7 @@ Keycloak [does not specify a revocation endpoint](http://keycloak-user.88327.x6.
 If you use [JHipster](http://www.jhipster.tech/)'s default Keycloak Docker image, everything will work with the following settings, except for revoke.
 
 ```js
-const baseConfig = {
+const config = {
   issuer: 'http://localhost:9080/auth/realms/jhipster',
   clientId: 'web_app',
   redirectUrl: '<YOUR_REDIRECT_SCHEME>:/callback'
@@ -460,11 +460,11 @@ const baseConfig = {
 };
 
 // Log in to get an authentication token
-const authState = await authorize(baseConfig);
+const authState = await authorize(config);
 
 // Refresh token
 const refreshedState = await refresh({
-  ...baseConfig,
+  ...config,
   refreshToken: authState.refreshToken,
 });
 ```
