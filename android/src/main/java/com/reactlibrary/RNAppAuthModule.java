@@ -69,8 +69,6 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                 String key = iterator.next();
                 additionalParametersMap.putString(key, response.additionalParameters.get(key));
             }
-
-            map.putMap("additionalParameters", additionalParametersMap);
         }
 
         WritableMap map = Arguments.createMap();
