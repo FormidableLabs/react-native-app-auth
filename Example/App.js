@@ -41,7 +41,7 @@ export default class App extends Component<{}, State> {
   authorize = async () => {
     try {
       const authState = await authorize(config);
-      console.log('auth result ', authState);
+      
       this.animateState(
         {
           hasLoggedInOnce: true,
@@ -61,7 +61,6 @@ export default class App extends Component<{}, State> {
       const authState = await refresh(config, {
         refreshToken: this.state.refreshToken
       });
-      console.log('refresh result ', authState);
 
       this.animateState({
         accessToken: authState.accessToken || this.state.accessToken,
