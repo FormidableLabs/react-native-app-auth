@@ -1,7 +1,11 @@
-[![Build Status](https://travis-ci.org/kadikraman/draftjs-md-converter.svg?branch=master)](https://travis-ci.org/kadikraman/draftjs-md-converter)
-[![npm version](https://badge.fury.io/js/react-native-app-auth.svg)](https://badge.fury.io/js/react-native-app-auth)
+<p align="center"><img src="https://raw.githubusercontent.com/FormidableLabs/react-native-app-auth/master/docs/react-native-app-auth-logo.png" width=224></p>
+<h2 align="center">React Native App Auth</h2>
+<p align="center">
+<strong>React native bridge for AppAuth - an SDK for communicating with OAuth2 providers</strong>
+<br><br>
 
-# React Native App Auth
+[![Build Status](https://travis-ci.org/FormidableLabs/react-native-app-auth.svg?branch=master)](https://travis-ci.org/FormidableLabs/react-native-app-auth)
+[![npm version](https://badge.fury.io/js/react-native-app-auth.svg)](https://badge.fury.io/js/react-native-app-auth)
 
 React Native bridge for [AppAuth-iOS](https://github.com/openid/AppAuth-iOS) and
 [AppAuth-Android](https://github.com/openid/AppAuth-Android) SDKS for communicating with
