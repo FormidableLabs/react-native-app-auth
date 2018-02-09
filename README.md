@@ -41,6 +41,8 @@ AppAuth also supports the [PKCE](https://tools.ietf.org/html/rfc7636) ("Pixy") e
 which was created to secure authorization codes in public clients when custom URI scheme redirects
 are used.
 
+To learn more, read [this short introduction to OAuth and PKCE](https://formidable.com/blog/2018/oauth-and-pkce-with-react-native) on the Formidable blog.
+
 ## Supported methods
 
 See [Usage](#usage) for example configurations, and the included [Example](Example) application for
