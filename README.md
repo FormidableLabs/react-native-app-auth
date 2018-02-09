@@ -7,7 +7,7 @@
 [![Build Status](https://travis-ci.org/FormidableLabs/react-native-app-auth.svg?branch=master)](https://travis-ci.org/FormidableLabs/react-native-app-auth)
 [![npm version](https://badge.fury.io/js/react-native-app-auth.svg)](https://badge.fury.io/js/react-native-app-auth)
 
-## This is the API documentation for `react-native-app-auth >= 2.0.` See version `1.x` documentation [here](https://github.com/FormidableLabs/react-native-app-auth/tree/v1.0.1).
+## This is the API documentation for `react-native-app-auth >= 2.0.` [See version `1.x` documentation here](https://github.com/FormidableLabs/react-native-app-auth/tree/v1.0.1).
 
 React Native bridge for [AppAuth-iOS](https://github.com/openid/AppAuth-iOS) and
 [AppAuth-Android](https://github.com/openid/AppAuth-Android) SDKS for communicating with
