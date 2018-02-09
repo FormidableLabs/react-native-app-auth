@@ -1,4 +1,4 @@
-import AppAuth from './';
+import { authorize, refresh } from './';
 
 jest.mock('react-native', () => ({
   NativeModules: {
@@ -13,13 +13,6 @@ describe('AppAuth', () => {
   let mockAuthorize;
   let mockRefresh;
 
-  const config = {
-    issuer: 'test-issuer',
-    redirectUrl: 'test-redirectUrl',
-    clientId: 'test-clientId',
-    additionalParameters: { hello: 'world' },
-  };
-
   beforeAll(() => {
     mockAuthorize = require('react-native').NativeModules.RNAppAuth.authorize;
     mockAuthorize.mockReturnValue('AUTHORIZED');
@@ -28,35 +21,13 @@ describe('AppAuth', () => {
     mockRefresh.mockReturnValue('REFRESHED');
   });
 
-  describe('when initialising a new instance', () => {
-    it('saves the config correctly', () => {
-      const appAuth = new AppAuth(config);
-      expect(appAuth.getConfig()).toEqual(config);
-    });
-
-    it('saves the additionalParameters correctly if they are empty', () => {
-      const appAuth = new AppAuth({ ...config, additionalParameters: undefined });
-      expect(appAuth.getConfig()).toEqual({ ...config, additionalParameters: undefined });
-    });
-
-    it('throws an error when issuer is not a string', () => {
-      expect(() => {
-        new AppAuth({ ...config, issuer: () => ({}) }); // eslint-disable-line no-new
-      }).toThrow('Config error: issuer must be a string');
-    });
-
-    it('throws an error when redirectUrl is not a string', () => {
-      expect(() => {
-        new AppAuth({ ...config, redirectUrl: {} }); // eslint-disable-line no-new
-      }).toThrow('Config error: redirectUrl must be a string');
-    });
-
-    it('throws an error when clientId is not a string', () => {
-      expect(() => {
-        new AppAuth({ ...config, clientId: 123 }); // eslint-disable-line no-new
-      }).toThrow('Config error: clientId must be a string');
-    });
-  });
+  const config = {
+    issuer: 'test-issuer',
+    redirectUrl: 'test-redirectUrl',
+    clientId: 'test-clientId',
+    additionalParameters: { hello: 'world' },
+    scopes: ['my-scope'],
+  };
 
   describe('authorize', () => {
     beforeEach(() => {
@@ -64,30 +35,43 @@ describe('AppAuth', () => {
       mockRefresh.mockReset();
     });
 
-    const scopes = ['my-scope'];
+    it('throws an error when issuer is not a string', () => {
+      expect(() => {
+        authorize({ ...config, issuer: () => ({}) });
+      }).toThrow('Config error: issuer must be a string');
+    });
+
+    it('throws an error when redirectUrl is not a string', () => {
+      expect(() => {
+        authorize({ ...config, redirectUrl: {} });
+      }).toThrow('Config error: redirectUrl must be a string');
+    });
+
+    it('throws an error when clientId is not a string', () => {
+      expect(() => {
+        authorize({ ...config, clientId: 123 });
+      }).toThrow('Config error: clientId must be a string');
+    });
 
     it('throws an error when no scopes are passed in', () => {
-      const appAuth = new AppAuth(config);
       expect(() => {
-        appAuth.authorize();
+        authorize({ ...config, scopes: undefined });
       }).toThrow('Scope error: please add at least one scope');
     });
 
     it('throws an error when an empty scope array is passed in', () => {
-      const appAuth = new AppAuth(config);
       expect(() => {
-        appAuth.authorize([]);
+        authorize({ ...config, scopes: [] });
       }).toThrow('Scope error: please add at least one scope');
     });
 
     it('calls the native wrapper with the correct args', () => {
-      const appAuth = new AppAuth(config);
-      appAuth.authorize(scopes);
+      authorize(config);
       expect(mockAuthorize).toHaveBeenCalledWith(
         config.issuer,
         config.redirectUrl,
         config.clientId,
-        scopes,
+        config.scopes,
         config.additionalParameters
       );
     });
@@ -99,39 +83,50 @@ describe('AppAuth', () => {
       mockRefresh.mockReset();
     });
 
-    const refreshToken = 'my-sample-token';
-    const scopes = ['my-scope'];
+    it('throws an error when issuer is not a string', () => {
+      expect(() => {
+        authorize({ ...config, issuer: () => ({}) });
+      }).toThrow('Config error: issuer must be a string');
+    });
+
+    it('throws an error when redirectUrl is not a string', () => {
+      expect(() => {
+        authorize({ ...config, redirectUrl: {} });
+      }).toThrow('Config error: redirectUrl must be a string');
+    });
+
+    it('throws an error when clientId is not a string', () => {
+      expect(() => {
+        authorize({ ...config, clientId: 123 });
+      }).toThrow('Config error: clientId must be a string');
+    });
 
     it('throws an error when no refreshToken is passed in', () => {
-      const appAuth = new AppAuth(config);
       expect(() => {
-        appAuth.refresh();
+        refresh(config, {});
       }).toThrow('Please pass in a refresh token');
     });
 
     it('throws an error when no scopes are passed in', () => {
-      const appAuth = new AppAuth(config);
       expect(() => {
-        appAuth.refresh(refreshToken);
+        refresh({ ...config, scopes: undefined }, { refreshToken: 'such-token' });
       }).toThrow('Scope error: please add at least one scope');
     });
 
     it('throws an error when an empty scope array is passed in', () => {
-      const appAuth = new AppAuth(config);
       expect(() => {
-        appAuth.refresh(refreshToken, []);
+        refresh({ ...config, scopes: [] }, { refreshToken: 'such-token' });
       }).toThrow('Scope error: please add at least one scope');
     });
 
     it('calls the native wrapper with the correct args', () => {
-      const appAuth = new AppAuth(config);
-      appAuth.refresh(refreshToken, scopes);
+      refresh({ ...config }, { refreshToken: 'such-token' });
       expect(mockRefresh).toHaveBeenCalledWith(
         config.issuer,
         config.redirectUrl,
         config.clientId,
-        refreshToken,
-        scopes,
+        'such-token',
+        config.scopes,
         config.additionalParameters
       );
     });

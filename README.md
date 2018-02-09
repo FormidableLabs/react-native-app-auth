@@ -7,6 +7,8 @@
 [![Build Status](https://travis-ci.org/FormidableLabs/react-native-app-auth.svg?branch=master)](https://travis-ci.org/FormidableLabs/react-native-app-auth)
 [![npm version](https://badge.fury.io/js/react-native-app-auth.svg)](https://badge.fury.io/js/react-native-app-auth)
 
+#### This is the API documentation for `react-native-app-auth >= 2.0.` [See version `1.x` documentation here](https://github.com/FormidableLabs/react-native-app-auth/tree/v1.0.1).
+
 React Native bridge for [AppAuth-iOS](https://github.com/openid/AppAuth-iOS) and
 [AppAuth-Android](https://github.com/openid/AppAuth-Android) SDKS for communicating with
 [OAuth 2.0](https://tools.ietf.org/html/rfc6749) and
@@ -51,32 +53,41 @@ flow and returns the access token, refresh token and access token expiry date wh
 throws an error when not successful.
 
 ```js
-import AppAuth from 'react-native-app-auth';
+import { authorize } from 'react-native-app-auth';
 
-const appAuth = new AppAuth(config);
-const result = await appAuth.authorize(scopes);
-// returns accessToken, accessTokenExpirationDate and refreshToken
+const config = {
+  issuer: '<YOUR_ISSUER_URL>',
+  clientId: '<YOUR_CLIENT_ID>',
+  redirectUrl: '<YOUR_REDIRECT_URL>',
+  scopes: '<YOUR_SCOPES_ARRAY>'
+};
+
+const result = await authorize(config);
 ```
 
-#### `config`
+#### config
 
-This is your configuration object for the client
-- **issuer** - (`string`) *REQUIRED* the url of the auth server
-- **clientId** - (`string`) *REQUIRED* your client id on the auth server
-- **redirectUrl** - (`string`) *REQUIRED* the url that links back to your app with the auth code
-- **additionalParameters** - (`object` | `null`) additional parameters that will be passed in the authorization request.
-Must be string values! E.g. setting `additionalParameters: { hello: 'world', foo: 'bar' }` would add
-`hello=world&foo=bar` to the authorization request.
+This is your configuration object for the client. The config is passed into each of the methods
+with optional overrides.
 
-### `result`
+* **issuer** - (`string`) _REQUIRED_ the url of the auth server
+* **clientId** - (`string`) _REQUIRED_ your client id on the auth server
+* **redirectUrl** - (`string`) _REQUIRED_ the url that links back to your app with the auth code
+* **scopes** - (`array<string>`) _REQUIRED_ the scopes for your token, e.g. `['email', 'offline_access']`
+* **additionalParameters** - (`object`) additional parameters that will be passed in the authorization request.
+  Must be string values! E.g. setting `additionalParameters: { hello: 'world', foo: 'bar' }` would add
+  `hello=world&foo=bar` to the authorization request.
+
+#### result
 
 This is the result from the auth server
-- **accessToken** - (`string`) the access token
-- **accessTokenExpirationDate** - (`string`) the token expiration date
-- **additionalParameters** - (`Object`) additional url parameters from the auth server
-- **idToken** - (`string`) the id token
-- **refreshToken** - (`string`) the refresh token
-- **tokenType** - (`string`) the token type, e.g. Bearer
+
+* **accessToken** - (`string`) the access token
+* **accessTokenExpirationDate** - (`string`) the token expiration date
+* **additionalParameters** - (`Object`) additional url parameters from the auth server
+* **idToken** - (`string`) the id token
+* **refreshToken** - (`string`) the refresh token
+* **tokenType** - (`string`) the token type, e.g. Bearer
 
 ### `refresh`
 
@@ -84,17 +95,37 @@ This method will refresh the accessToken using the refreshToken. Some auth provi
 you a new refreshToken
 
 ```js
-const result = await appAuth.refresh(refreshToken, scopes);
-// returns accessToken, accessTokenExpirationDate and (maybe) refreshToken
+import { refresh } from 'react-native-app-auth';
+
+const config = {
+  issuer: '<YOUR_ISSUER_URL>',
+  clientId: '<YOUR_CLIENT_ID>',
+  redirectUrl: '<YOUR_REDIRECT_URL>',
+  scopes: '<YOUR_SCOPES_ARRAY>',
+};
+
+const result = await refresh(config, {
+  refreshToken: `<REFRESH_TOKEN>`
+});
 ```
 
-### `revokeToken`
+### `revoke`
 
 This method will revoke a token. The tokenToRevoke can be either an accessToken or a refreshToken
 
 ```js
-// note, sendClientId=true will only be required when using IdentityServer
-const result = await appAuth.revokeToken(tokenToRevoke, sendClientId);
+import { revoke } from 'react-native-app-auth';
+
+const config = {
+  issuer: '<YOUR_ISSUER_URL>',
+  clientId: '<YOUR_CLIENT_ID>',
+  redirectUrl: '<YOUR_REDIRECT_URL>',
+  scopes: '<YOUR_SCOPES_ARRAY>',
+};
+
+const result = await revoke(config, {
+  tokenToRevoke: `<TOKEN_TO_REVOKE>`
+});
 ```
 
 ## Getting started
@@ -113,8 +144,7 @@ steps instead.
 
 #### iOS
 
-1. In XCode, in the project navigator, right click `Libraries` ➜ `Add Files to [your project's
-   name]`
+1. In XCode, in the project navigator, right click `Libraries` ➜ `Add Files to [your project's name]`
 2. Go to `node_modules` ➜ `react-native-app-auth` and add `RNAppAuth.xcodeproj`
 3. In XCode, in the project navigator, select your project. Add `libRNAppAuth.a` to your project's
    `Build Phases` ➜ `Link Binary With Libraries`
@@ -299,19 +329,19 @@ The scheme is the beginning of your OAuth Redirect URL, up to the scheme separat
 ## Usage
 
 ```javascript
-import AppAuth from 'react-native-app-auth';
+import { authorize } from 'react-native-app-auth';
 
-// initialise the client with your configuration
-const appAuth = new AppAuth({
+// base config
+const config = {
   issuer: '<YOUR_ISSUER_URL>',
   clientId: '<YOUR_CLIENT_ID>',
   redirectUrl: '<YOUR_REDIRECT_URL>',
-});
+  scopes: '<YOUR_SCOPES_ARRAY>'
+};
 
 // use the client to make the auth request and receive the authState
 try {
-  const scopes = ['profile'];
-  const result = await appAuth.authorize(scopes);
+  const result = await authorize(config);
   // result includes accessToken, accessTokenExpirationDate and refreshToken
 } catch (error) {
   console.log(error);
@@ -330,22 +360,27 @@ This library supports authenticating for Identity Server 4 out of the box. Some 
 
 ```js
 // Note "offline_access" scope is required to get a refresh token
-const scopes = ["openid", "profile", "offline_access"];
-const appAuth = new AppAuth({
-  issuer: "https://demo.identityserver.io",
-  clientId: "native.code",
-  redirectUrl: "io.identityserver.demo:/oauthredirect"
-});
+const config = {
+  issuer: 'https://demo.identityserver.io',
+  clientId: 'native.code',
+  redirectUrl: 'io.identityserver.demo:/oauthredirect',
+  scopes: ['openid', 'profile', 'offline_access']
+};
 
 // Log in to get an authentication token
-const authState = await appAuth.authorize(scopes);
+const authState = await authorize(config);
 
 // Refresh token
-const refreshedState = appAuth.refresh(authState.refreshToken, scopes);
+const refreshedState = await refresh({
+  ...config,
+  refreshToken: authState.refreshToken,
+});
 
 // Revoke token, note that Identity Server expects a client id on revoke
-const sendClientIdOnRevoke = true;
-await appAuth.revokeToken(refreshedState.refreshToken, sendClientIdOnRevoke);
+await revoke(config, {
+  tokenToRevoke: refreshedState.refreshToken,
+  sendClientId: true
+});
 ```
 
 ### Google
@@ -353,21 +388,25 @@ await appAuth.revokeToken(refreshedState.refreshToken, sendClientIdOnRevoke);
 Full support out of the box.
 
 ```js
-const scopes = ["openid", "profile"];
-const appAuth = new AppAuth({
-  issuer: "https://accounts.google.com",
-  clientId: "GOOGLE_OAUTH_APP_GUID.apps.googleusercontent.com",
-  redirectUrl: "com.googleusercontent.apps.GOOGLE_OAUTH_APP_GUID:/oauth2redirect/google"
-});
+const config = {
+  issuer: 'https://accounts.google.com',
+  clientId: 'GOOGLE_OAUTH_APP_GUID.apps.googleusercontent.com',
+  redirectUrl: 'com.googleusercontent.apps.GOOGLE_OAUTH_APP_GUID:/oauth2redirect/google',
+  scopes: ['openid', 'profile', 'offline_access']
+};
 
 // Log in to get an authentication token
-const authState = await appAuth.authorize(scopes);
+const authState = await authorize(config);
 
 // Refresh token
-const refreshedState = appAuth.refresh(authState.refreshToken, scopes);
+const refreshedState = await refresh(config, {
+  refreshToken: authState.refreshToken
+});
 
 // Revoke token
-await appAuth.revokeToken(refreshedState.refreshToken);
+await revoke(config, {
+  tokenToRevoke: refreshedState.refreshToken
+});
 ```
 
 ### Okta
@@ -381,21 +420,25 @@ Full support out of the box.
 > Click **Done** and you'll see a client ID on the next screen. Copy the redirect URI and clientId values into your App Auth config.
 
 ```js
-const scopes = ["openid", "profile"];
-const appAuth = new AppAuth({
+const config = {
   issuer: 'https://{yourOktaDomain}.com/oauth2/default',
   clientId: '{clientId}',
-  redirectUrl: 'com.{yourReversedOktaDomain}:/callback'
-});
+  redirectUrl: 'com.{yourReversedOktaDomain}:/callback',
+  scopes: ['openid', 'profile']
+};
 
 // Log in to get an authentication token
-const authState = await appAuth.authorize(scopes);
+const authState = await authorize(config);
 
 // Refresh token
-const refreshedState = appAuth.refresh(authState.refreshToken, scopes);
+const refreshedState = await refresh(config, {
+  refreshToken: authState.refreshToken,
+});
 
 // Revoke token
-await appAuth.revokeToken(refreshedState.refreshToken);
+await revoke(config, {
+  tokenToRevoke: refreshedState.refreshToken
+});
 ```
 
 ### Keycloak
@@ -405,18 +448,20 @@ Keycloak [does not specify a revocation endpoint](http://keycloak-user.88327.x6.
 If you use [JHipster](http://www.jhipster.tech/)'s default Keycloak Docker image, everything will work with the following settings, except for revoke.
 
 ```js
-const scopes = ["openid", "profile"];
-const appAuth = new AppAuth({
+const config = {
   issuer: 'http://localhost:9080/auth/realms/jhipster',
   clientId: 'web_app',
   redirectUrl: '<YOUR_REDIRECT_SCHEME>:/callback'
-});
+  scopes: ['openid', 'profile']
+};
 
 // Log in to get an authentication token
-const authState = await appAuth.authorize(scopes);
+const authState = await authorize(config);
 
 // Refresh token
-const refreshedState = appAuth.refresh(authState.refreshToken, scopes);
+const refreshedState = await refresh(config, {
+  refreshToken: authState.refreshToken,
+});
 ```
 
 ## Contributors
