@@ -58,8 +58,7 @@ export default class App extends Component<{}, State> {
 
   refresh = async () => {
     try {
-      const authState = await refresh({
-        ...config,
+      const authState = await refresh(config, {
         refreshToken: this.state.refreshToken
       });
       console.log('refresh result ', authState);
@@ -77,8 +76,7 @@ export default class App extends Component<{}, State> {
 
   revoke = async () => {
     try {
-      await revoke({
-        ...config,
+      await revoke(config, {
         tokenToRevoke: this.state.accessToken,
         sendClientId: true
       });
