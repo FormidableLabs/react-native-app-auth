@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { UIManager, LayoutAnimation } from 'react-native';
+import { UIManager, LayoutAnimation, Alert } from 'react-native';
 import { authorize, refresh, revoke } from 'react-native-app-auth';
 import { Page, Button, ButtonContainer, Form, Heading } from './components';
 
@@ -52,7 +52,7 @@ export default class App extends Component<{}, State> {
         500
       );
     } catch (error) {
-      console.error(error);
+      Alert.alert('Failed to log in', error.message);
     }
   };
 
@@ -69,7 +69,7 @@ export default class App extends Component<{}, State> {
         refreshToken: authState.refreshToken || this.state.refreshToken
       });
     } catch (error) {
-      console.error(error);
+      Alert.alert('Failed to refresh token', error.message);
     }
   };
 
@@ -85,7 +85,7 @@ export default class App extends Component<{}, State> {
         refreshToken: ''
       });
     } catch (error) {
-      console.error(error);
+      Alert.alert('Failed to revoke token', error.message);
     }
   };
 
