@@ -1,9 +1,17 @@
-export interface AppAuthInput {
+export interface AuthConfiguration extends BaseAuthConfiguration {
     scopes: string[];
-    issuer: string;
-    clientId: string;
     redirectUrl: string;
     aditionalParameters?: object;
+  }
+
+  export interface BaseAuthConfiguration{
+    issuer: string;
+    clientId: string;
+  }
+
+  export interface RevokeConfiguration{
+    clientId: string;
+    issuer: string;
   }
 
   export interface AuthorizeResult {
@@ -15,14 +23,19 @@ export interface AppAuthInput {
     tokenType: string;
   }
 
-  export function authorize(properties: AppAuthInput): Promise<AuthorizeResult>;
+  export interface RevokeOptions {
+    tokenToRevoke: string;
+    sendClientId?: boolean;
+  }
+
+  export function authorize(properties: AuthConfiguration): Promise<AuthorizeResult>;
 
   export function refresh(
-    properties: AppAuthInput,
+    properties: AuthConfiguration,
     { refreshToken: string }
   ): Promise<AuthorizeResult>;
 
   export function revoke(
-    properties: AppAuthInput,
-    { tokenToRevoke: string, sendClientId: boolean }
+    properties: BaseAuthConfiguration,
+    options: RevokeOptions
 ): Promise<void>;
