@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.facebook.react.bridge.ActivityEventListener;
@@ -22,14 +23,23 @@ import net.openid.appauth.AuthorizationRequest;
 import net.openid.appauth.AuthorizationResponse;
 import net.openid.appauth.AuthorizationService;
 import net.openid.appauth.AuthorizationServiceConfiguration;
+import net.openid.appauth.Preconditions;
 import net.openid.appauth.ResponseTypeValues;
 import net.openid.appauth.TokenResponse;
 import net.openid.appauth.TokenRequest;
+import net.openid.appauth.connectivity.ConnectionBuilder;
+import net.openid.appauth.connectivity.DefaultConnectionBuilder;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.sql.Connection;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.concurrent.TimeUnit;
 
 public class RNAppAuthModule extends ReactContextBaseJavaModule implements ActivityEventListener {
 
@@ -96,6 +106,22 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         return additionalParametersHash;
     }
 
+    private ConnectionBuilder createConnectionBuilder(Boolean allowInsecureConnections) {
+
+        if (allowInsecureConnections.equals(true)) {
+            return new UnsafeConnectionBuilder();
+        }
+
+        return DefaultConnectionBuilder.INSTANCE;
+    }
+
+    static Uri buildConfigurationUriFromIssuer(Uri openIdConnectIssuerUri) {
+        return openIdConnectIssuerUri.buildUpon()
+                .appendPath(AuthorizationServiceConfiguration.WELL_KNOWN_PATH)
+                .appendPath(AuthorizationServiceConfiguration.OPENID_CONFIGURATION_RESOURCE)
+                .build();
+    }
+
     @ReactMethod
     public void authorize(
             String issuer,
@@ -103,6 +129,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final String clientId,
             final ReadableArray scopes,
             final ReadableMap additionalParameters,
+            final Boolean dangerouslyAllowInsecureHttpRequests,
             final Promise promise
     ) {
 
@@ -111,9 +138,11 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         final Activity currentActivity = getCurrentActivity();
 
         final String scopesString = this.arrayToString(scopes);
+        final Uri issuerUri = Uri.parse(issuer);
+        final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests);
 
-        AuthorizationServiceConfiguration.fetchFromIssuer(
-                Uri.parse(issuer),
+        AuthorizationServiceConfiguration.fetchFromUrl(
+                buildConfigurationUriFromIssuer(issuerUri),
                 new AuthorizationServiceConfiguration.RetrieveConfigurationCallback() {
                     public void onFetchConfigurationCompleted(
                             @Nullable AuthorizationServiceConfiguration serviceConfiguration,
@@ -143,7 +172,9 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                         currentActivity.startActivityForResult(authIntent, 0);
 
                     }
-                });
+                },
+                builder
+        );
 
     }
 
@@ -155,14 +186,16 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final String refreshToken,
             final ReadableArray scopes,
             final ReadableMap additionalParameters,
+            final Boolean dangerouslyAllowInsecureHttpRequests,
             final Promise promise
     ) {
         final Context context = this.reactContext;
-
         final String scopesString = this.arrayToString(scopes);
+        final Uri issuerUri = Uri.parse(issuer);
+        final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests);
 
-        AuthorizationServiceConfiguration.fetchFromIssuer(
-                Uri.parse(issuer),
+        AuthorizationServiceConfiguration.fetchFromUrl(
+                buildConfigurationUriFromIssuer(issuerUri),
                 new AuthorizationServiceConfiguration.RetrieveConfigurationCallback() {
                     public void onFetchConfigurationCompleted(
                             @Nullable AuthorizationServiceConfiguration serviceConfiguration,
@@ -203,7 +236,8 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                         });
 
                     }
-                });
+                },
+        builder);
     }
 
     @Override
@@ -247,5 +281,24 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     @Override
     public String getName() {
         return "RNAppAuth";
+    }
+}
+
+
+final class UnsafeConnectionBuilder implements ConnectionBuilder {
+
+    private static final int CONNECTION_TIMEOUT_MS = (int) TimeUnit.SECONDS.toMillis(15);
+    private static final int READ_TIMEOUT_MS = (int) TimeUnit.SECONDS.toMillis(10);
+
+
+    @NonNull
+    @Override
+    public HttpURLConnection openConnection(@NonNull Uri uri) throws IOException {
+        Preconditions.checkNotNull(uri, "url must not be null");
+        HttpURLConnection conn = (HttpURLConnection) new URL(uri.toString()).openConnection();
+        conn.setConnectTimeout(CONNECTION_TIMEOUT_MS);
+        conn.setReadTimeout(READ_TIMEOUT_MS);
+        conn.setInstanceFollowRedirects(false);
+        return conn;
     }
 }

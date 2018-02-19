@@ -12,18 +12,25 @@ const validateClientId = clientId =>
 const validateRedirectUrl = redirectUrl =>
   invariant(typeof redirectUrl === 'string', 'Config error: redirectUrl must be a string');
 
-export const authorize = ({ issuer, redirectUrl, clientId, scopes, additionalParameters }) => {
+export const authorize = ({ issuer, redirectUrl, clientId, scopes, additionalParameters, dangerouslyAllowInsecureHttpRequests = false }) => {
   validateScopes(scopes);
   validateIssuer(issuer);
   validateClientId(clientId);
   validateRedirectUrl(redirectUrl);
   // TODO: validateAdditionalParameters
 
-  return RNAppAuth.authorize(issuer, redirectUrl, clientId, scopes, additionalParameters);
+  return RNAppAuth.authorize(
+    issuer,
+    redirectUrl,
+    clientId,
+    scopes,
+    additionalParameters,
+    dangerouslyAllowInsecureHttpRequests
+  );
 };
 
 export const refresh = (
-  { issuer, redirectUrl, clientId, scopes, additionalParameters },
+  { issuer, redirectUrl, clientId, scopes, additionalParameters, dangerouslyAllowInsecureHttpRequests = false },
   { refreshToken }
 ) => {
   validateScopes(scopes);
@@ -39,7 +46,8 @@ export const refresh = (
     clientId,
     refreshToken,
     scopes,
-    additionalParameters
+    additionalParameters,
+    dangerouslyAllowInsecureHttpRequests
   );
 };
 
