@@ -6,6 +6,7 @@ export interface AuthConfiguration extends BaseAuthConfiguration {
   scopes: string[];
   redirectUrl: string;
   additionalParameters?: { [name: string]: string };
+  dangerouslyAllowInsecureHttpRequests?: boolean;
 }
 
 export interface RevokeConfiguration {
