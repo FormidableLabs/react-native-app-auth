@@ -12,20 +12,21 @@ const validateClientId = clientId =>
 const validateRedirectUrl = redirectUrl =>
   invariant(typeof redirectUrl === 'string', 'Config error: redirectUrl must be a string');
 
-export const authorize = ({ issuer, redirectUrl, clientId, scopes, additionalParameters, dangerouslyAllowInsecureHttpRequests = false }) => {
+export const authorize = ({
+  issuer,
+  redirectUrl,
+  clientId,
+  scopes,
+  additionalParameters,
+  dangerouslyAllowInsecureHttpRequests = false,
+}) => {
   validateScopes(scopes);
   validateIssuer(issuer);
   validateClientId(clientId);
   validateRedirectUrl(redirectUrl);
   // TODO: validateAdditionalParameters
 
-  const nativeMethodArguments = [
-    issuer,
-    redirectUrl,
-    clientId,
-    scopes,
-    additionalParameters
-  ]
+  const nativeMethodArguments = [issuer, redirectUrl, clientId, scopes, additionalParameters];
   if (Platform.OS === 'android') {
     nativeMethodArguments.push(dangerouslyAllowInsecureHttpRequests);
   }
@@ -34,7 +35,14 @@ export const authorize = ({ issuer, redirectUrl, clientId, scopes, additionalPar
 };
 
 export const refresh = (
-  { issuer, redirectUrl, clientId, scopes, additionalParameters, dangerouslyAllowInsecureHttpRequests = false },
+  {
+    issuer,
+    redirectUrl,
+    clientId,
+    scopes,
+    additionalParameters,
+    dangerouslyAllowInsecureHttpRequests = false,
+  },
   { refreshToken }
 ) => {
   validateScopes(scopes);
@@ -50,7 +58,7 @@ export const refresh = (
     clientId,
     refreshToken,
     scopes,
-    additionalParameters
+    additionalParameters,
   ];
 
   if (Platform.OS === 'android') {
