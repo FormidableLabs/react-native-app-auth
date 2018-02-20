@@ -1,4 +1,4 @@
-package com.reactlibrary;
+package com.reactlibrary.utils;
 
 /*
  * Copyright 2016 The AppAuth for Android Authors. All Rights Reserved.
@@ -45,9 +45,9 @@ import javax.net.ssl.X509TrustManager;
  * CODE*. It is intended to facilitate easier testing of AppAuth against development servers
  * only.
  */
-public final class ConnectionBuilderForTesting implements ConnectionBuilder {
+public final class UnsafeConnectionBuilder implements ConnectionBuilder {
 
-    public static final ConnectionBuilderForTesting INSTANCE = new ConnectionBuilderForTesting();
+    public static final UnsafeConnectionBuilder INSTANCE = new UnsafeConnectionBuilder();
 
     private static final String TAG = "ConnBuilder";
 
@@ -102,7 +102,7 @@ public final class ConnectionBuilderForTesting implements ConnectionBuilder {
         TRUSTING_CONTEXT = initializedContext;
     }
 
-    private ConnectionBuilderForTesting() {
+    private UnsafeConnectionBuilder() {
         // no need to construct new instances
     }
 
