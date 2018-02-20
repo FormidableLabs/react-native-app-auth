@@ -79,6 +79,7 @@ with optional overrides.
 * **additionalParameters** - (`object`) additional parameters that will be passed in the authorization request.
   Must be string values! E.g. setting `additionalParameters: { hello: 'world', foo: 'bar' }` would add
   `hello=world&foo=bar` to the authorization request.
+* **dangerouslyAllowInsecureHttpRequests** - (`boolean`) _ANDROID_ whether to allow requests over plain HTTP or with self-signed SSL certificates. :warning: Can be useful for testing against local server, _should not be used in production._
 
 #### result
 
