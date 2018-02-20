@@ -1,7 +1,7 @@
 export interface AuthConfiguration extends BaseAuthConfiguration {
     scopes: string[];
     redirectUrl: string;
-    aditionalParameters?: object;
+    aditionalParameters?: {[name: string]: any};
   }
 
   export interface BaseAuthConfiguration{
@@ -17,25 +17,23 @@ export interface AuthConfiguration extends BaseAuthConfiguration {
   export interface AuthorizeResult {
     accessToken: string;
     accessTokenExpirationDate: string;
-    additionalParameters: object;
+    aditionalParameters?: {[name: string]: any};
     idToken: string;
     refreshToken: string;
     tokenType: string;
   }
 
-  export interface RevokeOptions {
+  export interface RevokeConfiguration {
     tokenToRevoke: string;
     sendClientId?: boolean;
   }
 
-  export function authorize(properties: AuthConfiguration): Promise<AuthorizeResult>;
+  export interface RefreshConfiguration {
+    refreshToken: string;
+  }
 
-  export function refresh(
-    properties: AuthConfiguration,
-    { refreshToken: string }
-  ): Promise<AuthorizeResult>;
+  export function authorize(config: AuthConfiguration): Promise<AuthorizeResult>;
 
-  export function revoke(
-    properties: BaseAuthConfiguration,
-    options: RevokeOptions
-): Promise<void>;
+  export function refresh(config: AuthConfiguration, refreshConfig: RefreshConfiguration): Promise<AuthorizeResult>;
+
+  export function revoke(config: BaseAuthConfiguration, refreshConfig: RevokeConfiguration): Promise<void>;
