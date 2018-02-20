@@ -7,6 +7,9 @@ jest.mock('react-native', () => ({
       refresh: jest.fn(),
     },
   },
+  Platform: {
+    OS: 'ios',
+  },
 }));
 
 describe('AppAuth', () => {
@@ -65,7 +68,7 @@ describe('AppAuth', () => {
       }).toThrow('Scope error: please add at least one scope');
     });
 
-    it('calls the native wrapper with the correct args', () => {
+    it('calls the native wrapper with the correct args on iOS', () => {
       authorize(config);
       expect(mockAuthorize).toHaveBeenCalledWith(
         config.issuer,
@@ -74,6 +77,52 @@ describe('AppAuth', () => {
         config.scopes,
         config.additionalParameters
       );
+    });
+
+    describe('Android-specific dangerouslyAllowInsecureHttpRequests parameter', () => {
+      beforeEach(() => {
+        require('react-native').Platform.OS = 'android';
+      });
+
+      afterEach(() => {
+        require('react-native').Platform.OS = 'ios';
+      });
+
+      it('calls the native wrapper with default value `false`', () => {
+        authorize(config);
+        expect(mockAuthorize).toHaveBeenCalledWith(
+          config.issuer,
+          config.redirectUrl,
+          config.clientId,
+          config.scopes,
+          config.additionalParameters,
+          false
+        );
+      });
+
+      it('calls the native wrapper with passed value `false`', () => {
+        authorize({ ...config, dangerouslyAllowInsecureHttpRequests: false });
+        expect(mockAuthorize).toHaveBeenCalledWith(
+          config.issuer,
+          config.redirectUrl,
+          config.clientId,
+          config.scopes,
+          config.additionalParameters,
+          false
+        );
+      });
+
+      it('calls the native wrapper with passed value `true`', () => {
+        authorize({ ...config, dangerouslyAllowInsecureHttpRequests: true });
+        expect(mockAuthorize).toHaveBeenCalledWith(
+          config.issuer,
+          config.redirectUrl,
+          config.clientId,
+          config.scopes,
+          config.additionalParameters,
+          true
+        );
+      });
     });
   });
 
@@ -119,7 +168,7 @@ describe('AppAuth', () => {
       }).toThrow('Scope error: please add at least one scope');
     });
 
-    it('calls the native wrapper with the correct args', () => {
+    it('calls the native wrapper with the correct args on iOS', () => {
       refresh({ ...config }, { refreshToken: 'such-token' });
       expect(mockRefresh).toHaveBeenCalledWith(
         config.issuer,
@@ -129,6 +178,61 @@ describe('AppAuth', () => {
         config.scopes,
         config.additionalParameters
       );
+    });
+
+    describe('Android-specific dangerouslyAllowInsecureHttpRequests parameter', () => {
+      beforeEach(() => {
+        require('react-native').Platform.OS = 'android';
+      });
+
+      afterEach(() => {
+        require('react-native').Platform.OS = 'ios';
+      });
+
+      it('calls the native wrapper with default value `false`', () => {
+        refresh(config, { refreshToken: 'such-token' });
+        expect(mockRefresh).toHaveBeenCalledWith(
+          config.issuer,
+          config.redirectUrl,
+          config.clientId,
+          'such-token',
+          config.scopes,
+          config.additionalParameters,
+          false
+        );
+      });
+
+      it('calls the native wrapper with passed value `false`', () => {
+        refresh(
+          { ...config, dangerouslyAllowInsecureHttpRequests: false },
+          { refreshToken: 'such-token' }
+        );
+        expect(mockRefresh).toHaveBeenCalledWith(
+          config.issuer,
+          config.redirectUrl,
+          config.clientId,
+          'such-token',
+          config.scopes,
+          config.additionalParameters,
+          false
+        );
+      });
+
+      it('calls the native wrapper with passed value `true`', () => {
+        refresh(
+          { ...config, dangerouslyAllowInsecureHttpRequests: true },
+          { refreshToken: 'such-token' }
+        );
+        expect(mockRefresh).toHaveBeenCalledWith(
+          config.issuer,
+          config.redirectUrl,
+          config.clientId,
+          'such-token',
+          config.scopes,
+          config.additionalParameters,
+          true
+        );
+      });
     });
   });
 });
