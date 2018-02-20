@@ -39,6 +39,11 @@
 	<dict>
 		<key>NSExceptionDomains</key>
 		<dict>
+			<key>demo.identityserver.io</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+			</dict>
 			<key>localhost</key>
 			<dict>
 				<key>NSExceptionAllowsInsecureHTTPLoads</key>
