@@ -1,5 +1,5 @@
 import invariant from 'invariant';
-import { NativeModules } from 'react-native';
+import { NativeModules, Platform } from 'react-native';
 
 const { RNAppAuth } = NativeModules;
 
@@ -19,14 +19,18 @@ export const authorize = ({ issuer, redirectUrl, clientId, scopes, additionalPar
   validateRedirectUrl(redirectUrl);
   // TODO: validateAdditionalParameters
 
-  return RNAppAuth.authorize(
+  const nativeMethodArguments = [
     issuer,
     redirectUrl,
     clientId,
     scopes,
-    additionalParameters,
-    dangerouslyAllowInsecureHttpRequests
-  );
+    additionalParameters
+  ]
+  if (Platform.OS === 'android') {
+    nativeMethodArguments.push(dangerouslyAllowInsecureHttpRequests);
+  }
+
+  return RNAppAuth.authorize(...nativeMethodArguments);
 };
 
 export const refresh = (
@@ -40,15 +44,20 @@ export const refresh = (
   invariant(refreshToken, 'Please pass in a refresh token');
   // TODO: validateAdditionalParameters
 
-  return RNAppAuth.refresh(
+  const nativeMethodArguments = [
     issuer,
     redirectUrl,
     clientId,
     refreshToken,
     scopes,
-    additionalParameters,
-    dangerouslyAllowInsecureHttpRequests
-  );
+    additionalParameters
+  ];
+
+  if (Platform.OS === 'android') {
+    nativeMethodArguments.push(dangerouslyAllowInsecureHttpRequests);
+  }
+
+  return RNAppAuth.refresh(...nativeMethodArguments);
 };
 
 export const revoke = async ({ clientId, issuer }, { tokenToRevoke, sendClientId = false }) => {
