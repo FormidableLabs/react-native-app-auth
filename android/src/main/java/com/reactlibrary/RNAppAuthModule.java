@@ -18,6 +18,7 @@ import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.WritableMap;
 
+import net.openid.appauth.AppAuthConfiguration;
 import net.openid.appauth.AuthorizationException;
 import net.openid.appauth.AuthorizationRequest;
 import net.openid.appauth.AuthorizationResponse;
@@ -45,6 +46,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
     private final ReactApplicationContext reactContext;
     private Promise promise;
+    private Boolean dangerouslyAllowInsecureHttpRequests;
 
     public RNAppAuthModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -109,7 +111,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     private ConnectionBuilder createConnectionBuilder(Boolean allowInsecureConnections) {
 
         if (allowInsecureConnections.equals(true)) {
-            return new UnsafeConnectionBuilder();
+            return ConnectionBuilderForTesting.INSTANCE;
         }
 
         return DefaultConnectionBuilder.INSTANCE;
@@ -135,6 +137,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
         final Context context = this.reactContext;
         this.promise = promise;
+        this.dangerouslyAllowInsecureHttpRequests = dangerouslyAllowInsecureHttpRequests;
         final Activity currentActivity = getCurrentActivity();
 
         final String scopesString = this.arrayToString(scopes);
@@ -152,6 +155,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                             return;
                         }
 
+
                         AuthorizationRequest.Builder authRequestBuilder =
                                 new AuthorizationRequest.Builder(
                                         serviceConfiguration,
@@ -165,9 +169,14 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                             authRequestBuilder.setAdditionalParameters(additionalParametersToMap(additionalParameters));
                         }
 
-                        AuthorizationRequest authRequest = authRequestBuilder.build();
+                        AppAuthConfiguration configuration =
+                                new AppAuthConfiguration
+                                    .Builder()
+                                    .setConnectionBuilder(builder)
+                                    .build();
 
-                        AuthorizationService authService = new AuthorizationService(context);
+                        AuthorizationRequest authRequest = authRequestBuilder.build();
+                        AuthorizationService authService = new AuthorizationService(context, configuration);
                         Intent authIntent = authService.getAuthorizationRequestIntent(authRequest);
                         currentActivity.startActivityForResult(authIntent, 0);
 
@@ -193,6 +202,8 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         final String scopesString = this.arrayToString(scopes);
         final Uri issuerUri = Uri.parse(issuer);
         final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests);
+
+        this.dangerouslyAllowInsecureHttpRequests = dangerouslyAllowInsecureHttpRequests;
 
         AuthorizationServiceConfiguration.fetchFromUrl(
                 buildConfigurationUriFromIssuer(issuerUri),
@@ -221,7 +232,12 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                         TokenRequest tokenRequest = tokenRequestBuilder.build();
 
 
-                        AuthorizationService authService = new AuthorizationService(context);
+                        final AppAuthConfiguration configuration =
+                                new AppAuthConfiguration
+                                        .Builder()
+                                        .setConnectionBuilder(createConnectionBuilder(dangerouslyAllowInsecureHttpRequests))
+                                        .build();
+                        AuthorizationService authService = new AuthorizationService(context, configuration);
 
                         authService.performTokenRequest(tokenRequest, new AuthorizationService.TokenResponseCallback() {
                             @Override
@@ -252,7 +268,13 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
             final Promise authorizePromise = this.promise;
 
-            AuthorizationService authService = new AuthorizationService(this.reactContext);
+            final AppAuthConfiguration configuration =
+                    new AppAuthConfiguration
+                            .Builder()
+                            .setConnectionBuilder(createConnectionBuilder(this.dangerouslyAllowInsecureHttpRequests))
+                            .build();
+
+            AuthorizationService authService = new AuthorizationService(this.reactContext, configuration);
 
             authService.performTokenRequest(
                     response.createTokenExchangeRequest(),
@@ -281,24 +303,5 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     @Override
     public String getName() {
         return "RNAppAuth";
-    }
-}
-
-
-final class UnsafeConnectionBuilder implements ConnectionBuilder {
-
-    private static final int CONNECTION_TIMEOUT_MS = (int) TimeUnit.SECONDS.toMillis(15);
-    private static final int READ_TIMEOUT_MS = (int) TimeUnit.SECONDS.toMillis(10);
-
-
-    @NonNull
-    @Override
-    public HttpURLConnection openConnection(@NonNull Uri uri) throws IOException {
-        Preconditions.checkNotNull(uri, "url must not be null");
-        HttpURLConnection conn = (HttpURLConnection) new URL(uri.toString()).openConnection();
-        conn.setConnectTimeout(CONNECTION_TIMEOUT_MS);
-        conn.setReadTimeout(READ_TIMEOUT_MS);
-        conn.setInstanceFollowRedirects(false);
-        return conn;
     }
 }
