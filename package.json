@@ -26,7 +26,8 @@
     "LICENSE",
     "ios",
     "android",
-    "index.js"
+    "index.js",
+    "index.d.ts"
   ],
   "repository": {
     "type": "git",
