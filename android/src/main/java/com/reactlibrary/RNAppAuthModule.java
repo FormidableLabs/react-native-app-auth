@@ -17,6 +17,7 @@ import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.WritableMap;
+import com.reactlibrary.utils.MapUtils;
 import com.reactlibrary.utils.UnsafeConnectionBuilder;
 
 import net.openid.appauth.AppAuthConfiguration;
@@ -38,9 +39,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Connection;
 import java.text.SimpleDateFormat;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public class RNAppAuthModule extends ReactContextBaseJavaModule implements ActivityEventListener {
@@ -48,6 +52,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     private final ReactApplicationContext reactContext;
     private Promise promise;
     private Boolean dangerouslyAllowInsecureHttpRequests;
+    private Map<String, String> additionalParametersMap;
 
     public RNAppAuthModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -95,19 +100,6 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         return map;
     }
 
-    private HashMap<String, String> additionalParametersToMap(ReadableMap additionalParameters) {
-
-        HashMap<String, String> additionalParametersHash = new HashMap<>();
-
-        ReadableMapKeySetIterator iterator = additionalParameters.keySetIterator();
-
-        while (iterator.hasNextKey()) {
-            String nextKey = iterator.nextKey();
-            additionalParametersHash.put(nextKey, additionalParameters.getString(nextKey));
-        }
-
-        return additionalParametersHash;
-    }
 
     private AppAuthConfiguration createAppAuthConfiguration(ConnectionBuilder connectionBuilder) {
         return new AppAuthConfiguration
@@ -137,7 +129,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final String clientId,
             final String scopesString,
             final String redirectUrl,
-            final ReadableMap additionalParameters
+            final Map<String, String> additionalParametersMap
     ) {
 
         final Context context = this.reactContext;
@@ -152,14 +144,56 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                 )
                         .setScope(scopesString);
 
-        if (additionalParameters != null) {
-            authRequestBuilder.setAdditionalParameters(additionalParametersToMap(additionalParameters));
+        if (additionalParametersMap != null) {
+            authRequestBuilder.setAdditionalParameters(additionalParametersMap);
         }
 
         AuthorizationRequest authRequest = authRequestBuilder.build();
         AuthorizationService authService = new AuthorizationService(context, appAuthConfiguration);
         Intent authIntent = authService.getAuthorizationRequestIntent(authRequest);
         currentActivity.startActivityForResult(authIntent, 0);
+    }
+
+    private void refreshWithConfiguration(
+            final AuthorizationServiceConfiguration serviceConfiguration,
+            final AppAuthConfiguration appAuthConfiguration,
+            final String refreshToken,
+            final String clientId,
+            final String scopesString,
+            final String redirectUrl,
+            final Map<String, String> additionalParametersMap,
+            final Promise promise
+    ) {
+
+        final Context context = this.reactContext;
+
+        TokenRequest.Builder tokenRequestBuilder =
+                new TokenRequest.Builder(
+                        serviceConfiguration,
+                        clientId
+                )
+                        .setScope(scopesString)
+                        .setRefreshToken(refreshToken)
+                        .setRedirectUri(Uri.parse(redirectUrl));
+
+        if (!additionalParametersMap.isEmpty()) {
+            tokenRequestBuilder.setAdditionalParameters(additionalParametersMap);
+        }
+
+        TokenRequest tokenRequest = tokenRequestBuilder.build();
+
+        AuthorizationService authService = new AuthorizationService(context, appAuthConfiguration);
+        authService.performTokenRequest(tokenRequest, new AuthorizationService.TokenResponseCallback() {
+            @Override
+            public void onTokenRequestCompleted(@Nullable TokenResponse response, @Nullable AuthorizationException ex) {
+                if (response != null) {
+                    WritableMap map = tokenResponseToMap(response);
+                    promise.resolve(map);
+                } else {
+                    promise.reject("RNAppAuth Error", "Failed refresh token");
+                }
+            }
+        });
     }
 
     @ReactMethod
@@ -175,14 +209,16 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     ) {
 
 
-        // store args in private fields for later use in onActivityResult handler
-        this.promise = promise;
-        this.dangerouslyAllowInsecureHttpRequests = dangerouslyAllowInsecureHttpRequests;
 
         final String scopesString = this.arrayToString(scopes);
         final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests);
         final AppAuthConfiguration appAuthConfiguration = this.createAppAuthConfiguration(builder);
+        final HashMap<String, String> additionalParametersMap = MapUtils.readableMapToHashMap(additionalParameters);
 
+        // store args in private fields for later use in onActivityResult handler
+        this.promise = promise;
+        this.dangerouslyAllowInsecureHttpRequests = dangerouslyAllowInsecureHttpRequests;
+        this.additionalParametersMap = additionalParametersMap;
 
         // when serviceConfiguration is provided, we don't need to hit up the OpenID well-known id endpoint
         if (serviceConfiguration != null) {
@@ -219,7 +255,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                     clientId,
                     scopesString,
                     redirectUrl,
-                    additionalParameters
+                    additionalParametersMap
             );
         } else {
             final Uri issuerUri = Uri.parse(issuer);
@@ -240,7 +276,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                     clientId,
                                     scopesString,
                                     redirectUrl,
-                                    additionalParameters
+                                    additionalParametersMap
                             );
                         }
                     },
@@ -261,6 +297,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final String refreshToken,
             final ReadableArray scopes,
             final ReadableMap additionalParameters,
+            final ReadableMap serviceConfiguration,
             final Boolean dangerouslyAllowInsecureHttpRequests,
             final Promise promise
     ) {
@@ -268,53 +305,81 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         final String scopesString = this.arrayToString(scopes);
         final Uri issuerUri = Uri.parse(issuer);
         final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests);
-        final AppAuthConfiguration configuration = createAppAuthConfiguration(builder);
+        final AppAuthConfiguration appAuthConfiguration = createAppAuthConfiguration(builder);
+        final HashMap<String, String> additionalParametersMap = MapUtils.readableMapToHashMap(additionalParameters);
 
         // store setting in private field for later use in onActivityResult handler
         this.dangerouslyAllowInsecureHttpRequests = dangerouslyAllowInsecureHttpRequests;
+        this.additionalParametersMap = additionalParametersMap;
 
-        AuthorizationServiceConfiguration.fetchFromUrl(
-                buildConfigurationUriFromIssuer(issuerUri),
-                new AuthorizationServiceConfiguration.RetrieveConfigurationCallback() {
-                    public void onFetchConfigurationCompleted(
-                            @Nullable AuthorizationServiceConfiguration serviceConfiguration,
-                            @Nullable AuthorizationException ex) {
-                        if (ex != null) {
-                            promise.reject("RNAppAuth Error", "Failed to fetch configuration", ex);
-                            return;
-                        }
+        // when serviceConfiguration is provided, we don't need to hit up the OpenID well-known id endpoint
+        if (serviceConfiguration != null) {
 
-                        TokenRequest.Builder tokenRequestBuilder =
-                                new TokenRequest.Builder(
-                                        serviceConfiguration,
-                                        clientId
-                                )
-                                        .setScope(scopesString)
-                                        .setRefreshToken(refreshToken)
-                                        .setRedirectUri(Uri.parse(redirectUrl));
+            // @TODO Refactor validation
+            if (!serviceConfiguration.hasKey("authorizationEndpoint")) {
+                promise.reject("RNAppAuth Error", "serviceConfiguration passed without an authorizationEndpoint");
+                return;
+            }
 
-                        if (additionalParameters != null) {
-                            tokenRequestBuilder.setAdditionalParameters(additionalParametersToMap(additionalParameters));
-                        }
+            if (!serviceConfiguration.hasKey("tokenEndpoint")) {
+                promise.reject("RNAppAuth Error", "serviceConfiguration passed without a tokenEndpoint");
+                return;
+            }
 
-                        TokenRequest tokenRequest = tokenRequestBuilder.build();
+            Uri authorizationEndpoint = Uri.parse(serviceConfiguration.getString("authorizationEndpoint"));
+            Uri tokenEndpoint = Uri.parse(serviceConfiguration.getString("tokenEndpoint"));
+            Uri registrationEndpoint = null;
 
-                        AuthorizationService authService = new AuthorizationService(context, configuration);
-                        authService.performTokenRequest(tokenRequest, new AuthorizationService.TokenResponseCallback() {
-                            @Override
-                            public void onTokenRequestCompleted(@Nullable TokenResponse response, @Nullable AuthorizationException ex) {
-                                if (response != null) {
-                                    WritableMap map = tokenResponseToMap(response);
-                                    promise.resolve(map);
-                                } else {
-                                    promise.reject("RNAppAuth Error", "Failed refresh token");
-                                }
+            if (serviceConfiguration.hasKey("registrationEndpoint")) {
+                registrationEndpoint = Uri.parse(serviceConfiguration.getString("registrationEndPoint"));
+            }
+
+
+            AuthorizationServiceConfiguration authorizationServiceConfiguration = new AuthorizationServiceConfiguration(
+                    authorizationEndpoint,
+                    tokenEndpoint,
+                    registrationEndpoint
+            );
+
+            refreshWithConfiguration(
+                    authorizationServiceConfiguration,
+                    appAuthConfiguration,
+                    refreshToken,
+                    clientId,
+                    scopesString,
+                    redirectUrl,
+                    additionalParametersMap,
+                    promise
+            );
+        } else {
+            // @TODO: Refactor to avoid hitting IDP endpoint on refresh, reuse fetchedConfiguration
+            // if possible.
+            AuthorizationServiceConfiguration.fetchFromUrl(
+                    buildConfigurationUriFromIssuer(issuerUri),
+                    new AuthorizationServiceConfiguration.RetrieveConfigurationCallback() {
+                        public void onFetchConfigurationCompleted(
+                                @Nullable AuthorizationServiceConfiguration fetchedConfiguration,
+                                @Nullable AuthorizationException ex) {
+                            if (ex != null) {
+                                promise.reject("RNAppAuth Error", "Failed to fetch configuration", ex);
+                                return;
                             }
-                        });
 
-                    }
-                },
-        builder);
+                            refreshWithConfiguration(
+                                    fetchedConfiguration,
+                                    appAuthConfiguration,
+                                    refreshToken,
+                                    clientId,
+                                    scopesString,
+                                    redirectUrl,
+                                    additionalParametersMap,
+                                    promise
+                            );
+                        }
+                    },
+                    builder);
+        }
+
     }
 
     @Override
@@ -333,8 +398,10 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             );
 
             AuthorizationService authService = new AuthorizationService(this.reactContext, configuration);
+
+            TokenRequest tokenRequest = response.createTokenExchangeRequest(this.additionalParametersMap);
             authService.performTokenRequest(
-                    response.createTokenExchangeRequest(),
+                    tokenRequest,
                     new AuthorizationService.TokenResponseCallback() {
 
                         @Override

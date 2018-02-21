@@ -16,6 +16,7 @@ export const authorize = ({
   issuer,
   redirectUrl,
   clientId,
+  clientSecret,
   scopes,
   additionalParameters,
   serviceConfiguration,
@@ -27,12 +28,16 @@ export const authorize = ({
   validateRedirectUrl(redirectUrl);
   // TODO: validateAdditionalParameters
 
+  const nativeAdditionalParameters = clientSecret
+    ? { ...additionalParameters, client_secret: clientSecret } //eslint-disable-line camelcase
+    : additionalParameters;
+
   const nativeMethodArguments = [
     issuer,
     redirectUrl,
     clientId,
     scopes,
-    additionalParameters,
+    nativeAdditionalParameters,
     serviceConfiguration,
   ];
   if (Platform.OS === 'android') {
@@ -47,8 +52,10 @@ export const refresh = (
     issuer,
     redirectUrl,
     clientId,
+    clientSecret,
     scopes,
     additionalParameters,
+    serviceConfiguration,
     dangerouslyAllowInsecureHttpRequests = false,
   },
   { refreshToken }
@@ -60,13 +67,18 @@ export const refresh = (
   invariant(refreshToken, 'Please pass in a refresh token');
   // TODO: validateAdditionalParameters
 
+  const nativeAdditionalParameters = clientSecret
+    ? { ...additionalParameters, client_secret: clientSecret } //eslint-disable-line camelcase
+    : additionalParameters;
+
   const nativeMethodArguments = [
     issuer,
     redirectUrl,
     clientId,
     refreshToken,
     scopes,
-    additionalParameters,
+    nativeAdditionalParameters,
+    serviceConfiguration,
   ];
 
   if (Platform.OS === 'android') {
