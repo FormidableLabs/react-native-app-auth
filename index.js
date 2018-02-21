@@ -1,5 +1,5 @@
 import invariant from 'invariant';
-import { NativeModules } from 'react-native';
+import { NativeModules, Platform } from 'react-native';
 
 const { RNAppAuth } = NativeModules;
 
@@ -12,18 +12,37 @@ const validateClientId = clientId =>
 const validateRedirectUrl = redirectUrl =>
   invariant(typeof redirectUrl === 'string', 'Config error: redirectUrl must be a string');
 
-export const authorize = ({ issuer, redirectUrl, clientId, scopes, additionalParameters }) => {
+export const authorize = ({
+  issuer,
+  redirectUrl,
+  clientId,
+  scopes,
+  additionalParameters,
+  dangerouslyAllowInsecureHttpRequests = false,
+}) => {
   validateScopes(scopes);
   validateIssuer(issuer);
   validateClientId(clientId);
   validateRedirectUrl(redirectUrl);
   // TODO: validateAdditionalParameters
 
-  return RNAppAuth.authorize(issuer, redirectUrl, clientId, scopes, additionalParameters);
+  const nativeMethodArguments = [issuer, redirectUrl, clientId, scopes, additionalParameters];
+  if (Platform.OS === 'android') {
+    nativeMethodArguments.push(dangerouslyAllowInsecureHttpRequests);
+  }
+
+  return RNAppAuth.authorize(...nativeMethodArguments);
 };
 
 export const refresh = (
-  { issuer, redirectUrl, clientId, scopes, additionalParameters },
+  {
+    issuer,
+    redirectUrl,
+    clientId,
+    scopes,
+    additionalParameters,
+    dangerouslyAllowInsecureHttpRequests = false,
+  },
   { refreshToken }
 ) => {
   validateScopes(scopes);
@@ -33,14 +52,20 @@ export const refresh = (
   invariant(refreshToken, 'Please pass in a refresh token');
   // TODO: validateAdditionalParameters
 
-  return RNAppAuth.refresh(
+  const nativeMethodArguments = [
     issuer,
     redirectUrl,
     clientId,
     refreshToken,
     scopes,
-    additionalParameters
-  );
+    additionalParameters,
+  ];
+
+  if (Platform.OS === 'android') {
+    nativeMethodArguments.push(dangerouslyAllowInsecureHttpRequests);
+  }
+
+  return RNAppAuth.refresh(...nativeMethodArguments);
 };
 
 export const revoke = async ({ clientId, issuer }, { tokenToRevoke, sendClientId = false }) => {

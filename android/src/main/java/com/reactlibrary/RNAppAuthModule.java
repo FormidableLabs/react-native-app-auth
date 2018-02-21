@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.facebook.react.bridge.ActivityEventListener;
@@ -16,25 +17,37 @@ import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.WritableMap;
+import com.reactlibrary.utils.UnsafeConnectionBuilder;
 
+import net.openid.appauth.AppAuthConfiguration;
 import net.openid.appauth.AuthorizationException;
 import net.openid.appauth.AuthorizationRequest;
 import net.openid.appauth.AuthorizationResponse;
 import net.openid.appauth.AuthorizationService;
 import net.openid.appauth.AuthorizationServiceConfiguration;
+import net.openid.appauth.Preconditions;
 import net.openid.appauth.ResponseTypeValues;
 import net.openid.appauth.TokenResponse;
 import net.openid.appauth.TokenRequest;
+import net.openid.appauth.connectivity.ConnectionBuilder;
+import net.openid.appauth.connectivity.DefaultConnectionBuilder;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.sql.Connection;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.concurrent.TimeUnit;
 
 public class RNAppAuthModule extends ReactContextBaseJavaModule implements ActivityEventListener {
 
     private final ReactApplicationContext reactContext;
     private Promise promise;
+    private Boolean dangerouslyAllowInsecureHttpRequests;
 
     public RNAppAuthModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -96,6 +109,28 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         return additionalParametersHash;
     }
 
+    private AppAuthConfiguration createAppAuthConfiguration(ConnectionBuilder connectionBuilder) {
+        return new AppAuthConfiguration
+                .Builder()
+                .setConnectionBuilder(connectionBuilder)
+                .build();
+    }
+
+    private ConnectionBuilder createConnectionBuilder(Boolean allowInsecureConnections) {
+        if (allowInsecureConnections.equals(true)) {
+            return UnsafeConnectionBuilder.INSTANCE;
+        }
+
+        return DefaultConnectionBuilder.INSTANCE;
+    }
+
+    private Uri buildConfigurationUriFromIssuer(Uri openIdConnectIssuerUri) {
+        return openIdConnectIssuerUri.buildUpon()
+                .appendPath(AuthorizationServiceConfiguration.WELL_KNOWN_PATH)
+                .appendPath(AuthorizationServiceConfiguration.OPENID_CONFIGURATION_RESOURCE)
+                .build();
+    }
+
     @ReactMethod
     public void authorize(
             String issuer,
@@ -103,17 +138,24 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final String clientId,
             final ReadableArray scopes,
             final ReadableMap additionalParameters,
+            final Boolean dangerouslyAllowInsecureHttpRequests,
             final Promise promise
     ) {
 
         final Context context = this.reactContext;
+
+        // store args in private fields for later use in onActivityResult handler
         this.promise = promise;
+        this.dangerouslyAllowInsecureHttpRequests = dangerouslyAllowInsecureHttpRequests;
+
         final Activity currentActivity = getCurrentActivity();
-
         final String scopesString = this.arrayToString(scopes);
+        final Uri issuerUri = Uri.parse(issuer);
+        final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests);
+        final AppAuthConfiguration configuration = this.createAppAuthConfiguration(builder);
 
-        AuthorizationServiceConfiguration.fetchFromIssuer(
-                Uri.parse(issuer),
+        AuthorizationServiceConfiguration.fetchFromUrl(
+                buildConfigurationUriFromIssuer(issuerUri),
                 new AuthorizationServiceConfiguration.RetrieveConfigurationCallback() {
                     public void onFetchConfigurationCompleted(
                             @Nullable AuthorizationServiceConfiguration serviceConfiguration,
@@ -122,6 +164,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                             promise.reject("RNAppAuth Error", "Failed to fetch configuration", ex);
                             return;
                         }
+
 
                         AuthorizationRequest.Builder authRequestBuilder =
                                 new AuthorizationRequest.Builder(
@@ -137,13 +180,14 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                         }
 
                         AuthorizationRequest authRequest = authRequestBuilder.build();
-
-                        AuthorizationService authService = new AuthorizationService(context);
+                        AuthorizationService authService = new AuthorizationService(context, configuration);
                         Intent authIntent = authService.getAuthorizationRequestIntent(authRequest);
                         currentActivity.startActivityForResult(authIntent, 0);
 
                     }
-                });
+                },
+                builder
+        );
 
     }
 
@@ -155,14 +199,20 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final String refreshToken,
             final ReadableArray scopes,
             final ReadableMap additionalParameters,
+            final Boolean dangerouslyAllowInsecureHttpRequests,
             final Promise promise
     ) {
         final Context context = this.reactContext;
-
         final String scopesString = this.arrayToString(scopes);
+        final Uri issuerUri = Uri.parse(issuer);
+        final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests);
+        final AppAuthConfiguration configuration = createAppAuthConfiguration(builder);
 
-        AuthorizationServiceConfiguration.fetchFromIssuer(
-                Uri.parse(issuer),
+        // store setting in private field for later use in onActivityResult handler
+        this.dangerouslyAllowInsecureHttpRequests = dangerouslyAllowInsecureHttpRequests;
+
+        AuthorizationServiceConfiguration.fetchFromUrl(
+                buildConfigurationUriFromIssuer(issuerUri),
                 new AuthorizationServiceConfiguration.RetrieveConfigurationCallback() {
                     public void onFetchConfigurationCompleted(
                             @Nullable AuthorizationServiceConfiguration serviceConfiguration,
@@ -187,9 +237,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
                         TokenRequest tokenRequest = tokenRequestBuilder.build();
 
-
-                        AuthorizationService authService = new AuthorizationService(context);
-
+                        AuthorizationService authService = new AuthorizationService(context, configuration);
                         authService.performTokenRequest(tokenRequest, new AuthorizationService.TokenResponseCallback() {
                             @Override
                             public void onTokenRequestCompleted(@Nullable TokenResponse response, @Nullable AuthorizationException ex) {
@@ -203,7 +251,8 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                         });
 
                     }
-                });
+                },
+        builder);
     }
 
     @Override
@@ -217,9 +266,11 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             }
 
             final Promise authorizePromise = this.promise;
+            final AppAuthConfiguration configuration = createAppAuthConfiguration(
+                    createConnectionBuilder(this.dangerouslyAllowInsecureHttpRequests)
+            );
 
-            AuthorizationService authService = new AuthorizationService(this.reactContext);
-
+            AuthorizationService authService = new AuthorizationService(this.reactContext, configuration);
             authService.performTokenRequest(
                     response.createTokenExchangeRequest(),
                     new AuthorizationService.TokenResponseCallback() {
