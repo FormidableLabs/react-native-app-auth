@@ -18,11 +18,13 @@ const config = {
   clientId: 'native.code',
   redirectUrl: 'io.identityserver.demo:/oauthredirect',
   additionalParameters: {},
-  scopes: ['openid', 'profile', 'email', 'offline_access'],
-  serviceConfiguration: {
-    authorizationEndpoint: 'https://demo.identityserver.io/connect/authorize',
-    tokenEndpoint: 'https://demo.identityserver.io/connect/token'
-  }
+  scopes: ['openid', 'profile', 'email', 'offline_access']
+
+  // serviceConfiguration: {
+  //   authorizationEndpoint: 'https://demo.identityserver.io/connect/authorize',
+  //   tokenEndpoint: 'https://demo.identityserver.io/connect/token',
+  //   revocationEndpoint: 'https://demo.identityserver.io/connect/revoke'
+  // }
 };
 
 export default class App extends Component<{}, State> {
