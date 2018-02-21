@@ -5,12 +5,18 @@ const { RNAppAuth } = NativeModules;
 
 const validateScopes = scopes =>
   invariant(scopes && scopes.length, 'Scope error: please add at least one scope');
-const validateIssuer = issuer =>
-  invariant(typeof issuer === 'string', 'Config error: issuer must be a string');
+const validateIssuerOrServiceConfigurationEndpoints = (issuer, serviceConfiguration) =>
+  invariant(
+    typeof issuer === 'string' ||
+      (serviceConfiguration &&
+        typeof serviceConfiguration.authorizationEndpoint === 'string' &&
+        typeof serviceConfiguration.tokenEndpoint === 'string'),
+    'Config error: you must provide either an issue or a revocation endpoint'
+  );
 const validateIssuerOrServiceConfigurationRevocationEndpoint = (issuer, serviceConfiguration) =>
   invariant(
     typeof issuer === 'string' ||
-      (serviceConfiguration && typeof serviceConfiguration.revocationEndPoint === 'string'),
+      (serviceConfiguration && typeof serviceConfiguration.revocationEndpoint === 'string'),
     'Config error: you must provide either an issue or a revocation endpoint'
   );
 const validateClientId = clientId =>
@@ -29,7 +35,7 @@ export const authorize = ({
   dangerouslyAllowInsecureHttpRequests = false,
 }) => {
   validateScopes(scopes);
-  validateIssuer(issuer);
+  validateIssuerOrServiceConfigurationEndpoints(issuer, serviceConfiguration);
   validateClientId(clientId);
   validateRedirectUrl(redirectUrl);
   // TODO: validateAdditionalParameters
@@ -64,7 +70,7 @@ export const refresh = (
   { refreshToken }
 ) => {
   validateScopes(scopes);
-  validateIssuer(issuer);
+  validateIssuerOrServiceConfigurationEndpoints(issuer, serviceConfiguration);
   validateClientId(clientId);
   validateRedirectUrl(redirectUrl);
   invariant(refreshToken, 'Please pass in a refresh token');
