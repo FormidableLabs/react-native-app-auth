@@ -53,6 +53,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     private Promise promise;
     private Boolean dangerouslyAllowInsecureHttpRequests;
     private Map<String, String> additionalParametersMap;
+    private String clientSecret;
 
     public RNAppAuthModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -201,6 +202,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             String issuer,
             final String redirectUrl,
             final String clientId,
+            final String clientSecret,
             final ReadableArray scopes,
             final ReadableMap additionalParameters,
             final ReadableMap serviceConfiguration,
@@ -208,12 +210,14 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final Promise promise
     ) {
 
-
-
         final String scopesString = this.arrayToString(scopes);
         final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests);
         final AppAuthConfiguration appAuthConfiguration = this.createAppAuthConfiguration(builder);
         final HashMap<String, String> additionalParametersMap = MapUtils.readableMapToHashMap(additionalParameters);
+
+        if (clientSecret != null) {
+            additionalParametersMap.put("client_secret", clientSecret);
+        }
 
         // store args in private fields for later use in onActivityResult handler
         this.promise = promise;
@@ -294,6 +298,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             String issuer,
             final String redirectUrl,
             final String clientId,
+            final String clientSecret,
             final String refreshToken,
             final ReadableArray scopes,
             final ReadableMap additionalParameters,
@@ -307,6 +312,10 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests);
         final AppAuthConfiguration appAuthConfiguration = createAppAuthConfiguration(builder);
         final HashMap<String, String> additionalParametersMap = MapUtils.readableMapToHashMap(additionalParameters);
+
+        if (clientSecret != null) {
+            additionalParametersMap.put("client_secret", clientSecret);
+        }
 
         // store setting in private field for later use in onActivityResult handler
         this.dangerouslyAllowInsecureHttpRequests = dangerouslyAllowInsecureHttpRequests;
