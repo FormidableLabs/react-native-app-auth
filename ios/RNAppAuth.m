@@ -27,14 +27,7 @@ RCT_REMAP_METHOD(authorize,
 {
     // if we have manually provided configuration, we can use it and skip the OIDC well-known discovery endpoint call
     if (serviceConfiguration) {
-        NSURL *authorizationEndpoint = [NSURL URLWithString: [serviceConfiguration objectForKey:@"authorizationEndpoint"]];
-        NSURL *tokenEndpoint = [NSURL URLWithString: [serviceConfiguration objectForKey:@"tokenEndpoint"]];
-        
-        OIDServiceConfiguration *configuration =
-        [[OIDServiceConfiguration alloc]
-         initWithAuthorizationEndpoint:authorizationEndpoint
-         tokenEndpoint:tokenEndpoint];
-        
+        OIDServiceConfiguration *configuration = [self createServiceConfiguration:serviceConfiguration];
         [self authorizeWithConfiguration: configuration
                              redirectUrl: redirectUrl
                                 clientId: clientId
@@ -51,7 +44,7 @@ RCT_REMAP_METHOD(authorize,
                                                                     reject(@"RNAppAuth Error", [error localizedDescription], error);
                                                                     return;
                                                                 }
-                                                                      
+                                                                
                                                                 [self authorizeWithConfiguration: configuration
                                                                                      redirectUrl: redirectUrl
                                                                                         clientId: clientId
@@ -78,14 +71,7 @@ RCT_REMAP_METHOD(refresh,
 {
     // if we have manually provided configuration, we can use it and skip the OIDC well-known discovery endpoint call
     if (serviceConfiguration) {
-        NSURL *authorizationEndpoint = [NSURL URLWithString: [serviceConfiguration objectForKey:@"authorizationEndpoint"]];
-        NSURL *tokenEndpoint = [NSURL URLWithString: [serviceConfiguration objectForKey:@"tokenEndpoint"]];
-        
-        OIDServiceConfiguration *configuration =
-        [[OIDServiceConfiguration alloc]
-         initWithAuthorizationEndpoint:authorizationEndpoint
-         tokenEndpoint:tokenEndpoint];
-        
+        OIDServiceConfiguration *configuration = [self createServiceConfiguration:serviceConfiguration];
         [self refreshWithConfiguration: configuration
                              redirectUrl: redirectUrl
                                 clientId: clientId
@@ -116,6 +102,24 @@ RCT_REMAP_METHOD(refresh,
                                                             }];
     }
 } // end RCT_REMAP_METHOD(refresh,
+
+
+/*
+ * Create a OIDServiceConfiguration from passed serviceConfiguration dictionary
+ */
+- (OIDServiceConfiguration *) createServiceConfiguration: (NSDictionary *) serviceConfiguration {
+    NSURL *authorizationEndpoint = [NSURL URLWithString: [serviceConfiguration objectForKey:@"authorizationEndpoint"]];
+    NSURL *tokenEndpoint = [NSURL URLWithString: [serviceConfiguration objectForKey:@"tokenEndpoint"]];
+    NSURL *registrationEndpoint = [NSURL URLWithString: [serviceConfiguration objectForKey:@"registrationEndpoint"]];
+    
+    OIDServiceConfiguration *configuration =
+    [[OIDServiceConfiguration alloc]
+     initWithAuthorizationEndpoint:authorizationEndpoint
+     tokenEndpoint:tokenEndpoint
+     registrationEndpoint:registrationEndpoint];
+    
+    return configuration;
+}
 
 /*
  * Authorize a user in exchange for a token with provided OIDServiceConfiguration

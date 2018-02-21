@@ -2,13 +2,20 @@ export interface ServiceConfiguration {
   authorizationEndpoint: string;
   tokenEndpoint: string;
   revocationEndpoint?: string;
+  registrationEndpoint?: string;
 }
 
-export interface BaseAuthConfiguration {
-  clientId: string;
-  issuer?: string;
-  serviceConfiguration?: ServiceConfiguration;
-}
+export type BaseAuthConfiguration =
+  | {
+      clientId: string;
+      issuer?: string;
+      serviceConfiguration: ServiceConfiguration;
+    }
+  | {
+      clientId: string;
+      issuer: string;
+      serviceConfiguration?: ServiceConfiguration;
+    };
 
 export interface AuthConfiguration extends BaseAuthConfiguration {
   clientSecret?: string;
