@@ -11,7 +11,7 @@ const validateIssuerOrServiceConfigurationRevocationEndpoint = (issuer, serviceC
   invariant(
     typeof issuer === 'string' ||
       (serviceConfiguration && typeof serviceConfiguration.revocationEndPoint === 'string'),
-    'Config error: issuer must be a string'
+    'Config error: you must provide either an issue or a revocation endpoint'
   );
 const validateClientId = clientId =>
   invariant(typeof clientId === 'string', 'Config error: clientId must be a string');
@@ -108,7 +108,7 @@ export const revoke = async (
       'The openid config does not specify a revocation endpoint'
     );
 
-    revocationEndpoint = openidConfig.revocationEndpoint;
+    revocationEndpoint = openidConfig.revocation_endpoint;
   }
 
   /**
