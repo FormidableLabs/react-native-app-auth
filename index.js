@@ -18,6 +18,7 @@ export const authorize = ({
   clientId,
   scopes,
   additionalParameters,
+  serviceConfiguration,
   dangerouslyAllowInsecureHttpRequests = false,
 }) => {
   validateScopes(scopes);
@@ -26,7 +27,14 @@ export const authorize = ({
   validateRedirectUrl(redirectUrl);
   // TODO: validateAdditionalParameters
 
-  const nativeMethodArguments = [issuer, redirectUrl, clientId, scopes, additionalParameters];
+  const nativeMethodArguments = [
+    issuer,
+    redirectUrl,
+    clientId,
+    scopes,
+    additionalParameters,
+    serviceConfiguration,
+  ];
   if (Platform.OS === 'android') {
     nativeMethodArguments.push(dangerouslyAllowInsecureHttpRequests);
   }

@@ -131,6 +131,37 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                 .build();
     }
 
+    private void authorizeWithConfiguration(
+            final AuthorizationServiceConfiguration serviceConfiguration,
+            final AppAuthConfiguration appAuthConfiguration,
+            final String clientId,
+            final String scopesString,
+            final String redirectUrl,
+            final ReadableMap additionalParameters
+    ) {
+
+        final Context context = this.reactContext;
+        final Activity currentActivity = getCurrentActivity();
+
+        AuthorizationRequest.Builder authRequestBuilder =
+                new AuthorizationRequest.Builder(
+                        serviceConfiguration,
+                        clientId,
+                        ResponseTypeValues.CODE,
+                        Uri.parse(redirectUrl)
+                )
+                        .setScope(scopesString);
+
+        if (additionalParameters != null) {
+            authRequestBuilder.setAdditionalParameters(additionalParametersToMap(additionalParameters));
+        }
+
+        AuthorizationRequest authRequest = authRequestBuilder.build();
+        AuthorizationService authService = new AuthorizationService(context, appAuthConfiguration);
+        Intent authIntent = authService.getAuthorizationRequestIntent(authRequest);
+        currentActivity.startActivityForResult(authIntent, 0);
+    }
+
     @ReactMethod
     public void authorize(
             String issuer,
@@ -138,56 +169,87 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final String clientId,
             final ReadableArray scopes,
             final ReadableMap additionalParameters,
+            final ReadableMap serviceConfiguration,
             final Boolean dangerouslyAllowInsecureHttpRequests,
             final Promise promise
     ) {
 
-        final Context context = this.reactContext;
 
         // store args in private fields for later use in onActivityResult handler
         this.promise = promise;
         this.dangerouslyAllowInsecureHttpRequests = dangerouslyAllowInsecureHttpRequests;
 
-        final Activity currentActivity = getCurrentActivity();
         final String scopesString = this.arrayToString(scopes);
-        final Uri issuerUri = Uri.parse(issuer);
         final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests);
-        final AppAuthConfiguration configuration = this.createAppAuthConfiguration(builder);
+        final AppAuthConfiguration appAuthConfiguration = this.createAppAuthConfiguration(builder);
 
-        AuthorizationServiceConfiguration.fetchFromUrl(
-                buildConfigurationUriFromIssuer(issuerUri),
-                new AuthorizationServiceConfiguration.RetrieveConfigurationCallback() {
-                    public void onFetchConfigurationCompleted(
-                            @Nullable AuthorizationServiceConfiguration serviceConfiguration,
-                            @Nullable AuthorizationException ex) {
-                        if (ex != null) {
-                            promise.reject("RNAppAuth Error", "Failed to fetch configuration", ex);
-                            return;
+
+        // when serviceConfiguration is provided, we don't need to hit up the OpenID well-known id endpoint
+        if (serviceConfiguration != null) {
+
+            // @TODO Refactor validation
+            if (!serviceConfiguration.hasKey("authorizationEndpoint")) {
+                promise.reject("RNAppAuth Error", "serviceConfiguration passed without an authorizationEndpoint");
+                return;
+            }
+
+            if (!serviceConfiguration.hasKey("tokenEndpoint")) {
+                promise.reject("RNAppAuth Error", "serviceConfiguration passed without a tokenEndpoint");
+                return;
+            }
+
+            Uri authorizationEndpoint = Uri.parse(serviceConfiguration.getString("authorizationEndpoint"));
+            Uri tokenEndpoint = Uri.parse(serviceConfiguration.getString("tokenEndpoint"));
+            Uri registrationEndpoint = null;
+
+            if (serviceConfiguration.hasKey("registrationEndpoint")) {
+                registrationEndpoint = Uri.parse(serviceConfiguration.getString("registrationEndPoint"));
+            }
+
+
+            AuthorizationServiceConfiguration authorizationServiceConfiguration = new AuthorizationServiceConfiguration(
+                    authorizationEndpoint,
+                    tokenEndpoint,
+                    registrationEndpoint
+            );
+
+            authorizeWithConfiguration(
+                    authorizationServiceConfiguration,
+                    appAuthConfiguration,
+                    clientId,
+                    scopesString,
+                    redirectUrl,
+                    additionalParameters
+            );
+        } else {
+            final Uri issuerUri = Uri.parse(issuer);
+            AuthorizationServiceConfiguration.fetchFromUrl(
+                    buildConfigurationUriFromIssuer(issuerUri),
+                    new AuthorizationServiceConfiguration.RetrieveConfigurationCallback() {
+                        public void onFetchConfigurationCompleted(
+                                @Nullable AuthorizationServiceConfiguration fetchedConfiguration,
+                                @Nullable AuthorizationException ex) {
+                            if (ex != null) {
+                                promise.reject("RNAppAuth Error", "Failed to fetch configuration", ex);
+                                return;
+                            }
+
+                            authorizeWithConfiguration(
+                                    fetchedConfiguration,
+                                    appAuthConfiguration,
+                                    clientId,
+                                    scopesString,
+                                    redirectUrl,
+                                    additionalParameters
+                            );
                         }
+                    },
+                    builder
+            );
+        }
 
 
-                        AuthorizationRequest.Builder authRequestBuilder =
-                                new AuthorizationRequest.Builder(
-                                        serviceConfiguration,
-                                        clientId,
-                                        ResponseTypeValues.CODE,
-                                        Uri.parse(redirectUrl)
-                                )
-                                        .setScope(scopesString);
 
-                        if (additionalParameters != null) {
-                            authRequestBuilder.setAdditionalParameters(additionalParametersToMap(additionalParameters));
-                        }
-
-                        AuthorizationRequest authRequest = authRequestBuilder.build();
-                        AuthorizationService authService = new AuthorizationService(context, configuration);
-                        Intent authIntent = authService.getAuthorizationRequestIntent(authRequest);
-                        currentActivity.startActivityForResult(authIntent, 0);
-
-                    }
-                },
-                builder
-        );
 
     }
 
