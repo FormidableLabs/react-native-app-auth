@@ -11,7 +11,7 @@ const validateIssuerOrServiceConfigurationEndpoints = (issuer, serviceConfigurat
       (serviceConfiguration &&
         typeof serviceConfiguration.authorizationEndpoint === 'string' &&
         typeof serviceConfiguration.tokenEndpoint === 'string'),
-    'Config error: you must provide either an issue or a revocation endpoint'
+    'Config error: you must provide either an issue or a service endpoints'
   );
 const validateIssuerOrServiceConfigurationRevocationEndpoint = (issuer, serviceConfiguration) =>
   invariant(
