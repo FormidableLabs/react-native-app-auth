@@ -28,7 +28,9 @@ describe('AppAuth', () => {
     issuer: 'test-issuer',
     redirectUrl: 'test-redirectUrl',
     clientId: 'test-clientId',
+    clientSecret: 'test-clientSecret',
     additionalParameters: { hello: 'world' },
+    serviceConfiguration: null,
     scopes: ['my-scope'],
   };
 
@@ -74,8 +76,10 @@ describe('AppAuth', () => {
         config.issuer,
         config.redirectUrl,
         config.clientId,
+        config.clientSecret,
         config.scopes,
-        config.additionalParameters
+        config.additionalParameters,
+        config.serviceConfiguration
       );
     });
 
@@ -94,8 +98,10 @@ describe('AppAuth', () => {
           config.issuer,
           config.redirectUrl,
           config.clientId,
+          config.clientSecret,
           config.scopes,
           config.additionalParameters,
+          config.serviceConfiguration,
           false
         );
       });
@@ -106,8 +112,10 @@ describe('AppAuth', () => {
           config.issuer,
           config.redirectUrl,
           config.clientId,
+          config.clientSecret,
           config.scopes,
           config.additionalParameters,
+          config.serviceConfiguration,
           false
         );
       });
@@ -118,8 +126,10 @@ describe('AppAuth', () => {
           config.issuer,
           config.redirectUrl,
           config.clientId,
+          config.clientSecret,
           config.scopes,
           config.additionalParameters,
+          config.serviceConfiguration,
           true
         );
       });
@@ -174,9 +184,11 @@ describe('AppAuth', () => {
         config.issuer,
         config.redirectUrl,
         config.clientId,
+        config.clientSecret,
         'such-token',
         config.scopes,
-        config.additionalParameters
+        config.additionalParameters,
+        config.serviceConfiguration
       );
     });
 
@@ -195,9 +207,11 @@ describe('AppAuth', () => {
           config.issuer,
           config.redirectUrl,
           config.clientId,
+          config.clientSecret,
           'such-token',
           config.scopes,
           config.additionalParameters,
+          config.serviceConfiguration,
           false
         );
       });
@@ -211,9 +225,11 @@ describe('AppAuth', () => {
           config.issuer,
           config.redirectUrl,
           config.clientId,
+          config.clientSecret,
           'such-token',
           config.scopes,
           config.additionalParameters,
+          config.serviceConfiguration,
           false
         );
       });
@@ -227,9 +243,11 @@ describe('AppAuth', () => {
           config.issuer,
           config.redirectUrl,
           config.clientId,
+          config.clientSecret,
           'such-token',
           config.scopes,
           config.additionalParameters,
+          config.serviceConfiguration,
           true
         );
       });
