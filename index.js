@@ -7,6 +7,12 @@ const validateScopes = scopes =>
   invariant(scopes && scopes.length, 'Scope error: please add at least one scope');
 const validateIssuer = issuer =>
   invariant(typeof issuer === 'string', 'Config error: issuer must be a string');
+const validateIssuerOrServiceConfigurationRevocationEndpoint = (issuer, serviceConfiguration) =>
+  invariant(
+    typeof issuer === 'string' ||
+      (serviceConfiguration && typeof serviceConfiguration.revocationEndPoint === 'string'),
+    'Config error: issuer must be a string'
+  );
 const validateClientId = clientId =>
   invariant(typeof clientId === 'string', 'Config error: clientId must be a string');
 const validateRedirectUrl = redirectUrl =>
@@ -88,18 +94,28 @@ export const refresh = (
   return RNAppAuth.refresh(...nativeMethodArguments);
 };
 
-export const revoke = async ({ clientId, issuer }, { tokenToRevoke, sendClientId = false }) => {
+export const revoke = async (
+  { clientId, issuer, serviceConfiguration },
+  { tokenToRevoke, sendClientId = false }
+) => {
   invariant(tokenToRevoke, 'Please include the token to revoke');
   validateClientId(clientId);
-  validateIssuer(issuer);
+  validateIssuerOrServiceConfigurationRevocationEndpoint(issuer, serviceConfiguration);
 
-  const response = await fetch(`${issuer}/.well-known/openid-configuration`);
-  const openidConfig = await response.json();
+  let revocationEndpoint;
+  if (serviceConfiguration && serviceConfiguration.revocationEndpoint) {
+    revocationEndpoint = serviceConfiguration.revocationEndpoint;
+  } else {
+    const response = await fetch(`${issuer}/.well-known/openid-configuration`);
+    const openidConfig = await response.json();
 
-  invariant(
-    openidConfig.revocation_endpoint,
-    'The openid config does not specify a revocation endpoint'
-  );
+    invariant(
+      openidConfig.revocation_endpoint,
+      'The openid config does not specify a revocation endpoint'
+    );
+
+    revocationEndpoint = openidConfig.revocationEndpoint;
+  }
 
   /**
     Identity Server insists on client_id being passed in the body,
@@ -107,8 +123,7 @@ export const revoke = async ({ clientId, issuer }, { tokenToRevoke, sendClientId
     so defaulting to no client_id
     https://tools.ietf.org/html/rfc7009#section-2.1
   **/
-
-  return await fetch(openidConfig.revocation_endpoint, {
+  return await fetch(revocationEndpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
