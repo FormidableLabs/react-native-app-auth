@@ -5,8 +5,20 @@ const { RNAppAuth } = NativeModules;
 
 const validateScopes = scopes =>
   invariant(scopes && scopes.length, 'Scope error: please add at least one scope');
-const validateIssuer = issuer =>
-  invariant(typeof issuer === 'string', 'Config error: issuer must be a string');
+const validateIssuerOrServiceConfigurationEndpoints = (issuer, serviceConfiguration) =>
+  invariant(
+    typeof issuer === 'string' ||
+      (serviceConfiguration &&
+        typeof serviceConfiguration.authorizationEndpoint === 'string' &&
+        typeof serviceConfiguration.tokenEndpoint === 'string'),
+    'Config error: you must provide either an issuer or a service endpoints'
+  );
+const validateIssuerOrServiceConfigurationRevocationEndpoint = (issuer, serviceConfiguration) =>
+  invariant(
+    typeof issuer === 'string' ||
+      (serviceConfiguration && typeof serviceConfiguration.revocationEndpoint === 'string'),
+    'Config error: you must provide either an issuer or a revocation endpoint'
+  );
 const validateClientId = clientId =>
   invariant(typeof clientId === 'string', 'Config error: clientId must be a string');
 const validateRedirectUrl = redirectUrl =>
@@ -16,17 +28,27 @@ export const authorize = ({
   issuer,
   redirectUrl,
   clientId,
+  clientSecret,
   scopes,
   additionalParameters,
+  serviceConfiguration,
   dangerouslyAllowInsecureHttpRequests = false,
 }) => {
   validateScopes(scopes);
-  validateIssuer(issuer);
+  validateIssuerOrServiceConfigurationEndpoints(issuer, serviceConfiguration);
   validateClientId(clientId);
   validateRedirectUrl(redirectUrl);
   // TODO: validateAdditionalParameters
 
-  const nativeMethodArguments = [issuer, redirectUrl, clientId, scopes, additionalParameters];
+  const nativeMethodArguments = [
+    issuer,
+    redirectUrl,
+    clientId,
+    clientSecret,
+    scopes,
+    additionalParameters,
+    serviceConfiguration,
+  ];
   if (Platform.OS === 'android') {
     nativeMethodArguments.push(dangerouslyAllowInsecureHttpRequests);
   }
@@ -39,14 +61,16 @@ export const refresh = (
     issuer,
     redirectUrl,
     clientId,
+    clientSecret,
     scopes,
     additionalParameters,
+    serviceConfiguration,
     dangerouslyAllowInsecureHttpRequests = false,
   },
   { refreshToken }
 ) => {
   validateScopes(scopes);
-  validateIssuer(issuer);
+  validateIssuerOrServiceConfigurationEndpoints(issuer, serviceConfiguration);
   validateClientId(clientId);
   validateRedirectUrl(redirectUrl);
   invariant(refreshToken, 'Please pass in a refresh token');
@@ -56,9 +80,11 @@ export const refresh = (
     issuer,
     redirectUrl,
     clientId,
+    clientSecret,
     refreshToken,
     scopes,
     additionalParameters,
+    serviceConfiguration,
   ];
 
   if (Platform.OS === 'android') {
@@ -68,18 +94,28 @@ export const refresh = (
   return RNAppAuth.refresh(...nativeMethodArguments);
 };
 
-export const revoke = async ({ clientId, issuer }, { tokenToRevoke, sendClientId = false }) => {
+export const revoke = async (
+  { clientId, issuer, serviceConfiguration },
+  { tokenToRevoke, sendClientId = false }
+) => {
   invariant(tokenToRevoke, 'Please include the token to revoke');
   validateClientId(clientId);
-  validateIssuer(issuer);
+  validateIssuerOrServiceConfigurationRevocationEndpoint(issuer, serviceConfiguration);
 
-  const response = await fetch(`${issuer}/.well-known/openid-configuration`);
-  const openidConfig = await response.json();
+  let revocationEndpoint;
+  if (serviceConfiguration && serviceConfiguration.revocationEndpoint) {
+    revocationEndpoint = serviceConfiguration.revocationEndpoint;
+  } else {
+    const response = await fetch(`${issuer}/.well-known/openid-configuration`);
+    const openidConfig = await response.json();
 
-  invariant(
-    openidConfig.revocation_endpoint,
-    'The openid config does not specify a revocation endpoint'
-  );
+    invariant(
+      openidConfig.revocation_endpoint,
+      'The openid config does not specify a revocation endpoint'
+    );
+
+    revocationEndpoint = openidConfig.revocation_endpoint;
+  }
 
   /**
     Identity Server insists on client_id being passed in the body,
@@ -87,8 +123,7 @@ export const revoke = async ({ clientId, issuer }, { tokenToRevoke, sendClientId
     so defaulting to no client_id
     https://tools.ietf.org/html/rfc7009#section-2.1
   **/
-
-  return await fetch(openidConfig.revocation_endpoint, {
+  return await fetch(revocationEndpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',

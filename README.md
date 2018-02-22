@@ -72,14 +72,20 @@ const result = await authorize(config);
 This is your configuration object for the client. The config is passed into each of the methods
 with optional overrides.
 
-* **issuer** - (`string`) _REQUIRED_ the url of the auth server
+* **issuer** - (`string`) base URI of the authentication server. If no `serviceConfiguration` (below) is provided, issuer is a mandatory field, so that the configuration can be fetched from the issuer's [OIDC discovery endpoint](https://openid.net/specs/openid-connect-discovery-1_0.html).
+* **serviceConfiguration** - (`object`) you may manually configure token exchange endpoints in cases where the issuer does not support the OIDC discovery protocol, or simply to avoid an additional round trip to fetch the configuration. If no `issuer` (above) is provided, the service configuration is mandatory.
+  * **authorizationEndpoint** - (`string`) _REQUIRED_ fully formed url to the OAuth authorization endpoint
+  * **tokenEndpoint** - (`string`) _REQUIRED_ fully formed url to the OAuth token exchange endpoint
+  * **revocationEndpoint** - (`string`) fully formed url to the OAuth token revocation endpoint. If you want to be able to revoke a token and no `issuer` is specified, this field is mandatory.
+  * **registrationEndpoint** - (`string`) fully formed url to your OAuth/OpenID Connect registration endpoint. Only necessary for servers that require client registration.
 * **clientId** - (`string`) _REQUIRED_ your client id on the auth server
+* **clientSecret** - (`string`) client secret to pass to token exchange requests. :warning: Read more about [client secrets](#note-about-client-secrets)
 * **redirectUrl** - (`string`) _REQUIRED_ the url that links back to your app with the auth code
 * **scopes** - (`array<string>`) _REQUIRED_ the scopes for your token, e.g. `['email', 'offline_access']`
 * **additionalParameters** - (`object`) additional parameters that will be passed in the authorization request.
   Must be string values! E.g. setting `additionalParameters: { hello: 'world', foo: 'bar' }` would add
   `hello=world&foo=bar` to the authorization request.
-* :warning: **dangerouslyAllowInsecureHttpRequests** - (`boolean`) _ANDROID_ whether to allow requests over plain HTTP or with self-signed SSL certificates. Can be useful for testing against local server, _should not be used in production._ This setting has no effect on iOS; to enable insecure HTTP requests, add a [NSExceptionAllowsInsecureHTTPLoads exception](https://cocoacasts.com/how-to-add-app-transport-security-exception-domains) to your App Transport Security settings.
+* **dangerouslyAllowInsecureHttpRequests** - (`boolean`) _ANDROID_ whether to allow requests over plain HTTP or with self-signed SSL certificates. :warning: Can be useful for testing against local server, _should not be used in production._ This setting has no effect on iOS; to enable insecure HTTP requests, add a [NSExceptionAllowsInsecureHTTPLoads exception](https://cocoacasts.com/how-to-add-app-transport-security-exception-domains) to your App Transport Security settings.
 
 #### result
 
@@ -353,6 +359,14 @@ try {
 
 See example configurations for different providers below.
 
+### Note about client secrets
+
+Some authentication providers, including examples cited below, require you to provide a client secret. The authors of the AppAuth library
+
+> [strongly recommend](https://github.com/openid/AppAuth-Android#utilizing-client-secrets-dangerous) you avoid using static client secrets in your native applications whenever possible. Client secrets derived via a dynamic client registration are safe to use, but static client secrets can be easily extracted from your apps and allow others to impersonate your app and steal user data. If client secrets must be used by the OAuth2 provider you are integrating with, we strongly recommend performing the code exchange step on your backend, where the client secret can be kept hidden.
+
+Having said this, in some cases using client secrets is unavoidable. In these cases, a `clientSecret` parameter can be provided to `authorize`/`refresh` calls when performing a token request.
+
 ### Identity Server 4
 
 This library supports authenticating for Identity Server 4 out of the box. Some quirks:
@@ -464,6 +478,42 @@ const authState = await authorize(config);
 // Refresh token
 const refreshedState = await refresh(config, {
   refreshToken: authState.refreshToken,
+});
+```
+
+### Uber
+
+Uber provides an OAuth 2.0 endpoint for logging in with a Uber user's credentials. You'll need to first [create an Uber OAuth application here](https://developer.uber.com/docs/riders/guides/authentication/introduction).
+
+Please note:
+
+* Uber does not provide a OIDC discovery endpoint, so `serviceConfiguration` is used instead.
+* Uber OAuth requires a [client secret](#note-about-client-secrets).
+
+```js
+const config = {
+  clientId: 'your-client-id-generated-by-uber',
+  clientSecret: 'your-client-secret-generated-by-uber',
+  redirectUrl: 'com.whatever.url.you.configured.in.uber.oauth://redirect', //note: path is required
+  scopes: ['profile', 'delivery'], // whatever scopes you configured in Uber OAuth portal
+  serviceConfiguration: {
+    authorizationEndpoint: 'https://login.uber.com/oauth/v2/authorize',
+    tokenEndpoint: 'https://login.uber.com/oauth/v2/token',
+    revocationEndpoint: 'https://login.uber.com/oauth/v2/revoke'
+  }
+};
+
+// Log in to get an authentication token
+const authState = await authorize(config);
+
+// Refresh token
+const refreshedState = await refresh(config, {
+  refreshToken: authState.refreshToken,
+});
+
+// Revoke token
+await revoke(config, {
+  tokenToRevoke: refreshedState.refreshToken
 });
 ```
 

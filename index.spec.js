@@ -28,7 +28,9 @@ describe('AppAuth', () => {
     issuer: 'test-issuer',
     redirectUrl: 'test-redirectUrl',
     clientId: 'test-clientId',
+    clientSecret: 'test-clientSecret',
     additionalParameters: { hello: 'world' },
+    serviceConfiguration: null,
     scopes: ['my-scope'],
   };
 
@@ -38,10 +40,30 @@ describe('AppAuth', () => {
       mockRefresh.mockReset();
     });
 
-    it('throws an error when issuer is not a string', () => {
+    it('throws an error when issuer is not a string and serviceConfiguration is not passed', () => {
       expect(() => {
         authorize({ ...config, issuer: () => ({}) });
-      }).toThrow('Config error: issuer must be a string');
+      }).toThrow('Config error: you must provide either an issuer or a service endpoints');
+    });
+
+    it('throws an error when serviceConfiguration does not have tokenEndpoint and issuer is not passed', () => {
+      expect(() => {
+        authorize({
+          ...config,
+          issuer: undefined,
+          serviceConfiguration: { authorizationEndpoint: '' },
+        });
+      }).toThrow('Config error: you must provide either an issuer or a service endpoints');
+    });
+
+    it('throws an error when serviceConfiguration does not have tokenEndpoint and issuer is not passed', () => {
+      expect(() => {
+        authorize({
+          ...config,
+          issuer: undefined,
+          serviceConfiguration: { authorizationEndpoint: '' },
+        });
+      }).toThrow('Config error: you must provide either an issuer or a service endpoints');
     });
 
     it('throws an error when redirectUrl is not a string', () => {
@@ -74,8 +96,10 @@ describe('AppAuth', () => {
         config.issuer,
         config.redirectUrl,
         config.clientId,
+        config.clientSecret,
         config.scopes,
-        config.additionalParameters
+        config.additionalParameters,
+        config.serviceConfiguration
       );
     });
 
@@ -94,8 +118,10 @@ describe('AppAuth', () => {
           config.issuer,
           config.redirectUrl,
           config.clientId,
+          config.clientSecret,
           config.scopes,
           config.additionalParameters,
+          config.serviceConfiguration,
           false
         );
       });
@@ -106,8 +132,10 @@ describe('AppAuth', () => {
           config.issuer,
           config.redirectUrl,
           config.clientId,
+          config.clientSecret,
           config.scopes,
           config.additionalParameters,
+          config.serviceConfiguration,
           false
         );
       });
@@ -118,8 +146,10 @@ describe('AppAuth', () => {
           config.issuer,
           config.redirectUrl,
           config.clientId,
+          config.clientSecret,
           config.scopes,
           config.additionalParameters,
+          config.serviceConfiguration,
           true
         );
       });
@@ -132,10 +162,30 @@ describe('AppAuth', () => {
       mockRefresh.mockReset();
     });
 
-    it('throws an error when issuer is not a string', () => {
+    it('throws an error when issuer is not a string and serviceConfiguration is not passed', () => {
       expect(() => {
         authorize({ ...config, issuer: () => ({}) });
-      }).toThrow('Config error: issuer must be a string');
+      }).toThrow('Config error: you must provide either an issuer or a service endpoints');
+    });
+
+    it('throws an error when serviceConfiguration does not have tokenEndpoint and issuer is not passed', () => {
+      expect(() => {
+        authorize({
+          ...config,
+          issuer: undefined,
+          serviceConfiguration: { authorizationEndpoint: '' },
+        });
+      }).toThrow('Config error: you must provide either an issuer or a service endpoints');
+    });
+
+    it('throws an error when serviceConfiguration does not have tokenEndpoint and issuer is not passed', () => {
+      expect(() => {
+        authorize({
+          ...config,
+          issuer: undefined,
+          serviceConfiguration: { authorizationEndpoint: '' },
+        });
+      }).toThrow('Config error: you must provide either an issuer or a service endpoints');
     });
 
     it('throws an error when redirectUrl is not a string', () => {
@@ -174,9 +224,11 @@ describe('AppAuth', () => {
         config.issuer,
         config.redirectUrl,
         config.clientId,
+        config.clientSecret,
         'such-token',
         config.scopes,
-        config.additionalParameters
+        config.additionalParameters,
+        config.serviceConfiguration
       );
     });
 
@@ -195,9 +247,11 @@ describe('AppAuth', () => {
           config.issuer,
           config.redirectUrl,
           config.clientId,
+          config.clientSecret,
           'such-token',
           config.scopes,
           config.additionalParameters,
+          config.serviceConfiguration,
           false
         );
       });
@@ -211,9 +265,11 @@ describe('AppAuth', () => {
           config.issuer,
           config.redirectUrl,
           config.clientId,
+          config.clientSecret,
           'such-token',
           config.scopes,
           config.additionalParameters,
+          config.serviceConfiguration,
           false
         );
       });
@@ -227,9 +283,11 @@ describe('AppAuth', () => {
           config.issuer,
           config.redirectUrl,
           config.clientId,
+          config.clientSecret,
           'such-token',
           config.scopes,
           config.additionalParameters,
+          config.serviceConfiguration,
           true
         );
       });

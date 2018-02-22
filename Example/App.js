@@ -19,6 +19,12 @@ const config = {
   redirectUrl: 'io.identityserver.demo:/oauthredirect',
   additionalParameters: {},
   scopes: ['openid', 'profile', 'email', 'offline_access']
+
+  // serviceConfiguration: {
+  //   authorizationEndpoint: 'https://demo.identityserver.io/connect/authorize',
+  //   tokenEndpoint: 'https://demo.identityserver.io/connect/token',
+  //   revocationEndpoint: 'https://demo.identityserver.io/connect/revoke'
+  // }
 };
 
 export default class App extends Component<{}, State> {
@@ -41,7 +47,7 @@ export default class App extends Component<{}, State> {
   authorize = async () => {
     try {
       const authState = await authorize(config);
-      
+
       this.animateState(
         {
           hasLoggedInOnce: true,
