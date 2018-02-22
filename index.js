@@ -17,7 +17,7 @@ const validateIssuerOrServiceConfigurationRevocationEndpoint = (issuer, serviceC
   invariant(
     typeof issuer === 'string' ||
       (serviceConfiguration && typeof serviceConfiguration.revocationEndpoint === 'string'),
-    'Config error: you must provide either an issue or a revocation endpoint'
+    'Config error: you must provide either an issuer or a revocation endpoint'
   );
 const validateClientId = clientId =>
   invariant(typeof clientId === 'string', 'Config error: clientId must be a string');
