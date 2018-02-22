@@ -88,7 +88,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                         additionalParametersMap
                 );
             } catch (Exception e) {
-                promise.reject(e);
+                promise.reject("RNAppAuth Error", "Failed to authenticate", e);
             }
         } else {
             final Uri issuerUri = Uri.parse(issuer);
@@ -135,9 +135,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final Boolean dangerouslyAllowInsecureHttpRequests,
             final Promise promise
     ) {
-        final Context context = this.reactContext;
         final String scopesString = this.arrayToString(scopes);
-        final Uri issuerUri = Uri.parse(issuer);
         final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests);
         final AppAuthConfiguration appAuthConfiguration = createAppAuthConfiguration(builder);
         final HashMap<String, String> additionalParametersMap = MapUtils.readableMapToHashMap(additionalParameters);
@@ -164,9 +162,10 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                         promise
                 );
             } catch (Exception e) {
-                promise.reject(e);
+                promise.reject("RNAppAuth Error", "Failed to refresh token", e);
             }
         } else {
+            final Uri issuerUri = Uri.parse(issuer);
             // @TODO: Refactor to avoid hitting IDP endpoint on refresh, reuse fetchedConfiguration if possible.
             AuthorizationServiceConfiguration.fetchFromUrl(
                     buildConfigurationUriFromIssuer(issuerUri),
