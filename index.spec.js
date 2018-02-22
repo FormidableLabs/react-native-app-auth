@@ -43,7 +43,7 @@ describe('AppAuth', () => {
     it('throws an error when issuer is not a string and serviceConfiguration is not passed', () => {
       expect(() => {
         authorize({ ...config, issuer: () => ({}) });
-      }).toThrow('Config error: you must provide either an issue or a service endpoints');
+      }).toThrow('Config error: you must provide either an issuer or a service endpoints');
     });
 
     it('throws an error when serviceConfiguration does not have tokenEndpoint and issuer is not passed', () => {
@@ -53,7 +53,7 @@ describe('AppAuth', () => {
           issuer: undefined,
           serviceConfiguration: { authorizationEndpoint: '' },
         });
-      }).toThrow('Config error: you must provide either an issue or a service endpoints');
+      }).toThrow('Config error: you must provide either an issuer or a service endpoints');
     });
 
     it('throws an error when serviceConfiguration does not have tokenEndpoint and issuer is not passed', () => {
@@ -63,7 +63,7 @@ describe('AppAuth', () => {
           issuer: undefined,
           serviceConfiguration: { authorizationEndpoint: '' },
         });
-      }).toThrow('Config error: you must provide either an issue or a service endpoints');
+      }).toThrow('Config error: you must provide either an issuer or a service endpoints');
     });
 
     it('throws an error when redirectUrl is not a string', () => {
@@ -165,7 +165,7 @@ describe('AppAuth', () => {
     it('throws an error when issuer is not a string and serviceConfiguration is not passed', () => {
       expect(() => {
         authorize({ ...config, issuer: () => ({}) });
-      }).toThrow('Config error: you must provide either an issue or a service endpoints');
+      }).toThrow('Config error: you must provide either an issuer or a service endpoints');
     });
 
     it('throws an error when serviceConfiguration does not have tokenEndpoint and issuer is not passed', () => {
@@ -175,7 +175,7 @@ describe('AppAuth', () => {
           issuer: undefined,
           serviceConfiguration: { authorizationEndpoint: '' },
         });
-      }).toThrow('Config error: you must provide either an issue or a service endpoints');
+      }).toThrow('Config error: you must provide either an issuer or a service endpoints');
     });
 
     it('throws an error when serviceConfiguration does not have tokenEndpoint and issuer is not passed', () => {
@@ -185,7 +185,7 @@ describe('AppAuth', () => {
           issuer: undefined,
           serviceConfiguration: { authorizationEndpoint: '' },
         });
-      }).toThrow('Config error: you must provide either an issue or a service endpoints');
+      }).toThrow('Config error: you must provide either an issuer or a service endpoints');
     });
 
     it('throws an error when redirectUrl is not a string', () => {
