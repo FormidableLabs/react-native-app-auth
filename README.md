@@ -493,7 +493,7 @@ Please note:
 ```js
 const config = {
   clientId: 'your-client-id-generated-by-uber',
-  clientSecret: 'your-client-id-generated-by-uber',
+  clientSecret: 'your-client-secret-generated-by-uber',
   redirectUrl: 'com.whatever.url.you.configured.in.uber.oauth://redirect', //note: path is required
   scopes: ['profile', 'delivery'], // whatever scopes you configured in Uber OAuth portal
   serviceConfiguration: {
