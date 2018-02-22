@@ -25,11 +25,6 @@ export interface AuthConfiguration extends BaseAuthConfiguration {
   dangerouslyAllowInsecureHttpRequests?: boolean;
 }
 
-export interface RevokeConfiguration {
-  clientId: string;
-  issuer: string;
-}
-
 export interface AuthorizeResult {
   accessToken: string;
   accessTokenExpirationDate: string;
