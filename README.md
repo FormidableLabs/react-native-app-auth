@@ -72,7 +72,7 @@ const result = await authorize(config);
 This is your configuration object for the client. The config is passed into each of the methods
 with optional overrides.
 
-* **issuer** - (`string`) base URI of the authentication server. If no `serviceConfiguration` (below) is not provided, issuer is a mandatory field, so that the configuration can be fetched from the issuer's [OIDC discovery endpoint](https://openid.net/specs/openid-connect-discovery-1_0.html).
+* **issuer** - (`string`) base URI of the authentication server. If no `serviceConfiguration` (below) is provided, issuer is a mandatory field, so that the configuration can be fetched from the issuer's [OIDC discovery endpoint](https://openid.net/specs/openid-connect-discovery-1_0.html).
 * **serviceConfiguration** - (`object`) you may manually configure token exchange endpoints in cases where the issuer does not support the OIDC discovery protocol, or simply to avoid an additional round trip to fetch the configuration. If no `issuer` (above) is provided, the service configuration is mandatory.
   * **authorizationEndpoint** - (`string`) _REQUIRED_ fully formed url to the OAuth authorization endpoint
   * **tokenEndpoint** - (`string`) _REQUIRED_ fully formed url to the OAuth token exchange endpoint
@@ -483,7 +483,7 @@ const refreshedState = await refresh(config, {
 
 ### Uber
 
-Uber provides an OAuth 2.0 endpoint for logging in with a Uber user's credentiala. You'll need to first [create an Uber OAuth application here](https://developer.uber.com/docs/riders/guides/authentication/introduction).
+Uber provides an OAuth 2.0 endpoint for logging in with a Uber user's credentials. You'll need to first [create an Uber OAuth application here](https://developer.uber.com/docs/riders/guides/authentication/introduction).
 
 Please note:
 
