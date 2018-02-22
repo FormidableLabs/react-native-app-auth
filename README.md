@@ -18,6 +18,7 @@ This library _should_ support any OAuth provider that implements the
 [OAuth2 spec](https://tools.ietf.org/html/rfc6749#section-2.2) and it has been tested with:
 
 * [Identity Server4](https://demo.identityserver.io/) ([Example configuration](#identity-server-4))
+* [Identity Server3](https://github.com/IdentityServer/IdentityServer3) ([Example configuration](#identity-server-3))
 * [Google](https://developers.google.com/identity/protocols/OAuth2)
   ([Example configuration](#google))
 * [Okta](https://developer.okta.com) ([Example configuration](#okta))
@@ -399,6 +400,73 @@ await revoke(config, {
   sendClientId: true
 });
 ```
+
+<details>
+  <summary>Example server configuration</summary>
+
+```  
+var client = new Client
+{
+  ClientId = "native.code",
+  ClientName = "Native Client (Code with PKCE)",
+  RequireClientSecret = false,
+  RedirectUris = { "io.identityserver.demo:/oauthredirect" },
+  AllowedGrantTypes = GrantTypes.Code,
+  RequirePkce = true,
+  AllowedScopes = { "openid", "profile" },
+  AllowOfflineAccess = true
+};
+```
+
+</details>
+
+### Identity Server 3
+
+This library supports authenticating with Identity Server 3. The only difference from
+Identity Server 4 is that it requires a `clientSecret` and there is no way to opt out of it.
+
+```js
+// You must include a clientSecret
+const config = {
+  issuer: 'your-identityserver-url',
+  clientId: 'your-client-id',
+  clientSecret: 'your-client-secret',
+  redirectUrl: 'com.your.app.name:/oauthredirect',
+  scopes: ['openid', 'profile', 'offline_access']
+};
+
+// Log in to get an authentication token
+const authState = await authorize(config);
+
+// Refresh token
+const refreshedState = await refresh({
+  ...config,
+  refreshToken: authState.refreshToken,
+});
+
+// Revoke token, note that Identity Server expects a client id on revoke
+await revoke(config, {
+  tokenToRevoke: refreshedState.refreshToken,
+  sendClientId: true
+});
+```
+
+<details>
+  <summary>Example server configuration</summary>
+
+```
+var client = new Client
+{
+  ClientId = "native.code",
+  ClientName = "Native Client (Code with PKCE)",
+  Flow = Flows.AuthorizationCodeWithProofKey,            
+  RedirectUris = { "com.your.app.name:/oauthredirect" },
+  ClientSecrets = new List<Secret> { new Secret("your-client-secret".Sha256()) },
+  AllowAccessToAllScopes = true
+};
+```
+
+</details>
 
 ### Google
 
