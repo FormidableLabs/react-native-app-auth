@@ -6,7 +6,7 @@ export interface ServiceConfiguration {
 }
 
 export type BaseAuthConfiguration =
-    {
+  | {
       clientId: string;
       issuer?: string;
       serviceConfiguration: ServiceConfiguration;
