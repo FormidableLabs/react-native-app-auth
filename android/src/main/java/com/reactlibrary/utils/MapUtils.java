@@ -7,10 +7,6 @@ import com.facebook.react.bridge.ReadableMapKeySetIterator;
 
 import java.util.HashMap;
 
-/**
- * Created by formidable on 21/02/2018.
- */
-
 public class MapUtils {
 
     public static HashMap<String, String> readableMapToHashMap(@Nullable ReadableMap readableMap) {
