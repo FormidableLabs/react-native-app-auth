@@ -332,10 +332,17 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
      * Read raw token response into a React Native map to be passed down the bridge
      */
     private WritableMap tokenResponseToMap(TokenResponse response) {
+        WritableMap map = Arguments.createMap();
 
-        Date expirationDate = new Date(response.accessTokenExpirationTime);
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
-        String expirationDateString = formatter.format(expirationDate);
+        map.putString("accessToken", response.accessToken);
+
+        if (response.accessTokenExpirationTime != null) {
+            Date expirationDate = new Date(response.accessTokenExpirationTime);
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+            String expirationDateString = formatter.format(expirationDate);
+            map.putString("accessTokenExpirationDate", expirationDateString);
+        }
+
         WritableMap additionalParametersMap = Arguments.createMap();
 
         if (!response.additionalParameters.isEmpty()) {
@@ -348,9 +355,6 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             }
         }
 
-        WritableMap map = Arguments.createMap();
-        map.putString("accessToken", response.accessToken);
-        map.putString("accessTokenExpirationDate", expirationDateString);
         map.putMap("additionalParameters", additionalParametersMap);
         map.putString("idToken", response.idToken);
         map.putString("refreshToken", response.refreshToken);
