@@ -203,15 +203,11 @@ RCT_REMAP_METHOD(refresh,
  * Take raw OIDTokenResponse and turn it to a token response format to pass to JavaScript caller
  */
 - (NSDictionary*)formatResponse: (OIDTokenResponse*) response {
-    NSDate *expirationDate = response.accessTokenExpirationDate ?
-    response.accessTokenExpirationDate : [NSDate alloc];
-    
     NSDateFormatter *dateFormat = [[NSDateFormatter alloc] init];
     [dateFormat setDateFormat:@"yyyy-MM-dd'T'HH:mm:ssZ"];
-    NSString *expirationDateString = [dateFormat stringFromDate:expirationDate];
-    
+
     return @{@"accessToken": response.accessToken ? response.accessToken : @"",
-             @"accessTokenExpirationDate": expirationDateString,
+             @"accessTokenExpirationDate": response.accessTokenExpirationDate ? [dateFormat stringFromDate:response.accessTokenExpirationDate] : @"",
              @"additionalParameters": response.additionalParameters,
              @"idToken": response.idToken ? response.idToken : @"",
              @"refreshToken": response.refreshToken ? response.refreshToken : @"",
