@@ -163,6 +163,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                         scopesString,
                         redirectUrl,
                         additionalParametersMap,
+                        clientSecret,
                         promise
                 );
             } catch (Exception e) {
@@ -190,6 +191,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                     scopesString,
                                     redirectUrl,
                                     additionalParametersMap,
+                                    clientSecret,
                                     promise
                             );
                         }
@@ -306,6 +308,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final String scopesString,
             final String redirectUrl,
             final Map<String, String> additionalParametersMap,
+            final String clientSecret,
             final Promise promise
     ) {
 
@@ -327,17 +330,34 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         TokenRequest tokenRequest = tokenRequestBuilder.build();
 
         AuthorizationService authService = new AuthorizationService(context, appAuthConfiguration);
-        authService.performTokenRequest(tokenRequest, new AuthorizationService.TokenResponseCallback() {
-            @Override
-            public void onTokenRequestCompleted(@Nullable TokenResponse response, @Nullable AuthorizationException ex) {
-                if (response != null) {
-                    WritableMap map = tokenResponseToMap(response);
-                    promise.resolve(map);
-                } else {
-                    promise.reject("RNAppAuth Error", "Failed refresh token");
+
+        if (clientSecret != null) {
+            ClientAuthentication clientAuth = new ClientSecretBasic(this.clientSecret);
+            authService.performTokenRequest(tokenRequest, clientAuth, new AuthorizationService.TokenResponseCallback() {
+                @Override
+                public void onTokenRequestCompleted(@Nullable TokenResponse response, @Nullable AuthorizationException ex) {
+                    if (response != null) {
+                        WritableMap map = tokenResponseToMap(response);
+                        promise.resolve(map);
+                    } else {
+                        promise.reject("RNAppAuth Error", "Failed refresh token");
+                    }
                 }
-            }
-        });
+            });
+
+        } else {
+            authService.performTokenRequest(tokenRequest, new AuthorizationService.TokenResponseCallback() {
+                @Override
+                public void onTokenRequestCompleted(@Nullable TokenResponse response, @Nullable AuthorizationException ex) {
+                    if (response != null) {
+                        WritableMap map = tokenResponseToMap(response);
+                        promise.resolve(map);
+                    } else {
+                        promise.reject("RNAppAuth Error", "Failed refresh token");
+                    }
+                }
+            });
+        }
     }
 
     /*
