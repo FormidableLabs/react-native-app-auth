@@ -24,6 +24,8 @@ import net.openid.appauth.AuthorizationRequest;
 import net.openid.appauth.AuthorizationResponse;
 import net.openid.appauth.AuthorizationService;
 import net.openid.appauth.AuthorizationServiceConfiguration;
+import net.openid.appauth.ClientAuthentication;
+import net.openid.appauth.ClientSecretBasic;
 import net.openid.appauth.ResponseTypeValues;
 import net.openid.appauth.TokenResponse;
 import net.openid.appauth.TokenRequest;
@@ -42,6 +44,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     private Promise promise;
     private Boolean dangerouslyAllowInsecureHttpRequests;
     private Map<String, String> additionalParametersMap;
+    private String clientSecret;
 
     public RNAppAuthModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -75,6 +78,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         this.promise = promise;
         this.dangerouslyAllowInsecureHttpRequests = dangerouslyAllowInsecureHttpRequests;
         this.additionalParametersMap = additionalParametersMap;
+        this.clientSecret = clientSecret;
 
         // when serviceConfiguration is provided, we don't need to hit up the OpenID well-known id endpoint
         if (serviceConfiguration != null) {
@@ -216,21 +220,43 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             AuthorizationService authService = new AuthorizationService(this.reactContext, configuration);
 
             TokenRequest tokenRequest = response.createTokenExchangeRequest(this.additionalParametersMap);
-            authService.performTokenRequest(
-                    tokenRequest,
-                    new AuthorizationService.TokenResponseCallback() {
 
-                        @Override
-                        public void onTokenRequestCompleted(
-                                TokenResponse resp, AuthorizationException ex) {
-                            if (resp != null) {
-                                WritableMap map = tokenResponseToMap(resp);
-                                authorizePromise.resolve(map);
-                            } else {
-                                promise.reject("RNAppAuth Error", "Failed exchange token", ex);
+            if (this.clientSecret != null) {
+                ClientAuthentication clientAuth = new ClientSecretBasic(this.clientSecret);
+                authService.performTokenRequest(
+                        tokenRequest,
+                        clientAuth,
+                        new AuthorizationService.TokenResponseCallback() {
+
+                            @Override
+                            public void onTokenRequestCompleted(
+                                    TokenResponse resp, AuthorizationException ex) {
+                                if (resp != null) {
+                                    WritableMap map = tokenResponseToMap(resp);
+                                    authorizePromise.resolve(map);
+                                } else {
+                                    promise.reject("RNAppAuth Error", "Failed exchange token", ex);
+                                }
                             }
-                        }
-                    });
+                        });
+
+            } else {
+                authService.performTokenRequest(
+                        tokenRequest,
+                        new AuthorizationService.TokenResponseCallback() {
+
+                            @Override
+                            public void onTokenRequestCompleted(
+                                    TokenResponse resp, AuthorizationException ex) {
+                                if (resp != null) {
+                                    WritableMap map = tokenResponseToMap(resp);
+                                    authorizePromise.resolve(map);
+                                } else {
+                                    promise.reject("RNAppAuth Error", "Failed exchange token", ex);
+                                }
+                            }
+                        });
+            }
 
         }
     }
