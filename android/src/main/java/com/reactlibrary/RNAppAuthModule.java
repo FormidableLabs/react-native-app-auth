@@ -223,41 +223,26 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
             TokenRequest tokenRequest = response.createTokenExchangeRequest(this.additionalParametersMap);
 
+            AuthorizationService.TokenResponseCallback tokenResponseCallback = new AuthorizationService.TokenResponseCallback() {
+
+                @Override
+                public void onTokenRequestCompleted(
+                        TokenResponse resp, AuthorizationException ex) {
+                    if (resp != null) {
+                        WritableMap map = tokenResponseToMap(resp);
+                        authorizePromise.resolve(map);
+                    } else {
+                        promise.reject("RNAppAuth Error", "Failed exchange token", ex);
+                    }
+                }
+            };
+
             if (this.clientSecret != null) {
                 ClientAuthentication clientAuth = new ClientSecretBasic(this.clientSecret);
-                authService.performTokenRequest(
-                        tokenRequest,
-                        clientAuth,
-                        new AuthorizationService.TokenResponseCallback() {
-
-                            @Override
-                            public void onTokenRequestCompleted(
-                                    TokenResponse resp, AuthorizationException ex) {
-                                if (resp != null) {
-                                    WritableMap map = tokenResponseToMap(resp);
-                                    authorizePromise.resolve(map);
-                                } else {
-                                    promise.reject("RNAppAuth Error", "Failed exchange token", ex);
-                                }
-                            }
-                        });
+                authService.performTokenRequest(tokenRequest, clientAuth, tokenResponseCallback);
 
             } else {
-                authService.performTokenRequest(
-                        tokenRequest,
-                        new AuthorizationService.TokenResponseCallback() {
-
-                            @Override
-                            public void onTokenRequestCompleted(
-                                    TokenResponse resp, AuthorizationException ex) {
-                                if (resp != null) {
-                                    WritableMap map = tokenResponseToMap(resp);
-                                    authorizePromise.resolve(map);
-                                } else {
-                                    promise.reject("RNAppAuth Error", "Failed exchange token", ex);
-                                }
-                            }
-                        });
+                authService.performTokenRequest(tokenRequest, tokenResponseCallback);
             }
 
         }
@@ -331,32 +316,25 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
         AuthorizationService authService = new AuthorizationService(context, appAuthConfiguration);
 
+        AuthorizationService.TokenResponseCallback tokenResponseCallback = new AuthorizationService.TokenResponseCallback() {
+            @Override
+            public void onTokenRequestCompleted(@Nullable TokenResponse response, @Nullable AuthorizationException ex) {
+                if (response != null) {
+                    WritableMap map = tokenResponseToMap(response);
+                    promise.resolve(map);
+                } else {
+                    promise.reject("RNAppAuth Error", "Failed refresh token");
+                }
+            }
+        };
+
+
         if (clientSecret != null) {
             ClientAuthentication clientAuth = new ClientSecretBasic(this.clientSecret);
-            authService.performTokenRequest(tokenRequest, clientAuth, new AuthorizationService.TokenResponseCallback() {
-                @Override
-                public void onTokenRequestCompleted(@Nullable TokenResponse response, @Nullable AuthorizationException ex) {
-                    if (response != null) {
-                        WritableMap map = tokenResponseToMap(response);
-                        promise.resolve(map);
-                    } else {
-                        promise.reject("RNAppAuth Error", "Failed refresh token");
-                    }
-                }
-            });
+            authService.performTokenRequest(tokenRequest, clientAuth, tokenResponseCallback);
 
         } else {
-            authService.performTokenRequest(tokenRequest, new AuthorizationService.TokenResponseCallback() {
-                @Override
-                public void onTokenRequestCompleted(@Nullable TokenResponse response, @Nullable AuthorizationException ex) {
-                    if (response != null) {
-                        WritableMap map = tokenResponseToMap(response);
-                        promise.resolve(map);
-                    } else {
-                        promise.reject("RNAppAuth Error", "Failed refresh token");
-                    }
-                }
-            });
+            authService.performTokenRequest(tokenRequest, tokenResponseCallback);
         }
     }
 
