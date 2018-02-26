@@ -27,7 +27,7 @@ These providers are OpenID compliant, which means you can use [autodiscovery](ht
 * [Keycloak](http://www.keycloak.org/) ([Example configuration](#keycloak))
 
 ### Tested OAuth2 providers:
-These providers implement the OAuth2 spec, but are not an OpenID providers, which means you must configure the authorization and token endpoints yourself.
+These providers implement the OAuth2 spec, but are not OpenID providers, which means you must configure the authorization and token endpoints yourself.
 * [Uber](https://developer.uber.com/docs/deliveries/guides/three-legged-oauth) ([Example configuration](#uber))
 * [Fitbit](https://dev.fitbit.com/build/reference/web-api/oauth2/) ([Example configuration](#fitbit))
 
