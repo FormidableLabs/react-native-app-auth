@@ -15,8 +15,10 @@ React Native bridge for [AppAuth-iOS](https://github.com/openid/AppAuth-iOS) and
 [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html) providers.
 
 This library _should_ support any OAuth provider that implements the
-[OAuth2 spec](https://tools.ietf.org/html/rfc6749#section-2.2) and it has been tested with:
+[OAuth2 spec](https://tools.ietf.org/html/rfc6749#section-2.2).
 
+### Tested OpenID providers:
+These providers are OpenID compliant, which means you can use [autodiscovery](https://openid.net/specs/openid-connect-discovery-1_0.html).
 * [Identity Server4](https://demo.identityserver.io/) ([Example configuration](#identity-server-4))
 * [Identity Server3](https://github.com/IdentityServer/IdentityServer3) ([Example configuration](#identity-server-3))
 * [Google](https://developers.google.com/identity/protocols/OAuth2)
@@ -24,10 +26,10 @@ This library _should_ support any OAuth provider that implements the
 * [Okta](https://developer.okta.com) ([Example configuration](#okta))
 * [Keycloak](http://www.keycloak.org/) ([Example configuration](#keycloak))
 
-The library uses auto-discovery which means it relies on the the
-[.well-known/openid-configuration](https://openid.net/specs/openid-connect-discovery-1_0.html)
-endpoint to discover all auth endpoints automatically. It will be possible to extend the library
-later to add custom configuration.
+### Tested OAuth2 providers:
+These providers implement the OAuth2 spec, but are not OpenID providers, which means you must configure the authorization and token endpoints yourself.
+* [Uber](https://developer.uber.com/docs/deliveries/guides/three-legged-oauth) ([Example configuration](#uber))
+* [Fitbit](https://dev.fitbit.com/build/reference/web-api/oauth2/) ([Example configuration](#fitbit))
 
 ## Why you may want to use this library
 
@@ -584,6 +586,43 @@ await revoke(config, {
   tokenToRevoke: refreshedState.refreshToken
 });
 ```
+
+### Fitbit
+
+Fitbit provides an OAuth 2.0 endpoint for logging in with a Fitbit user's credentials. You'll need to first [register your Fitbit application here](https://dev.fitbit.com/apps/new).
+
+Please note:
+
+* Fitbit does not provide a OIDC discovery endpoint, so `serviceConfiguration` is used instead.
+* Fitbit OAuth requires a [client secret](#note-about-client-secrets).
+
+```js
+const config = {
+  clientId: 'your-client-id-generated-by-uber',
+  clientSecret: 'your-client-secret-generated-by-fitbit',
+  redirectUrl: 'com.whatever.url.you.configured.in.uber.oauth://redirect', //note: path is required
+  scopes: ['activity', 'sleep'],
+  serviceConfiguration: {
+    authorizationEndpoint: 'https://www.fitbit.com/oauth2/authorize',
+    tokenEndpoint: 'https://api.fitbit.com/oauth2/token',
+    revocationEndpoint: 'https://api.fitbit.com/oauth2/revoke'
+  }
+};
+
+// Log in to get an authentication token
+const authState = await authorize(config);
+
+// Refresh token
+const refreshedState = await refresh(config, {
+  refreshToken: authState.refreshToken,
+});
+
+// Revoke token
+await revoke(config, {
+  tokenToRevoke: refreshedState.refreshToken
+});
+```
+
 
 ## Contributors
 
