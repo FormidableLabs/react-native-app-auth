@@ -279,7 +279,15 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         AuthorizationRequest authRequest = authRequestBuilder.build();
         AuthorizationService authService = new AuthorizationService(context, appAuthConfiguration);
         Intent authIntent = authService.getAuthorizationRequestIntent(authRequest);
-        currentActivity.startActivityForResult(authIntent, 0);
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            currentActivity.startActivityForResult(authIntent, 0);
+        } else{
+            authService.performAuthorizationRequest(
+                authRequest,
+                currentActivity.createPendingResult(0, authIntent, 0)
+            );
+        }
     }
 
     /*
