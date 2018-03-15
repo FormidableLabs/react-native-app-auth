@@ -17,11 +17,17 @@ export type BaseAuthConfiguration =
       serviceConfiguration?: ServiceConfiguration;
     };
 
+interface BuiltInParameters {
+  display?: "page" | "popup" | "touch" | "wap";
+  login_prompt?: string;
+  prompt?: "consent" |"login" | "none" | "select_account";
+}
+
 export type AuthConfiguration = BaseAuthConfiguration & {
   clientSecret?: string;
   scopes: string[];
   redirectUrl: string;
-  additionalParameters?: { [name: string]: string };
+  additionalParameters?: BuiltInParameters & { [name: string]: string };
   dangerouslyAllowInsecureHttpRequests?: boolean;
 };
 
