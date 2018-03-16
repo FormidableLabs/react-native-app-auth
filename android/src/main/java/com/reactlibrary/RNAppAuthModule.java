@@ -1,6 +1,7 @@
 package com.reactlibrary;
 
 import android.app.Activity;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -277,9 +278,18 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         }
 
         AuthorizationRequest authRequest = authRequestBuilder.build();
-        AuthorizationService authService = new AuthorizationService(context, appAuthConfiguration);
-        Intent authIntent = authService.getAuthorizationRequestIntent(authRequest);
-        currentActivity.startActivityForResult(authIntent, 0);
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            AuthorizationService authService = new AuthorizationService(context, appAuthConfiguration);
+            Intent authIntent = authService.getAuthorizationRequestIntent(authRequest);
+
+            currentActivity.startActivityForResult(authIntent, 0);
+        } else {
+            AuthorizationService authService = new AuthorizationService(currentActivity, appAuthConfiguration);
+            PendingIntent pendingIntent = currentActivity.createPendingResult(0, new Intent(), 0);
+
+            authService.performAuthorizationRequest(authRequest, pendingIntent);
+        }
     }
 
     /*
