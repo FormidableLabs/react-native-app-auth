@@ -274,6 +274,20 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                         .setScope(scopesString);
 
         if (additionalParametersMap != null) {
+            // handle additional parameters separately to avoid exceptions from AppAuth
+            if (additionalParametersMap.containsKey("display")) {
+                authRequestBuilder.setDisplay(additionalParametersMap.get("display"));
+                additionalParametersMap.remove("display");
+            }
+            if (additionalParametersMap.containsKey("login_hint")) {
+                authRequestBuilder.setLoginHint(additionalParametersMap.get("login_hint"));
+                additionalParametersMap.remove("login_hint");
+            }
+            if (additionalParametersMap.containsKey("prompt")) {
+                authRequestBuilder.setPrompt(additionalParametersMap.get("prompt"));
+                additionalParametersMap.remove("prompt");
+            }
+
             authRequestBuilder.setAdditionalParameters(additionalParametersMap);
         }
 
