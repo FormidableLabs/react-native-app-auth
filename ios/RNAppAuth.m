@@ -1,6 +1,6 @@
 
 #import "RNAppAuth.h"
-#import "AppAuth.h"
+#import <AppAuth/AppAuth.h>
 #import <React/RCTLog.h>
 #import <React/RCTConvert.h>
 #import "AppDelegate.h"
