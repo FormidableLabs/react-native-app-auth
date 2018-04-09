@@ -269,7 +269,7 @@ you need to pipe this through to the current authorization session (created in t
 instruction). To do this, open `AppDelegate.m` and add an import statement:
 
 ```objective-c.
-#import "AppAuth.h"
+#import <AppAuth/AppAuth.h>
 ```
 
 And in the bottom of the class, add the following handler:
