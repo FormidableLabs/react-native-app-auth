@@ -11,7 +11,7 @@
 
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTRootView.h>
-#import "AppAuth.h"
+#import <AppAuth/AppAuth.h>
 
 @implementation AppDelegate
 
