@@ -21,6 +21,7 @@ interface BuiltInParameters {
   display?: "page" | "popup" | "touch" | "wap";
   login_prompt?: string;
   prompt?: "consent" |"login" | "none" | "select_account";
+  skipTokenExchange: boolean;
 }
 
 export type AuthConfiguration = BaseAuthConfiguration & {
@@ -40,6 +41,12 @@ export interface AuthorizeResult {
   tokenType: string;
 }
 
+export interface AuthorizeWithoutTokenExchangeResult {
+  code: string; // i.e. authorizationCode
+  state: string;
+  redirectUri: string;
+}
+
 export interface RevokeConfiguration {
   tokenToRevoke: string;
   sendClientId?: boolean;
@@ -49,7 +56,7 @@ export interface RefreshConfiguration {
   refreshToken: string;
 }
 
-export function authorize(config: AuthConfiguration): Promise<AuthorizeResult>;
+export function authorize(config: AuthConfiguration): Promise<AuthorizeResult|AuthorizeWithoutTokenExchangeResult>;
 
 export function refresh(
   config: AuthConfiguration,
