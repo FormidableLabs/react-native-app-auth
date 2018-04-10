@@ -206,7 +206,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
      * Called when the OAuth browser activity completes
      */
     @Override
-    public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == 0) {
             AuthorizationResponse response = AuthorizationResponse.fromIntent(data);
             AuthorizationException exception = AuthorizationException.fromIntent(data);
@@ -465,14 +465,9 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         );
     }
 
-
-    @Override
-    public void onNewIntent(Intent intent) {
-
-    }
-
     @Override
     public String getName() {
         return "RNAppAuth";
     }
+
 }
