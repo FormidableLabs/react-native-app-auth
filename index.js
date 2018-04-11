@@ -9,8 +9,7 @@ const validateIssuerOrServiceConfigurationEndpoints = (issuer, serviceConfigurat
   invariant(
     typeof issuer === 'string' ||
       (serviceConfiguration &&
-        typeof serviceConfiguration.authorizationEndpoint === 'string' &&
-        typeof serviceConfiguration.tokenEndpoint === 'string'),
+        typeof serviceConfiguration.authorizationEndpoint === 'string'),
     'Config error: you must provide either an issuer or a service endpoints'
   );
 const validateIssuerOrServiceConfigurationRevocationEndpoint = (issuer, serviceConfiguration) =>
