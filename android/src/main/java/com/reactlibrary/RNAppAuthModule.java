@@ -360,7 +360,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
 
         if (clientSecret != null) {
-            ClientAuthentication clientAuth = new ClientSecretBasic(this.clientSecret);
+            ClientAuthentication clientAuth = new ClientSecretBasic(clientSecret);
             authService.performTokenRequest(tokenRequest, clientAuth, tokenResponseCallback);
 
         } else {
