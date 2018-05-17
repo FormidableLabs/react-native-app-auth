@@ -149,12 +149,16 @@ RCT_REMAP_METHOD(refresh,
     
     if (additionalParameters[@"skipTokenExchange"] && [additionalParameters[@"skipTokenExchange"] isEqualToString:@"true"]) {
        appDelegate.currentAuthorizationFlow = [OIDAuthorizationService presentAuthorizationRequest:request presentingViewController:appDelegate.window.rootViewController callback:^(OIDAuthorizationResponse * _Nullable response, NSError * _Nullable error) {
-            NSDictionary *map = @{
-                                  @"code" : response.authorizationCode,
-                                  @"state" : response.state,
-                                  @"redirectUri" : [response.request.redirectURL absoluteString]
-                                  };
-            resolve(map);
+            if (error) {
+               reject(@"RNAppAuth Auth Callback Error",[error localizedDescription], error);
+           } else {
+                NSDictionary *map = @{
+                                    @"code" : response.authorizationCode,
+                                    @"state" : response.state,
+                                    @"redirectUri" : [response.request.redirectURL absoluteString]
+                                    };
+                resolve(map);
+           }
         }];
     } else {
         appDelegate.currentAuthorizationFlow =
