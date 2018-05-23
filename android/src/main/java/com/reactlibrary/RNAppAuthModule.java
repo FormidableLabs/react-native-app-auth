@@ -26,7 +26,7 @@ import net.openid.appauth.AuthorizationResponse;
 import net.openid.appauth.AuthorizationService;
 import net.openid.appauth.AuthorizationServiceConfiguration;
 import net.openid.appauth.ClientAuthentication;
-import net.openid.appauth.ClientSecretBasic;
+import net.openid.appauth.ClientSecretPost;
 import net.openid.appauth.ResponseTypeValues;
 import net.openid.appauth.TokenResponse;
 import net.openid.appauth.TokenRequest;
@@ -239,7 +239,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             };
 
             if (this.clientSecret != null) {
-                ClientAuthentication clientAuth = new ClientSecretBasic(this.clientSecret);
+                ClientAuthentication clientAuth = new ClientSecretPost(this.clientSecret);
                 authService.performTokenRequest(tokenRequest, clientAuth, tokenResponseCallback);
 
             } else {
@@ -354,7 +354,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
 
         if (clientSecret != null) {
-            ClientAuthentication clientAuth = new ClientSecretBasic(clientSecret);
+            ClientAuthentication clientAuth = new ClientSecretPost(clientSecret);
             authService.performTokenRequest(tokenRequest, clientAuth, tokenResponseCallback);
 
         } else {
