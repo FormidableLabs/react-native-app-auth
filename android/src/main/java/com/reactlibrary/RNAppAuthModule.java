@@ -37,6 +37,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
 
 public class RNAppAuthModule extends ReactContextBaseJavaModule implements ActivityEventListener {
@@ -386,7 +387,8 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
         if (response.accessTokenExpirationTime != null) {
             Date expirationDate = new Date(response.accessTokenExpirationTime);
-            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
+            formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
             String expirationDateString = formatter.format(expirationDate);
             map.putString("accessTokenExpirationDate", expirationDateString);
         }
