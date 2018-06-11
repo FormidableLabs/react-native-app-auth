@@ -9,7 +9,7 @@
 	"dependencies": {
 		"react": "16.0.0",
 		"react-native": "0.50.3",
-		"react-native-app-auth": "^2.0.0",
+		"react-native-app-auth": "git://github.com/blacktea/react-native-app-auth.git#v2.4.1-NEXT-2",
 		"styled-components": "^2.2.3"
 	},
 	"devDependencies": {

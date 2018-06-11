@@ -155,7 +155,7 @@ RCT_REMAP_METHOD(refresh,
                                                        if (authState) {
                                                            resolve([self formatResponse:authState.lastTokenResponse]);
                                                        } else {
-                                                           reject(@"RNAppAuth Error", [error localizedDescription], error);
+                                                           reject(@"RNAppAuth Error", [error description], error);
                                                        }
                                                        
                                                    }]; // end [OIDAuthState authStateByPresentingAuthorizationRequest:request
@@ -193,7 +193,7 @@ RCT_REMAP_METHOD(refresh,
                                             if (response) {
                                                 resolve([self formatResponse:response]);
                                             } else {
-                                                reject(@"RNAppAuth Error", [error localizedDescription], error);
+                                                reject(@"RNAppAuth Error", [error description], error);
                                             }
                                         }];
     

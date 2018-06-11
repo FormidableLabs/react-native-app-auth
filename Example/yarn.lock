@@ -3399,9 +3399,9 @@ react-devtools-core@^2.5.0:
     shell-quote "^1.6.1"
     ws "^2.0.3"
 
-react-native-app-auth@^2.0.0:
-  version "2.4.0"
-  resolved "https://registry.yarnpkg.com/react-native-app-auth/-/react-native-app-auth-2.4.0.tgz#ce6ae1dc07d8dfa15f618485b762ff7db35374ac"
+"react-native-app-auth@git://github.com/blacktea/react-native-app-auth.git#v2.4.1-NEXT-2":
+  version "2.4.1"
+  resolved "git://github.com/blacktea/react-native-app-auth.git#21c45c449a7a8d035bbefdeb23f45b081b81f0d3"
 
 react-native@0.50.3:
   version "0.50.3"
