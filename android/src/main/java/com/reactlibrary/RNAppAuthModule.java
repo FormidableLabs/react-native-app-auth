@@ -93,7 +93,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                         additionalParametersMap
                 );
             } catch (Exception e) {
-                promise.reject("RNAppAuth Error", "Failed to authenticate", e);
+                promise.reject("RNAppAuth Error", "Failed to authenticate: " + e.toString(), e);
             }
         } else {
             final Uri issuerUri = Uri.parse(issuer);
@@ -121,8 +121,6 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                     builder
             );
         }
-
-
 
 
     }
@@ -211,7 +209,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             AuthorizationResponse response = AuthorizationResponse.fromIntent(data);
             AuthorizationException exception = AuthorizationException.fromIntent(data);
             if (exception != null) {
-                promise.reject("RNAppAuth Error", "Failed to authenticate", exception);
+                promise.reject("RNAppAuth Error", exception.error + ": " + exception.toString());
                 return;
             }
 
@@ -361,7 +359,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
 
         if (clientSecret != null) {
-            ClientAuthentication clientAuth = new ClientSecretBasic(clientSecret);
+            ClientAuthentication clientAuth = new ClientSecretBasic(this.clientSecret);
             authService.performTokenRequest(tokenRequest, clientAuth, tokenResponseCallback);
 
         } else {
@@ -404,7 +402,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
             Iterator<String> iterator = response.additionalParameters.keySet().iterator();
 
-            while(iterator.hasNext()) {
+            while (iterator.hasNext()) {
                 String key = iterator.next();
                 additionalParametersMap.putString(key, response.additionalParameters.get(key));
             }
