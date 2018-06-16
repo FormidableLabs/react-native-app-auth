@@ -3,8 +3,6 @@ import { NativeModules, Platform } from 'react-native';
 
 const { RNAppAuth } = NativeModules;
 
-const validateScopes = scopes =>
-  invariant(scopes && scopes.length, 'Scope error: please add at least one scope');
 const validateIssuerOrServiceConfigurationEndpoints = (issuer, serviceConfiguration) =>
   invariant(
     typeof issuer === 'string' ||
@@ -34,7 +32,6 @@ export const authorize = ({
   serviceConfiguration,
   dangerouslyAllowInsecureHttpRequests = false,
 }) => {
-  validateScopes(scopes);
   validateIssuerOrServiceConfigurationEndpoints(issuer, serviceConfiguration);
   validateClientId(clientId);
   validateRedirectUrl(redirectUrl);
@@ -69,7 +66,6 @@ export const refresh = (
   },
   { refreshToken }
 ) => {
-  validateScopes(scopes);
   validateIssuerOrServiceConfigurationEndpoints(issuer, serviceConfiguration);
   validateClientId(clientId);
   validateRedirectUrl(redirectUrl);
