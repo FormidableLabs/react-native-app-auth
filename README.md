@@ -84,7 +84,7 @@ with optional overrides.
 * **clientId** - (`string`) _REQUIRED_ your client id on the auth server
 * **clientSecret** - (`string`) client secret to pass to token exchange requests. :warning: Read more about [client secrets](#note-about-client-secrets)
 * **redirectUrl** - (`string`) _REQUIRED_ the url that links back to your app with the auth code
-* **scopes** - (`array<string>`) _REQUIRED_ the scopes for your token, e.g. `['email', 'offline_access']`
+* **scopes** - (`array<string>`) the scopes for your token, e.g. `['email', 'offline_access']`.
 * **additionalParameters** - (`object`) additional parameters that will be passed in the authorization request.
   Must be string values! E.g. setting `additionalParameters: { hello: 'world', foo: 'bar' }` would add
   `hello=world&foo=bar` to the authorization request.
@@ -189,7 +189,7 @@ To setup the iOS project, you need to perform three steps:
 2. [Register redirect URL scheme](#register-redirect-url-scheme)
 3. [Define openURL callback in AppDelegate](#define-openurl-callback-in-appdelegate)
 
-#### Install native dependencies
+##### Install native dependencies
 
 This library depends on the native [AppAuth-ios](https://github.com/openid/AppAuth-iOS) project. To
 keep the React Native library agnostic of your dependency management method, the native libraries
@@ -197,36 +197,36 @@ are not distributed as part of the bridge.
 
 AppAuth supports three options for dependency management.
 
-##### CocoaPods
+1. **CocoaPods**
 
-With [CocoaPods](https://guides.cocoapods.org/using/getting-started.html), add the following line to
-your `Podfile`:
+    With [CocoaPods](https://guides.cocoapods.org/using/getting-started.html), add the following line to
+    your `Podfile`:
 
-    pod 'AppAuth', '>= 0.91'
+        pod 'AppAuth', '>= 0.91'
 
-Then run `pod install`. Note that version 0.91 is the first of the library to support iOS 11.
+    Then run `pod install`. Note that version 0.91 is the first of the library to support iOS 11.
 
-##### Carthage
+2. **Carthage**
 
-With [Carthage](https://github.com/Carthage/Carthage), add the following line to your `Cartfile`:
+    With [Carthage](https://github.com/Carthage/Carthage), add the following line to your `Cartfile`:
 
-    github "openid/AppAuth-iOS" "master"
+        github "openid/AppAuth-iOS" "master"
 
-Then run `carthage bootstrap`.
+    Then run `carthage bootstrap`.
 
-##### Static Library
+3. **Static Library**
 
-You can also use [AppAuth-iOS](https://github.com/openid/AppAuth-iOS) as a static library. This
-requires linking the library and your project and including the headers. Suggested configuration:
+    You can also use [AppAuth-iOS](https://github.com/openid/AppAuth-iOS) as a static library. This
+    requires linking the library and your project and including the headers. Suggested configuration:
 
-1. Create an XCode Workspace.
-2. Add `AppAuth.xcodeproj` to your Workspace.
-3. Include libAppAuth as a linked library for your target (in the "General -> Linked Framework and
-   Libraries" section of your target).
-4. Add `AppAuth-iOS/Source` to your search paths of your target ("Build Settings -> "Header Search
-   Paths").
+    1. Create an XCode Workspace.
+    2. Add `AppAuth.xcodeproj` to your Workspace.
+    3. Include libAppAuth as a linked library for your target (in the "General -> Linked Framework and
+      Libraries" section of your target).
+    4. Add `AppAuth-iOS/Source` to your search paths of your target ("Build Settings -> "Header Search
+      Paths").
 
-#### Register redirect URL scheme
+##### Register redirect URL scheme
 
 If you intend to support iOS 10 and older, you need to define the supported redirect URL schemes in
 your `Info.plist` as follows:
@@ -249,7 +249,7 @@ your `Info.plist` as follows:
 * `CFBundleURLSchemes` is an array of URL schemes your app needs to handle. The scheme is the
   beginning of your OAuth Redirect URL, up to the scheme separator (`:`) character.
 
-#### Define openURL callback in AppDelegate
+##### Define openURL callback in AppDelegate
 
 You need to have a property in your AppDelegate to hold the auth session, in order to continue the
 authorization flow from the redirect. To add this, open `AppDelegate.h` in your project and add the
@@ -266,15 +266,19 @@ following lines:
 
 The authorization response URL is returned to the app via the iOS openURL app delegate method, so
 you need to pipe this through to the current authorization session (created in the previous
-instruction). To do this, open `AppDelegate.m` and add an import statement:
+instruction).
 
-```objective-c.
+##### Add a current Authorization session
+
+To do this, open `AppDelegate.m` and add an import statement:
+
+```Objective-C
 #import <AppAuth/AppAuth.h>
 ```
 
 And in the bottom of the class, add the following handler:
 
-```objective-c.
+```Objective-C
 - (BOOL)application:(UIApplication *)app
             openURL:(NSURL *)url
             options:(NSDictionary<NSString *, id> *)options {
@@ -286,6 +290,53 @@ And in the bottom of the class, add the following handler:
 }
 ```
 
+#### Integration of the library with a Swift iOS project
+
+Until a better solution is available, we must use `react-native-app-auth` as a Static Library. This is due to the fact that the library is calling `AppDelegate.swift`.
+
+1. Unlink `react-native-app-auth` from your projects `Libraries/`.
+
+2. Manually copy the `RNAppAuth.h` and `RNAppAuth.m` files from the library folder in your `node_modules/` into your project folder.
+
+3. In `RNAppAuth.m` add a new import:
+    ```Objective-C
+    #import "<YouProjectName>-Swift.h"
+    ```
+
+4. In your project's `AppDelegate.swift`, expose your function to `Objective-C` by annotating the AppDelegate with:
+    ```Swift
+    @objc(AppDelegate)
+    ```
+
+5. Add the following code just after the class declaration:
+    ```Swift
+    var currentAuthorizationFlow: OIDAuthorizationFlowSession?
+    ```
+
+6. At the bottom of your class add the following code:
+
+    ```Swift
+    func application(
+      _ app: UIApplication,
+      open url: URL,
+      options: [UIApplicationOpenURLOptionsKey: Any] = [:]) -> Bool {
+
+      if currentAuthorizationFlow!.resumeAuthorizationFlow(with: url){
+        currentAuthorizationFlow = nil
+        return true
+      }
+
+      return false;
+    }
+    ```
+    This is a translation of the following `Objective-C` code provided [above](#add-a-current-authorization-session)
+
+**Warning:**
+
+You may need to perform Step 4 and compile your project so that the hidden bridging header file is created. If this file is not created and you follow the rest of the steps then you may fall into a chicken before the egg problem where the project is failing to build because of the missing header file and the header file won't be created because the build is failing.
+
+
+
 ### Android Setup
 
 To setup the Android project, you need to perform two steps:
@@ -293,7 +344,7 @@ To setup the Android project, you need to perform two steps:
 1. [Install Android support libraries](#install-android-support-libraries)
 2. [Add redirect scheme manifest placeholder](#add-redirect-scheme-manifest-placeholder)
 
-#### Install Android support libraries
+##### Install Android support libraries
 
 This library depends on the [AppAuth-Android](https://github.com/openid/AppAuth-android) project.
 The native dependencies for Android are automatically installed by Gradle, but you need to add the
@@ -320,7 +371,7 @@ correct Android Support library version to your project:
    }
    ```
 
-#### Add redirect scheme manifest placeholder
+##### Add redirect scheme manifest placeholder
 
 To
 [capture the authorization redirect](https://github.com/openid/AppAuth-android#capturing-the-authorization-redirect),
@@ -362,7 +413,7 @@ try {
 
 See example configurations for different providers below.
 
-### Note about client secrets
+#### Note about client secrets
 
 Some authentication providers, including examples cited below, require you to provide a client secret. The authors of the AppAuth library
 
