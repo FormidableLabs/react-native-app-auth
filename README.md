@@ -84,7 +84,7 @@ with optional overrides.
 * **clientId** - (`string`) _REQUIRED_ your client id on the auth server
 * **clientSecret** - (`string`) client secret to pass to token exchange requests. :warning: Read more about [client secrets](#note-about-client-secrets)
 * **redirectUrl** - (`string`) _REQUIRED_ the url that links back to your app with the auth code
-* **scopes** - (`array<string>`) _REQUIRED_ the scopes for your token, e.g. `['email', 'offline_access']`
+* **scopes** - (`array<string>`) the scopes for your token, e.g. `['email', 'offline_access']`.
 * **additionalParameters** - (`object`) additional parameters that will be passed in the authorization request.
   Must be string values! E.g. setting `additionalParameters: { hello: 'world', foo: 'bar' }` would add
   `hello=world&foo=bar` to the authorization request.
