@@ -54,6 +54,10 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         this.reactContext = reactContext;
         reactContext.addActivityEventListener(this);
     }
+    @Override
+    public void onNewIntent(Intent intent) {
+
+    }
 
     @ReactMethod
     public void authorize(
@@ -213,7 +217,18 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             AuthorizationResponse response = AuthorizationResponse.fromIntent(data);
             AuthorizationException exception = AuthorizationException.fromIntent(data);
             if (exception != null) {
-                promise.reject("RNAppAuth Error", "Failed to authenticate", exception);
+                this.promise.reject("RNAppAuth Error", "Failed to authenticate", exception);
+                return;
+            }
+
+            if (this.additionalParametersMap.containsKey("skipTokenExchange")
+                    && this.additionalParametersMap.get("skipTokenExchange") != null
+                    && this.additionalParametersMap.get("skipTokenExchange").equals("true")) {
+                WritableMap map = Arguments.createMap();
+                map.putString("code", response.authorizationCode);
+                map.putString("state", response.state);
+                map.putString("redirectUri", response.request.redirectUri.toString());
+                this.promise.resolve(map);
                 return;
             }
 
@@ -226,8 +241,8 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
             TokenRequest tokenRequest = response.createTokenExchangeRequest(this.additionalParametersMap);
 
-            AuthorizationService.TokenResponseCallback tokenResponseCallback = new AuthorizationService.TokenResponseCallback() {
-
+            AuthorizationService.TokenResponseCallback tokenResponseCallback
+                    = new AuthorizationService.TokenResponseCallback() {
                 @Override
                 public void onTokenRequestCompleted(
                         TokenResponse resp, AuthorizationException ex) {
@@ -450,12 +465,17 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             throw new Exception("serviceConfiguration passed without an authorizationEndpoint");
         }
 
-        if (!serviceConfiguration.hasKey("tokenEndpoint")) {
+        Uri tokenEndpoint = Uri.EMPTY;
+        if (serviceConfiguration.hasKey("tokenEndpoint")) {
+            tokenEndpoint = Uri.parse(serviceConfiguration.getString("tokenEndpoint"));
+        } else if (!this.additionalParametersMap.containsKey("skipTokenExchange")
+                || !this.additionalParametersMap.get("skipTokenExchange").equals("true")) {
+            // tokenEndpoint is required unless `skipTokenExchange` is set to true
             throw new Exception("serviceConfiguration passed without a tokenEndpoint");
         }
 
         Uri authorizationEndpoint = Uri.parse(serviceConfiguration.getString("authorizationEndpoint"));
-        Uri tokenEndpoint = Uri.parse(serviceConfiguration.getString("tokenEndpoint"));
+
         Uri registrationEndpoint = null;
         if (serviceConfiguration.hasKey("registrationEndpoint")) {
             registrationEndpoint = Uri.parse(serviceConfiguration.getString("registrationEndPoint"));
@@ -468,14 +488,9 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         );
     }
 
-
-    @Override
-    public void onNewIntent(Intent intent) {
-
-    }
-
     @Override
     public String getName() {
         return "RNAppAuth";
     }
+
 }
