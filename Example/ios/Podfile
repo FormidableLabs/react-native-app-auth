@@ -2,5 +2,5 @@
 platform :ios, '11.0'
 
 target 'AppAuthExample' do
-  pod 'AppAuth', '>= 0.91'
+  pod 'RNAppAuth', :path => '../../ios/'
 end
