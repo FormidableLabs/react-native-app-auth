@@ -12,7 +12,7 @@ Pod::Spec.new do |s|
   s.author             = { "author" => "kadi.kraman@formidable.com" }
   s.platform     = :ios, "7.0"
   s.source       = { :git => "https://github.com/FormidableLabs/react-native-app-auth.git", :tag => "master" }
-  s.source_files  = "RNAppAuth/**/*.{h,m}"
+  s.source_files  = "**/*.{h,m}"
   s.requires_arc = true
 
   s.dependency "React"
