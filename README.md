@@ -251,43 +251,39 @@ your `Info.plist` as follows:
 
 ##### Define openURL callback in AppDelegate
 
-You need to have a property in your AppDelegate to hold the auth session, in order to continue the
-authorization flow from the redirect. To add this, open `AppDelegate.h` in your project and add the
-following lines:
+You need to retain the auth session, in order to continue the
+authorization flow from the redirect. Follow these steps: 
+
+`RNAppAuth` will call on the given app's delegate via `[UIApplication sharedApplication].delegate`.
+Furthermore, `RNAppAuth` expects the delegate instance to conform to the protocol `RNAppAuthAuthorizationFlowManager`.
+Make `AppDelegate` conform to `RNAppAuthAuthorizationFlowManager`:
 
 ```diff
-+ @protocol OIDAuthorizationFlowSession;
++ @interface AppDelegate()<RNAppAuthAuthorizationFlowManager> {
++  id <OIDAuthorizationFlowSession> _currentSession;
++ }
++ @end
+```
 
-  @interface AppDelegate : UIResponder <UIApplicationDelegate>
-+ @property(nonatomic, strong, nullable) id<OIDAuthorizationFlowSession> currentAuthorizationFlow;
-  @property (nonatomic, strong) UIWindow *window;
-  @end
+Implement the required method of `RNAppAuthAuthorizationFlowManager` in `AppDelegate`:
+
+```diff
++ -(void)setCurrentAuthorizationFlowSession:(id<OIDAuthorizationFlowSession>)session {
++    // retain session for further use
++    _currentSession = session;
++ }
 ```
 
 The authorization response URL is returned to the app via the iOS openURL app delegate method, so
 you need to pipe this through to the current authorization session (created in the previous
-instruction).
+instruction). Thus, implement the following method from `UIApplicationDelegate` in `AppDelegate`:
 
-##### Add a current Authorization session
-
-To do this, open `AppDelegate.m` and add an import statement:
-
-```Objective-C
-#import <AppAuth/AppAuth.h>
-```
-
-And in the bottom of the class, add the following handler:
-
-```Objective-C
-- (BOOL)application:(UIApplication *)app
-            openURL:(NSURL *)url
-            options:(NSDictionary<NSString *, id> *)options {
-  if ([_currentAuthorizationFlow resumeAuthorizationFlowWithURL:url]) {
-    _currentAuthorizationFlow = nil;
-    return YES;
-  }
-  return NO;
-}
+```diff
++ - (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<NSString *, id> *)options {
++   BOOL shouldOpenUrl = [_currentSession resumeAuthorizationFlowWithURL:url];
++   _currentSession = nil;
++   return shouldOpenUrl;
++ }
 ```
 
 #### Integration of the library with a Swift iOS project
