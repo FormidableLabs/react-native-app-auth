@@ -288,8 +288,9 @@ instruction). Thus, implement the following method from `UIApplicationDelegate` 
 
 #### Integration of the library with a Swift iOS project
 
-The approach mentioned above should also be possible to employ with Swift. In this case one shoule have to import `RNAppAuth`
-and make `AppDelegate` conform to `RNAppAuthAuthorizationFlowManager`. `AppDelegate` should look something like this:
+The approach mentioned above should also be possible to employ with Swift. In this case one should have to import `RNAppAuth`
+and make `AppDelegate` conform to `RNAppAuthAuthorizationFlowManager`. Note that this has not been tested.
+`AppDelegate` should look something like this:
 
 ```swift
 @import RNAppAuth
