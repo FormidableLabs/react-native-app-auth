@@ -259,6 +259,12 @@ Furthermore, `RNAppAuth` expects the delegate instance to conform to the protoco
 Make `AppDelegate` conform to `RNAppAuthAuthorizationFlowManager`:
 
 ```diff
++ // Depending on build configurations, import either with:
++@import RNAppAuth;
++ // or:
++import <AppAuth/AppAuth.h>
++import "RNAppAuthAuthorizationFlowManager.h"
+
 + @interface AppDelegate()<RNAppAuthAuthorizationFlowManager> {
 +  id <OIDAuthorizationFlowSession> _currentSession;
 + }
