@@ -251,91 +251,66 @@ your `Info.plist` as follows:
 
 ##### Define openURL callback in AppDelegate
 
-You need to have a property in your AppDelegate to hold the auth session, in order to continue the
-authorization flow from the redirect. To add this, open `AppDelegate.h` in your project and add the
-following lines:
+You need to retain the auth session, in order to continue the
+authorization flow from the redirect. Follow these steps: 
+
+`RNAppAuth` will call on the given app's delegate via `[UIApplication sharedApplication].delegate`.
+Furthermore, `RNAppAuth` expects the delegate instance to conform to the protocol `RNAppAuthAuthorizationFlowManager`.
+Make `AppDelegate` conform to `RNAppAuthAuthorizationFlowManager`:
 
 ```diff
-+ @protocol OIDAuthorizationFlowSession;
++ // Depending on build configurations, import either with:
++@import RNAppAuth;
++ // or:
++import <AppAuth/AppAuth.h>
++import "RNAppAuthAuthorizationFlowManager.h"
 
-  @interface AppDelegate : UIResponder <UIApplicationDelegate>
-+ @property(nonatomic, strong, nullable) id<OIDAuthorizationFlowSession> currentAuthorizationFlow;
-  @property (nonatomic, strong) UIWindow *window;
-  @end
++ @interface AppDelegate()<RNAppAuthAuthorizationFlowManager> {
++  id <OIDAuthorizationFlowSession> _currentSession;
++ }
++ @end
+```
+
+Implement the required method of `RNAppAuthAuthorizationFlowManager` in `AppDelegate`:
+
+```diff
++ -(void)setCurrentAuthorizationFlowSession:(id<OIDAuthorizationFlowSession>)session {
++    // retain session for further use
++    _currentSession = session;
++ }
 ```
 
 The authorization response URL is returned to the app via the iOS openURL app delegate method, so
 you need to pipe this through to the current authorization session (created in the previous
-instruction).
+instruction). Thus, implement the following method from `UIApplicationDelegate` in `AppDelegate`:
 
-##### Add a current Authorization session
-
-To do this, open `AppDelegate.m` and add an import statement:
-
-```Objective-C
-#import <AppAuth/AppAuth.h>
-```
-
-And in the bottom of the class, add the following handler:
-
-```Objective-C
-- (BOOL)application:(UIApplication *)app
-            openURL:(NSURL *)url
-            options:(NSDictionary<NSString *, id> *)options {
-  if ([_currentAuthorizationFlow resumeAuthorizationFlowWithURL:url]) {
-    _currentAuthorizationFlow = nil;
-    return YES;
-  }
-  return NO;
-}
+```diff
++ - (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<NSString *, id> *)options {
++   BOOL shouldOpenUrl = [_currentSession resumeAuthorizationFlowWithURL:url];
++   _currentSession = nil;
++   return shouldOpenUrl;
++ }
 ```
 
 #### Integration of the library with a Swift iOS project
 
-Until a better solution is available, we must use `react-native-app-auth` as a Static Library. This is due to the fact that the library is calling `AppDelegate.swift`.
+The approach mentioned above should also be possible to employ with Swift. In this case one should have to import `RNAppAuth`
+and make `AppDelegate` conform to `RNAppAuthAuthorizationFlowManager`. Note that this has not been tested.
+`AppDelegate` should look something like this:
 
-1. Unlink `react-native-app-auth` from your projects `Libraries/`.
-
-2. Manually copy the `RNAppAuth.h` and `RNAppAuth.m` files from the library folder in your `node_modules/` into your project folder.
-
-3. In `RNAppAuth.m` add a new import:
-    ```Objective-C
-    #import "<YouProjectName>-Swift.h"
-    ```
-
-4. In your project's `AppDelegate.swift`, expose your function to `Objective-C` by annotating the AppDelegate with:
-    ```Swift
-    @objc(AppDelegate)
-    ```
-
-5. Add the following code just after the class declaration:
-    ```Swift
-    var currentAuthorizationFlow: OIDAuthorizationFlowSession?
-    ```
-
-6. At the bottom of your class add the following code:
-
-    ```Swift
-    func application(
+```swift
+@import RNAppAuth
+class AppDelegate: UIApplicationDelegate, RNAppAuthAuthorizationFlowManager {
+  private var currentAuthorizationFlow: OIDAuthorizationFlowSession?
+  func application(
       _ app: UIApplication,
       open url: URL,
       options: [UIApplicationOpenURLOptionsKey: Any] = [:]) -> Bool {
-
-      if currentAuthorizationFlow!.resumeAuthorizationFlow(with: url){
-        currentAuthorizationFlow = nil
-        return true
-      }
-
-      return false;
-    }
-    ```
-    This is a translation of the following `Objective-C` code provided [above](#add-a-current-authorization-session)
-
-**Warning:**
-
-You may need to perform Step 4 and compile your project so that the hidden bridging header file is created. If this file is not created and you follow the rest of the steps then you may fall into a chicken before the egg problem where the project is failing to build because of the missing header file and the header file won't be created because the build is failing.
-
-
+      defer { currentAuthorizationFlow = nil }
+      return currentAuthorizationFlow?.resumeAuthorizationFlow(with: url) ?? false
+  }
+}
+```
 
 ### Android Setup
 

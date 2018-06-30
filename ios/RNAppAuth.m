@@ -1,9 +1,8 @@
-
 #import "RNAppAuth.h"
 #import <AppAuth/AppAuth.h>
 #import <React/RCTLog.h>
 #import <React/RCTConvert.h>
-#import "AppDelegate.h"
+#import "RNAppAuthAuthorizationFlowManager.h"
 
 @implementation RNAppAuth
 
@@ -36,7 +35,6 @@ RCT_REMAP_METHOD(authorize,
                     additionalParameters: additionalParameters
                                  resolve: resolve
                                   reject: reject];
-
     } else {
         [OIDAuthorizationService discoverServiceConfigurationForIssuer:[NSURL URLWithString:issuer]
                                                             completion:^(OIDServiceConfiguration *_Nullable configuration, NSError *_Nullable error) {
@@ -44,7 +42,6 @@ RCT_REMAP_METHOD(authorize,
                                                                     reject(@"RNAppAuth Error", [error localizedDescription], error);
                                                                     return;
                                                                 }
-
                                                                 [self authorizeWithConfiguration: configuration
                                                                                      redirectUrl: redirectUrl
                                                                                         clientId: clientId
@@ -73,15 +70,14 @@ RCT_REMAP_METHOD(refresh,
     if (serviceConfiguration) {
         OIDServiceConfiguration *configuration = [self createServiceConfiguration:serviceConfiguration];
         [self refreshWithConfiguration: configuration
-                             redirectUrl: redirectUrl
-                                clientId: clientId
-                            clientSecret: clientSecret
-                            refreshToken: refreshToken
-                                  scopes: scopes
-                    additionalParameters: additionalParameters
-                                 resolve: resolve
-                                  reject: reject];
-
+                           redirectUrl: redirectUrl
+                              clientId: clientId
+                          clientSecret: clientSecret
+                          refreshToken: refreshToken
+                                scopes: scopes
+                  additionalParameters: additionalParameters
+                               resolve: resolve
+                                reject: reject];
     } else {
         // otherwise hit up the discovery endpoint
         [OIDAuthorizationService discoverServiceConfigurationForIssuer:[NSURL URLWithString:issuer]
@@ -143,11 +139,10 @@ RCT_REMAP_METHOD(refresh,
                                               responseType:OIDResponseTypeCode
                                       additionalParameters:additionalParameters];
 
-
     // performs authentication request
-    AppDelegate *appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
+    id<UIApplicationDelegate, RNAppAuthAuthorizationFlowManager> appDelegate = (id<UIApplicationDelegate, RNAppAuthAuthorizationFlowManager>)[UIApplication sharedApplication].delegate;
 
-    appDelegate.currentAuthorizationFlow =
+    id<OIDAuthorizationFlowSession> currentSession =
     [OIDAuthState authStateByPresentingAuthorizationRequest:request
                                    presentingViewController:appDelegate.window.rootViewController
                                                    callback:^(OIDAuthState *_Nullable authState,
@@ -159,6 +154,13 @@ RCT_REMAP_METHOD(refresh,
                                                        }
 
                                                    }]; // end [OIDAuthState authStateByPresentingAuthorizationRequest:request
+    if ([[appDelegate class] conformsToProtocol:@protocol(RNAppAuthAuthorizationFlowManager)]
+        && [appDelegate respondsToSelector: @selector(setCurrentAuthorizationFlowSession:)]) {
+        [appDelegate setCurrentAuthorizationFlowSession:currentSession];
+    } else {
+        [NSException raise:@"RNAppAuth Missing protocol conformance"
+                    format:@"%@ does not conform to RNAppAuthAuthorizationFlowManager", appDelegate];
+    }
 }
 
 
@@ -196,7 +198,6 @@ RCT_REMAP_METHOD(refresh,
                                                 reject(@"RNAppAuth Error", [error localizedDescription], error);
                                             }
                                         }];
-
 }
 
 /*
