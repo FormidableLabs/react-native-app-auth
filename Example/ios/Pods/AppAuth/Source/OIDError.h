@@ -144,6 +144,13 @@ typedef NS_ENUM(NSInteger, OIDErrorCode) {
    */
   OIDErrorCodeJSONSerializationError = -13,
 
+  /*! @brief The ID Token did not parse.
+   */
+  OIDErrorCodeIDTokenParsingError = -14,
+
+  /*! @brief The ID Token did not pass validation (e.g. issuer, audience checks).
+   */
+  OIDErrorCodeIDTokenFailedValidationError = -15,
 };
 
 /*! @brief Enum of all possible OAuth error codes as defined by RFC6749

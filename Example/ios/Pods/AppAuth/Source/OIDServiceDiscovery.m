@@ -73,7 +73,7 @@ static NSString *const kOPTosURIKey = @"op_tos_uri";
 
 @implementation OIDServiceDiscovery
 
-- (nonnull instancetype)init OID_UNAVAILABLE_USE_INITIALIZER(@selector(initWithDictionary:error:));
+- (nonnull instancetype)init OID_UNAVAILABLE_USE_INITIALIZER(@selector(initWithDictionary:error:))
 
 - (nullable instancetype)initWithJSON:(NSString *)serviceDiscoveryJSON error:(NSError **)error {
   NSData *jsonData = [serviceDiscoveryJSON dataUsingEncoding:NSUTF8StringEncoding];

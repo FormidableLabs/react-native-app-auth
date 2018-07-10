@@ -1,5 +1,5 @@
 PODS:
-  - AppAuth (0.92.0)
+  - AppAuth (0.93.0)
   - DoubleConversion (1.1.5)
   - GLog (0.3.4)
   - React (0.50.3):
@@ -19,7 +19,7 @@ DEPENDENCIES:
   - yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
-  https://github.com/cocoapods/specs.git:
+  https://github.com/CocoaPods/Specs.git:
     - AppAuth
 
 EXTERNAL SOURCES:
@@ -35,13 +35,13 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  AppAuth: 3f4f1d6d85ad631d0bbf15ffcdc10c447face97a
+  AppAuth: 1096c2ad48507c4a2a8c85c8a6ff065741ab9931
   DoubleConversion: ebb6747c5b66026ad4f97b789c3ceac6f18e57a6
   GLog: 3e4e4ae9746ce6bf6e9420c7fc1e08ad59c8ba1a
   React: 541ba768b9855e10cdc76f55427a5cd0653ca806
   RNAppAuth: f1c597df5c085dc72bff3e09d5d1ebff1086fedb
-  yoga: c89ebefb37b7fe8a1e3fdf4e303e1eee8e1a7171
+  yoga: 17521bbb0dd54a47c0b3ac43253e78cdac7488e0
 
-PODFILE CHECKSUM: 043bf6735e162e9db323ca3a8b5196501e89fc64
+PODFILE CHECKSUM: b7604fdeeb5385cbc6a9a792e93cd2d2e08633af
 
-COCOAPODS: 1.5.3
+COCOAPODS: 1.5.0

@@ -69,7 +69,7 @@ static NSString *const kAdditionalParametersKey = @"additionalParameters";
                             subjectType:
                 tokenEndpointAuthMethod:
                    additionalParameters:)
-    );
+    )
 
 - (instancetype)initWithConfiguration:(OIDServiceConfiguration *)configuration
             redirectURIs:(NSArray<NSURL *> *)redirectURIs
@@ -159,7 +159,7 @@ static NSString *const kAdditionalParametersKey = @"additionalParameters";
                                                 encoding:NSUTF8StringEncoding];
   return [NSString stringWithFormat:@"<%@: %p, request: <URL: %@, HTTPBody: %@>>",
                                     NSStringFromClass([self class]),
-                                    self,
+                                    (void *)self,
                                     request.URL,
                                     requestBody];
 }

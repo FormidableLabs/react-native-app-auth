@@ -79,6 +79,12 @@ extern BOOL gOIDURLQueryComponentForceIOS7Handling;
  */
 - (NSString *)URLEncodedParameters;
 
+/*! @brief A NSMutableCharacterSet containing allowed characters in URL parameter values (that is
+        the "value" part of "?key=value"). This has less allowed characters than
+        @c URLQueryAllowedCharacterSet, as the query component includes both the key & value.
+ */
++ (NSMutableCharacterSet *)URLParamValueAllowedCharacters;
+
 @end
 
 NS_ASSUME_NONNULL_END

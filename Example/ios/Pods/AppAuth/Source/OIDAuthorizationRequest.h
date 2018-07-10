@@ -20,6 +20,7 @@
 
 // These files only declare string constants useful for constructing a @c OIDAuthorizationRequest,
 // so they are imported here for convenience.
+#import "OIDExternalUserAgentRequest.h"
 #import "OIDResponseTypes.h"
 #import "OIDScopes.h"
 
@@ -37,7 +38,7 @@ extern NSString *const OIDOAuthorizationRequestCodeChallengeMethodS256;
     @see https://tools.ietf.org/html/rfc6749#section-4
     @see https://tools.ietf.org/html/rfc6749#section-4.1.1
  */
-@interface OIDAuthorizationRequest : NSObject <NSCopying, NSSecureCoding> {
+@interface OIDAuthorizationRequest : NSObject <NSCopying, NSSecureCoding, OIDExternalUserAgentRequest> {
   // property variables
   OIDServiceConfiguration *_configuration;
   NSString *_responseType;
@@ -46,6 +47,7 @@ extern NSString *const OIDOAuthorizationRequestCodeChallengeMethodS256;
   NSString *_scope;
   NSURL *_redirectURL;
   NSString *_state;
+  NSString *_nonce;
   NSString *_codeVerifier;
   NSString *_codeChallenge;
   NSString *_codeChallengeMethod;
@@ -107,6 +109,17 @@ extern NSString *const OIDOAuthorizationRequestCodeChallengeMethodS256;
  */
 @property(nonatomic, readonly, nullable) NSString *state;
 
+/*! @brief String value used to associate a Client session with an ID Token, and to mitigate replay
+        attacks. The value is passed through unmodified from the Authentication Request to the ID
+        Token. Sufficient entropy MUST be present in the nonce values used to prevent attackers from
+        guessing values.
+    @remarks nonce
+    @discussion If this value is not explicitly set, this library will automatically add nonce and
+        perform appropriate validation of the nonce in the ID Token.
+    @see https://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
+ */
+@property(nonatomic, readonly, nullable) NSString *nonce;
+
 /*! @brief The PKCE code verifier.
     @remarks code_verifier
     @discussion The code verifier itself is not included in the authorization request that is sent
@@ -159,8 +172,8 @@ extern NSString *const OIDOAuthorizationRequestCodeChallengeMethodS256;
              responseType:(NSString *)responseType
      additionalParameters:(nullable NSDictionary<NSString *, NSString *> *)additionalParameters;
 
-/*! @brief Creates an authorization request with opinionated defaults (a secure @c state, and
-        PKCE with S256 as the @c code_challenge_method).
+/*! @brief Creates an authorization request with opinionated defaults (a secure @c state, @c nonce,
+        and PKCE with S256 as the @c code_challenge_method).
     @param configuration The service's configuration.
     @param clientID The client identifier.
     @param clientSecret The client secret.
@@ -180,7 +193,7 @@ extern NSString *const OIDOAuthorizationRequestCodeChallengeMethodS256;
              responseType:(NSString *)responseType
      additionalParameters:(nullable NSDictionary<NSString *, NSString *> *)additionalParameters;
 
-/*! @brief Designated initializer.
+/*! @brief Deprecated, replaced with @c OIDAuthState.initWithConfiguration:clientId:clientSecret:scope:redirectURL:responseType:state:nonce:codeVerifier:codeChallenge:codeChallengeMethod:additionalParameters:.
     @param configuration The service's configuration.
     @param clientID The client identifier.
     @param scope A scope string per the OAuth2 spec (a space-delimited set of scopes).
@@ -205,6 +218,39 @@ extern NSString *const OIDOAuthorizationRequestCodeChallengeMethodS256;
               redirectURL:(nullable NSURL *)redirectURL
              responseType:(NSString *)responseType
                     state:(nullable NSString *)state
+             codeVerifier:(nullable NSString *)codeVerifier
+            codeChallenge:(nullable NSString *)codeChallenge
+      codeChallengeMethod:(nullable NSString *)codeChallengeMethod
+     additionalParameters:(nullable NSDictionary<NSString *, NSString *> *)additionalParameters
+__deprecated_msg("Replaced with OIDAuthState.initWithConfiguration:clientId:clientSecret:scope:redirectURL:responseType:state:nonce:codeVerifier:codeChallenge:codeChallengeMethod:additionalParameters:");
+
+/*! @brief Designated initializer.
+    @param configuration The service's configuration.
+    @param clientID The client identifier.
+    @param scope A scope string per the OAuth2 spec (a space-delimited set of scopes).
+    @param redirectURL The client's redirect URI.
+    @param responseType The expected response type.
+    @param state An opaque value used by the client to maintain state between the request and
+        callback.
+    @param nonce String value used to associate a Client session with an ID Token.
+    @param codeVerifier The PKCE code verifier. See @c OIDAuthorizationRequest.generateCodeVerifier.
+    @param codeChallenge The PKCE code challenge, calculated from the code verifier such as with
+        @c OIDAuthorizationRequest.codeChallengeS256ForVerifier:.
+    @param codeChallengeMethod The PKCE code challenge method.
+        ::OIDOAuthorizationRequestCodeChallengeMethodS256 when
+        @c OIDAuthorizationRequest.codeChallengeS256ForVerifier: is used to create the code
+        challenge.
+    @param additionalParameters The client's additional authorization parameters.
+ */
+- (instancetype)
+    initWithConfiguration:(OIDServiceConfiguration *)configuration
+                 clientId:(NSString *)clientID
+             clientSecret:(nullable NSString *)clientSecret
+                    scope:(nullable NSString *)scope
+              redirectURL:(nullable NSURL *)redirectURL
+             responseType:(NSString *)responseType
+                    state:(nullable NSString *)state
+                    nonce:(nullable NSString *)nonce
              codeVerifier:(nullable NSString *)codeVerifier
             codeChallenge:(nullable NSString *)codeChallenge
       codeChallengeMethod:(nullable NSString *)codeChallengeMethod
