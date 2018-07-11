@@ -7,7 +7,7 @@
 [![Build Status](https://travis-ci.org/FormidableLabs/react-native-app-auth.svg?branch=master)](https://travis-ci.org/FormidableLabs/react-native-app-auth)
 [![npm version](https://badge.fury.io/js/react-native-app-auth.svg)](https://badge.fury.io/js/react-native-app-auth)
 
-#### This is the API documentation for `react-native-app-auth >= 3.0.` (pre-release)
+#### This is the API documentation for `react-native-app-auth >= 3.0.`
 
 [See version `2.x` documentation here](https://github.com/FormidableLabs/react-native-app-auth/tree/7a3fdc6e3572a998db99777b7562a7e63e0c2008).
 
