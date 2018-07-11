@@ -1,12 +1,47 @@
 PODS:
-  - AppAuth (0.91.0)
+  - AppAuth (0.93.0)
+  - DoubleConversion (1.1.5)
+  - GLog (0.3.4)
+  - React (0.50.3):
+    - React/Core (= 0.50.3)
+  - React/Core (0.50.3):
+    - yoga (= 0.50.3.React)
+  - RNAppAuth (1.0.0):
+    - AppAuth
+    - React
+  - yoga (0.50.3.React)
 
 DEPENDENCIES:
-  - AppAuth (>= 0.91)
+  - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
+  - GLog (from `../node_modules/react-native/third-party-podspecs/GLog.podspec`)
+  - React (from `../node_modules/react-native`)
+  - RNAppAuth (from `../../ios/`)
+  - yoga (from `../node_modules/react-native/ReactCommon/yoga`)
+
+SPEC REPOS:
+  https://github.com/CocoaPods/Specs.git:
+    - AppAuth
+
+EXTERNAL SOURCES:
+  DoubleConversion:
+    :podspec: "../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec"
+  GLog:
+    :podspec: "../node_modules/react-native/third-party-podspecs/GLog.podspec"
+  React:
+    :path: "../node_modules/react-native"
+  RNAppAuth:
+    :path: "../../ios/"
+  yoga:
+    :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  AppAuth: 3e0dc9c00ef333dc62064e4830aa89b597ae8d2f
+  AppAuth: 1096c2ad48507c4a2a8c85c8a6ff065741ab9931
+  DoubleConversion: ebb6747c5b66026ad4f97b789c3ceac6f18e57a6
+  GLog: 3e4e4ae9746ce6bf6e9420c7fc1e08ad59c8ba1a
+  React: 541ba768b9855e10cdc76f55427a5cd0653ca806
+  RNAppAuth: f1c597df5c085dc72bff3e09d5d1ebff1086fedb
+  yoga: 17521bbb0dd54a47c0b3ac43253e78cdac7488e0
 
-PODFILE CHECKSUM: 75f03f73647b3259b1c2e1783cebbdba24019136
+PODFILE CHECKSUM: b7604fdeeb5385cbc6a9a792e93cd2d2e08633af
 
-COCOAPODS: 1.3.1
+COCOAPODS: 1.5.0

@@ -36,6 +36,7 @@ typedef void (^OIDServiceConfigurationCreated)
   // property variables
   NSURL *_authorizationEndpoint;
   NSURL *_tokenEndpoint;
+  NSURL *_issuer;
   NSURL *_registrationEndpoint;
   OIDServiceDiscovery *_discoveryDocument;
 }
@@ -47,6 +48,10 @@ typedef void (^OIDServiceConfigurationCreated)
 /*! @brief The token exchange and refresh endpoint URI.
  */
 @property(nonatomic, readonly) NSURL *tokenEndpoint;
+
+/*! @brief The OpenID Connect issuer.
+ */
+@property(nonatomic, readonly, nullable) NSURL *issuer;
 
 /*! @brief The dynamic client registration endpoint URI.
  */
@@ -74,6 +79,24 @@ typedef void (^OIDServiceConfigurationCreated)
  */
 - (instancetype)initWithAuthorizationEndpoint:(NSURL *)authorizationEndpoint
                                 tokenEndpoint:(NSURL *)tokenEndpoint
+                         registrationEndpoint:(nullable NSURL *)registrationEndpoint;
+
+/*! @param authorizationEndpoint The authorization endpoint URI.
+    @param tokenEndpoint The token exchange and refresh endpoint URI.
+    @param issuer The OpenID Connect issuer.
+ */
+- (instancetype)initWithAuthorizationEndpoint:(NSURL *)authorizationEndpoint
+                                tokenEndpoint:(NSURL *)tokenEndpoint
+                                       issuer:(nullable NSURL *)issuer;
+
+/*! @param authorizationEndpoint The authorization endpoint URI.
+    @param tokenEndpoint The token exchange and refresh endpoint URI.
+    @param issuer The OpenID Connect issuer.
+    @param registrationEndpoint The dynamic client registration endpoint URI.
+ */
+- (instancetype)initWithAuthorizationEndpoint:(NSURL *)authorizationEndpoint
+                                tokenEndpoint:(NSURL *)tokenEndpoint
+                                       issuer:(nullable NSURL *)issuer
                          registrationEndpoint:(nullable NSURL *)registrationEndpoint;
 
 /*! @param discoveryDocument The discovery document from which to extract the required OAuth

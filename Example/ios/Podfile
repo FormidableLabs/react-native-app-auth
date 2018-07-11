@@ -2,5 +2,9 @@
 platform :ios, '11.0'
 
 target 'AppAuthExample' do
-  pod 'AppAuth', '>= 0.91'
+  pod 'React', :path => '../node_modules/react-native'
+  pod 'DoubleConversion', :podspec => '../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec'
+  pod 'yoga', :path => '../node_modules/react-native/ReactCommon/yoga'
+  pod 'GLog', :podspec => '../node_modules/react-native/third-party-podspecs/GLog.podspec'
+  pod 'RNAppAuth', :path => '../../ios/'
 end

@@ -71,8 +71,6 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final Boolean dangerouslyAllowInsecureHttpRequests,
             final Promise promise
     ) {
-
-        final String scopesString = this.arrayToString(scopes);
         final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests);
         final AppAuthConfiguration appAuthConfiguration = this.createAppAuthConfiguration(builder);
         final HashMap<String, String> additionalParametersMap = MapUtils.readableMapToHashMap(additionalParameters);
@@ -94,7 +92,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                         createAuthorizationServiceConfiguration(serviceConfiguration),
                         appAuthConfiguration,
                         clientId,
-                        scopesString,
+                        scopes,
                         redirectUrl,
                         additionalParametersMap
                 );
@@ -118,7 +116,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                     fetchedConfiguration,
                                     appAuthConfiguration,
                                     clientId,
-                                    scopesString,
+                                    scopes,
                                     redirectUrl,
                                     additionalParametersMap
                             );
@@ -146,7 +144,6 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final Boolean dangerouslyAllowInsecureHttpRequests,
             final Promise promise
     ) {
-        final String scopesString = this.arrayToString(scopes);
         final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests);
         final AppAuthConfiguration appAuthConfiguration = createAppAuthConfiguration(builder);
         final HashMap<String, String> additionalParametersMap = MapUtils.readableMapToHashMap(additionalParameters);
@@ -167,7 +164,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                         appAuthConfiguration,
                         refreshToken,
                         clientId,
-                        scopesString,
+                        scopes,
                         redirectUrl,
                         additionalParametersMap,
                         clientSecret,
@@ -195,7 +192,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                     appAuthConfiguration,
                                     refreshToken,
                                     clientId,
-                                    scopesString,
+                                    scopes,
                                     redirectUrl,
                                     additionalParametersMap,
                                     clientSecret,
@@ -273,10 +270,16 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final AuthorizationServiceConfiguration serviceConfiguration,
             final AppAuthConfiguration appAuthConfiguration,
             final String clientId,
-            final String scopesString,
+            final ReadableArray scopes,
             final String redirectUrl,
             final Map<String, String> additionalParametersMap
     ) {
+
+        String scopesString = null;
+
+        if (scopes != null) {
+            scopesString = this.arrayToString(scopes);
+        }
 
         final Context context = this.reactContext;
         final Activity currentActivity = getCurrentActivity();
@@ -287,8 +290,12 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                         clientId,
                         ResponseTypeValues.CODE,
                         Uri.parse(redirectUrl)
-                )
-                        .setScope(scopesString);
+                );
+
+        if (scopesString != null) {
+            authRequestBuilder.setScope(scopesString);
+        }
+
 
         if (additionalParametersMap != null) {
             // handle additional parameters separately to avoid exceptions from AppAuth
@@ -331,12 +338,18 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final AppAuthConfiguration appAuthConfiguration,
             final String refreshToken,
             final String clientId,
-            final String scopesString,
+            final ReadableArray scopes,
             final String redirectUrl,
             final Map<String, String> additionalParametersMap,
             final String clientSecret,
             final Promise promise
     ) {
+
+        String scopesString = null;
+
+        if (scopes != null) {
+            scopesString = this.arrayToString(scopes);
+        }
 
         final Context context = this.reactContext;
 
@@ -345,9 +358,12 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                         serviceConfiguration,
                         clientId
                 )
-                        .setScope(scopesString)
                         .setRefreshToken(refreshToken)
                         .setRedirectUri(Uri.parse(redirectUrl));
+
+        if (scopesString != null) {
+            tokenRequestBuilder.setScope(scopesString);
+        }
 
         if (!additionalParametersMap.isEmpty()) {
             tokenRequestBuilder.setAdditionalParameters(additionalParametersMap);

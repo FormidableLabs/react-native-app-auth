@@ -12,7 +12,11 @@
 [![Build Status](https://travis-ci.org/FormidableLabs/react-native-app-auth.svg?branch=master)](https://travis-ci.org/FormidableLabs/react-native-app-auth)
 [![npm version](https://badge.fury.io/js/react-native-app-auth.svg)](https://badge.fury.io/js/react-native-app-auth)
 
-#### This is the API documentation for `react-native-app-auth >= 2.0.` [See version `1.x` documentation here](https://github.com/FormidableLabs/react-native-app-auth/tree/v1.0.1).
+#### This is the API documentation for `react-native-app-auth >= 3.0.`
+
+[See version `2.x` documentation here](https://github.com/FormidableLabs/react-native-app-auth/tree/7a3fdc6e3572a998db99777b7562a7e63e0c2008).
+
+[See version `1.x` documentation here](https://github.com/FormidableLabs/react-native-app-auth/tree/v1.0.1).
 
 React Native bridge for [AppAuth-iOS](https://github.com/openid/AppAuth-iOS) and
 [AppAuth-Android](https://github.com/openid/AppAuth-Android) SDKS for communicating with
@@ -23,7 +27,9 @@ This library _should_ support any OAuth provider that implements the
 [OAuth2 spec](https://tools.ietf.org/html/rfc6749#section-2.2).
 
 ### Tested OpenID providers:
+
 These providers are OpenID compliant, which means you can use [autodiscovery](https://openid.net/specs/openid-connect-discovery-1_0.html).
+
 * [Identity Server4](https://demo.identityserver.io/) ([Example configuration](#identity-server-4))
 * [Identity Server3](https://github.com/IdentityServer/IdentityServer3) ([Example configuration](#identity-server-3))
 * [Google](https://developers.google.com/identity/protocols/OAuth2)
@@ -32,7 +38,9 @@ These providers are OpenID compliant, which means you can use [autodiscovery](ht
 * [Keycloak](http://www.keycloak.org/) ([Example configuration](#keycloak))
 
 ### Tested OAuth2 providers:
+
 These providers implement the OAuth2 spec, but are not OpenID providers, which means you must configure the authorization and token endpoints yourself.
+
 * [Uber](https://developer.uber.com/docs/deliveries/guides/three-legged-oauth) ([Example configuration](#uber))
 * [Fitbit](https://dev.fitbit.com/build/reference/web-api/oauth2/) ([Example configuration](#fitbit))
 
@@ -204,31 +212,31 @@ AppAuth supports three options for dependency management.
 
 1. **CocoaPods**
 
-    With [CocoaPods](https://guides.cocoapods.org/using/getting-started.html), add the following line to
-    your `Podfile`:
+   With [CocoaPods](https://guides.cocoapods.org/using/getting-started.html), add the following line to
+   your `Podfile`:
 
-        pod 'AppAuth', '>= 0.91'
+       pod 'AppAuth', '>= 0.91'
 
-    Then run `pod install`. Note that version 0.91 is the first of the library to support iOS 11.
+   Then run `pod install`. Note that version 0.91 is the first of the library to support iOS 11.
 
 2. **Carthage**
 
-    With [Carthage](https://github.com/Carthage/Carthage), add the following line to your `Cartfile`:
+   With [Carthage](https://github.com/Carthage/Carthage), add the following line to your `Cartfile`:
 
-        github "openid/AppAuth-iOS" "master"
+       github "openid/AppAuth-iOS" "master"
 
-    Then run `carthage bootstrap`.
+   Then run `carthage bootstrap`.
 
 3. **Static Library**
 
-    You can also use [AppAuth-iOS](https://github.com/openid/AppAuth-iOS) as a static library. This
-    requires linking the library and your project and including the headers. Suggested configuration:
+   You can also use [AppAuth-iOS](https://github.com/openid/AppAuth-iOS) as a static library. This
+   requires linking the library and your project and including the headers. Suggested configuration:
 
-    1. Create an XCode Workspace.
-    2. Add `AppAuth.xcodeproj` to your Workspace.
-    3. Include libAppAuth as a linked library for your target (in the "General -> Linked Framework and
+   1. Create an XCode Workspace.
+   2. Add `AppAuth.xcodeproj` to your Workspace.
+   3. Include libAppAuth as a linked library for your target (in the "General -> Linked Framework and
       Libraries" section of your target).
-    4. Add `AppAuth-iOS/Source` to your search paths of your target ("Build Settings -> "Header Search
+   4. Add `AppAuth-iOS/Source` to your search paths of your target ("Build Settings -> "Header Search
       Paths").
 
 ##### Register redirect URL scheme
@@ -256,91 +264,66 @@ your `Info.plist` as follows:
 
 ##### Define openURL callback in AppDelegate
 
-You need to have a property in your AppDelegate to hold the auth session, in order to continue the
-authorization flow from the redirect. To add this, open `AppDelegate.h` in your project and add the
-following lines:
+You need to retain the auth session, in order to continue the
+authorization flow from the redirect. Follow these steps:
+
+`RNAppAuth` will call on the given app's delegate via `[UIApplication sharedApplication].delegate`.
+Furthermore, `RNAppAuth` expects the delegate instance to conform to the protocol `RNAppAuthAuthorizationFlowManager`.
+Make `AppDelegate` conform to `RNAppAuthAuthorizationFlowManager`:
 
 ```diff
-+ @protocol OIDAuthorizationFlowSession;
++ // Depending on build configurations, import either with:
++@import RNAppAuth;
++ // or:
++import <AppAuth/AppAuth.h>
++import "RNAppAuthAuthorizationFlowManager.h"
 
-  @interface AppDelegate : UIResponder <UIApplicationDelegate>
-+ @property(nonatomic, strong, nullable) id<OIDAuthorizationFlowSession> currentAuthorizationFlow;
-  @property (nonatomic, strong) UIWindow *window;
-  @end
++ @interface AppDelegate()<RNAppAuthAuthorizationFlowManager> {
++  id <OIDAuthorizationFlowSession> _currentSession;
++ }
++ @end
+```
+
+Implement the required method of `RNAppAuthAuthorizationFlowManager` in `AppDelegate`:
+
+```diff
++ -(void)setCurrentAuthorizationFlowSession:(id<OIDAuthorizationFlowSession>)session {
++    // retain session for further use
++    _currentSession = session;
++ }
 ```
 
 The authorization response URL is returned to the app via the iOS openURL app delegate method, so
 you need to pipe this through to the current authorization session (created in the previous
-instruction).
+instruction). Thus, implement the following method from `UIApplicationDelegate` in `AppDelegate`:
 
-##### Add a current Authorization session
-
-To do this, open `AppDelegate.m` and add an import statement:
-
-```Objective-C
-#import <AppAuth/AppAuth.h>
-```
-
-And in the bottom of the class, add the following handler:
-
-```Objective-C
-- (BOOL)application:(UIApplication *)app
-            openURL:(NSURL *)url
-            options:(NSDictionary<NSString *, id> *)options {
-  if ([_currentAuthorizationFlow resumeAuthorizationFlowWithURL:url]) {
-    _currentAuthorizationFlow = nil;
-    return YES;
-  }
-  return NO;
-}
+```diff
++ - (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<NSString *, id> *)options {
++   BOOL shouldOpenUrl = [_currentSession resumeAuthorizationFlowWithURL:url];
++   _currentSession = nil;
++   return shouldOpenUrl;
++ }
 ```
 
 #### Integration of the library with a Swift iOS project
 
-Until a better solution is available, we must use `react-native-app-auth` as a Static Library. This is due to the fact that the library is calling `AppDelegate.swift`.
+The approach mentioned above should also be possible to employ with Swift. In this case one should have to import `RNAppAuth`
+and make `AppDelegate` conform to `RNAppAuthAuthorizationFlowManager`. Note that this has not been tested.
+`AppDelegate` should look something like this:
 
-1. Unlink `react-native-app-auth` from your projects `Libraries/`.
-
-2. Manually copy the `RNAppAuth.h` and `RNAppAuth.m` files from the library folder in your `node_modules/` into your project folder.
-
-3. In `RNAppAuth.m` add a new import:
-    ```Objective-C
-    #import "<YouProjectName>-Swift.h"
-    ```
-
-4. In your project's `AppDelegate.swift`, expose your function to `Objective-C` by annotating the AppDelegate with:
-    ```Swift
-    @objc(AppDelegate)
-    ```
-
-5. Add the following code just after the class declaration:
-    ```Swift
-    var currentAuthorizationFlow: OIDAuthorizationFlowSession?
-    ```
-
-6. At the bottom of your class add the following code:
-
-    ```Swift
-    func application(
+```swift
+@import RNAppAuth
+class AppDelegate: UIApplicationDelegate, RNAppAuthAuthorizationFlowManager {
+  private var currentAuthorizationFlow: OIDAuthorizationFlowSession?
+  func application(
       _ app: UIApplication,
       open url: URL,
       options: [UIApplicationOpenURLOptionsKey: Any] = [:]) -> Bool {
-
-      if currentAuthorizationFlow!.resumeAuthorizationFlow(with: url){
-        currentAuthorizationFlow = nil
-        return true
-      }
-
-      return false;
-    }
-    ```
-    This is a translation of the following `Objective-C` code provided [above](#add-a-current-authorization-session)
-
-**Warning:**
-
-You may need to perform Step 4 and compile your project so that the hidden bridging header file is created. If this file is not created and you follow the rest of the steps then you may fall into a chicken before the egg problem where the project is failing to build because of the missing header file and the header file won't be created because the build is failing.
-
-
+      defer { currentAuthorizationFlow = nil }
+      return currentAuthorizationFlow?.resumeAuthorizationFlow(with: url) ?? false
+  }
+}
+```
 
 ### Android Setup
 
@@ -462,7 +445,7 @@ await revoke(config, {
 <details>
   <summary>Example server configuration</summary>
 
-```  
+```
 var client = new Client
 {
   ClientId = "native.code",
@@ -517,7 +500,7 @@ var client = new Client
 {
   ClientId = "native.code",
   ClientName = "Native Client (Code with PKCE)",
-  Flow = Flows.AuthorizationCodeWithProofKey,            
+  Flow = Flows.AuthorizationCodeWithProofKey,
   RedirectUris = { "com.your.app.name:/oauthredirect" },
   ClientSecrets = new List<Secret> { new Secret("your-client-secret".Sha256()) },
   AllowAccessToAllScopes = true
@@ -678,7 +661,6 @@ await revoke(config, {
   tokenToRevoke: refreshedState.refreshToken
 });
 ```
-
 
 ## Contributors
 
