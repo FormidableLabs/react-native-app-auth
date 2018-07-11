@@ -101,7 +101,7 @@ Then run `carthage bootstrap`.
 You can also use AppAuth as a static library. This requires linking the library
 and your project and including the headers.  Suggested configuration:
 
-1. Create an XCode Workspace.
+1. Create an Xcode Workspace.
 2. Add `AppAuth.xcodeproj` to your Workspace.
 3. Include libAppAuth as a linked library for your target (in the "General ->
 Linked Framework and Libraries" section of your target).
@@ -333,8 +333,7 @@ needing to worry about token freshness.
 
 ## API Documentation
 
-Browse the [API documentation]
-(http://openid.github.io/AppAuth-iOS/docs/latest/annotated.html).
+Browse the [API documentation](http://openid.github.io/AppAuth-iOS/docs/latest/annotated.html).
 
 ## Included Samples
 
