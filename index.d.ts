@@ -70,6 +70,8 @@ export interface RefreshConfiguration {
   refreshToken: string;
 }
 
+export function warmUpChromeCustomTab(config: AuthConfiguration): Promise<void>;
+
 export function authorize(config: AuthConfiguration): Promise<AuthorizeResult>;
 
 export function refresh(

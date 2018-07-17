@@ -48,6 +48,31 @@ const validateHeaders = headers => {
   });
 };
 
+export const warmUpChromeCustomTab = ({
+  issuer, 
+  redirectUrl,
+  clientId,
+  scopes,
+  serviceConfiguration,
+  dangerouslyAllowInsecureHttpRequests = false,
+}) => {
+  if (Platform.OS === 'android') {
+    validateIssuerOrServiceConfigurationEndpoints(issuer, serviceConfiguration);
+    validateClientId(clientId);
+    validateRedirectUrl(redirectUrl);
+  
+    const nativeMethodArguments = [
+      redirectUrl,
+      clientId,
+      scopes,
+      serviceConfiguration,
+      dangerouslyAllowInsecureHttpRequests
+    ];
+
+    RNAppAuth.warmUpChromeCustomTab(...nativeMethodArguments);
+  }
+}
+
 export const authorize = ({
   issuer,
   redirectUrl,
