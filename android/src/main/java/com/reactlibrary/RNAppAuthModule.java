@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.annotation.Nullable;
+import android.support.customtabs.CustomTabsIntent;
+import android.os.Build;
 
 import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.Arguments;
@@ -40,6 +42,10 @@ import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class RNAppAuthModule extends ReactContextBaseJavaModule implements ActivityEventListener {
 
@@ -48,11 +54,66 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     private Boolean dangerouslyAllowInsecureHttpRequests;
     private Map<String, String> additionalParametersMap;
     private String clientSecret;
+    private final AtomicReference<CustomTabsIntent> warmUpIntent = new AtomicReference<>();
+    private ExecutorService warmUpExecutor;
+    private CountDownLatch warmUpIntentLatch = new CountDownLatch(1);
 
     public RNAppAuthModule(ReactApplicationContext reactContext) {
         super(reactContext);
         this.reactContext = reactContext;
         reactContext.addActivityEventListener(this);
+    }
+
+    @ReactMethod
+    public void warmUpChromeCustomTab(
+        final String redirectUrl,
+        final String clientId,
+        final ReadableArray scopes,
+        final ReadableMap serviceConfiguration,
+        final Boolean dangerouslyAllowInsecureHttpRequests,
+        final Promise promise
+    ) {
+        if (serviceConfiguration != null) {
+            try {
+                final Context context = this.reactContext;
+                final AuthorizationServiceConfiguration convertedServiceConfiguration = createAuthorizationServiceConfiguration(serviceConfiguration);
+                this.warmUpIntentLatch = new CountDownLatch(1);
+                this.warmUpExecutor = Executors.newSingleThreadExecutor();
+
+                String scopesString = null;
+                if (scopes != null) {
+                    scopesString = this.arrayToString(scopes);
+                }
+
+                AuthorizationRequest.Builder warmUpRequestBuilder =
+                        new AuthorizationRequest.Builder(
+                                convertedServiceConfiguration,
+                                clientId,
+                                ResponseTypeValues.CODE,
+                                Uri.parse(redirectUrl)
+                        );
+
+                if (scopesString != null) {
+                    warmUpRequestBuilder.setScope(scopesString);
+                }
+
+                final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests);
+                final AppAuthConfiguration appAuthConfiguration = this.createAppAuthConfiguration(builder);
+                final AuthorizationService warmUpAuthService = new AuthorizationService(this.reactContext, appAuthConfiguration);
+                final AuthorizationRequest warmUpAuthRequest = warmUpRequestBuilder.build();
+
+                this.warmUpExecutor.execute(() -> {
+                    CustomTabsIntent.Builder intentBuilder = warmUpAuthService.createCustomTabsIntentBuilder(warmUpAuthRequest.toUri());
+                    this.warmUpIntent.set(intentBuilder.build());
+                    this.warmUpIntentLatch.countDown();
+                });
+                promise.resolve(true);
+            } catch(Exception e) {
+                promise.reject("RNAppAuth Warm Up Error", "Failed to warm up Chrome Custom Tab", e);
+            }
+        } else {
+            promise.reject("RNAppAuth Warm Up Error", "Failed to warm up Chrome Custom Tab: ServiceConfiguration missing");
+        }
     }
 
     @ReactMethod
