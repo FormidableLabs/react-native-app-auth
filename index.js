@@ -66,12 +66,12 @@ export const warmUpChromeCustomTab = ({
       clientId,
       scopes,
       serviceConfiguration,
-      dangerouslyAllowInsecureHttpRequests
+      dangerouslyAllowInsecureHttpRequests,
     ];
 
     RNAppAuth.warmUpChromeCustomTab(...nativeMethodArguments);
   }
-}
+};
 
 export const authorize = ({
   issuer,
