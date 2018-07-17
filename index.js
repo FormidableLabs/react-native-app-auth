@@ -49,7 +49,7 @@ const validateHeaders = headers => {
 };
 
 export const warmUpChromeCustomTab = ({
-  issuer, 
+  issuer,
   redirectUrl,
   clientId,
   scopes,
@@ -60,7 +60,7 @@ export const warmUpChromeCustomTab = ({
     validateIssuerOrServiceConfigurationEndpoints(issuer, serviceConfiguration);
     validateClientId(clientId);
     validateRedirectUrl(redirectUrl);
-  
+
     const nativeMethodArguments = [
       redirectUrl,
       clientId,
