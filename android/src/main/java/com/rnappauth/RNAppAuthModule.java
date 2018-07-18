@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.annotation.Nullable;
-import android.support.customtabs.CustomTabsIntent;
 
 import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -43,8 +42,6 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class RNAppAuthModule extends ReactContextBaseJavaModule implements ActivityEventListener {
 
@@ -76,10 +73,11 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         final Promise promise
     ) {
         final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests);
-
+        CountDownLatch fetchConfigurationLatch = new CountDownLatch(1);
         if (serviceConfiguration != null && mServiceConfiguration.get() == null) {
             try {
                 mServiceConfiguration.set(createAuthorizationServiceConfiguration(serviceConfiguration));
+                isPrefetched = true;
             } catch (Exception e) {
                 promise.reject("RNAppAuth Error", "Failed to convert serviceConfiguration", e);
             }
@@ -96,47 +94,18 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                 return;
                             }
                             mServiceConfiguration.set(fetchedConfiguration);
+                            isPrefetched = true;
+                            fetchConfigurationLatch.countDown();
                         }
                     },
                     builder
             );
         }
-
-        if (!isPrefetched) {
-            try {
-                final AppAuthConfiguration appAuthConfiguration = this.createAppAuthConfiguration(builder);
-                final AuthorizationService warmUpAuthService = new AuthorizationService(this.reactContext, appAuthConfiguration);
-                CountDownLatch warmUpIntentLatch = new CountDownLatch(1);
-                ExecutorService warmUpExecutor = Executors.newSingleThreadExecutor();
-                String scopesString = null;
-                if (scopes != null) {
-                    scopesString = this.arrayToString(scopes);
-                }
-
-                AuthorizationRequest.Builder warmUpRequestBuilder =
-                        new AuthorizationRequest.Builder(
-                                mServiceConfiguration.get(),
-                                clientId,
-                                ResponseTypeValues.CODE,
-                                Uri.parse(redirectUrl)
-                        );
-
-                if (scopesString != null) {
-                    warmUpRequestBuilder.setScope(scopesString);
-                }
-
-                final AuthorizationRequest warmUpAuthRequest = warmUpRequestBuilder.build();
-
-                warmUpExecutor.execute(() -> {
-                    CustomTabsIntent.Builder intentBuilder = warmUpAuthService.createCustomTabsIntentBuilder(warmUpAuthRequest.toUri());
-                    CustomTabsIntent warmUpIntent = intentBuilder.build();
-                    warmUpIntentLatch.countDown();
-                });
-                isPrefetched = true;
-                promise.resolve(isPrefetched);
-            } catch (Exception e) {
-                promise.reject("RNAppAuth Warm Up Error", "Failed to warm up Chrome Custom Tab", e);
-            }
+        try {
+            fetchConfigurationLatch.await();
+            promise.resolve(isPrefetched);
+        } catch (Exception e) {
+            promise.reject("RNAppAuth Error", "Failed to await fetch configuration", e);
         }
     }
 
