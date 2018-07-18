@@ -48,7 +48,7 @@ const validateHeaders = headers => {
   });
 };
 
-export const warmUpChromeCustomTab = ({
+export const prefetchOnce = ({
   issuer,
   redirectUrl,
   clientId,
@@ -62,6 +62,7 @@ export const warmUpChromeCustomTab = ({
     validateRedirectUrl(redirectUrl);
 
     const nativeMethodArguments = [
+      issuer,
       redirectUrl,
       clientId,
       scopes,
@@ -69,7 +70,7 @@ export const warmUpChromeCustomTab = ({
       dangerouslyAllowInsecureHttpRequests,
     ];
 
-    RNAppAuth.warmUpChromeCustomTab(...nativeMethodArguments);
+    RNAppAuth.prefetchOnce(...nativeMethodArguments);
   }
 };
 
