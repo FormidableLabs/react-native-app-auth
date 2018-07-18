@@ -78,6 +78,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             try {
                 mServiceConfiguration.set(createAuthorizationServiceConfiguration(serviceConfiguration));
                 isPrefetched = true;
+                fetchConfigurationLatch.countDown();
             } catch (Exception e) {
                 promise.reject("RNAppAuth Error", "Failed to convert serviceConfiguration", e);
             }
