@@ -22,7 +22,7 @@ const validateClientId = clientId =>
 const validateRedirectUrl = redirectUrl =>
   invariant(typeof redirectUrl === 'string', 'Config error: redirectUrl must be a string');
 
-export const warmUpChromeCustomTab = ({
+export const prefetchOnce = ({
   issuer,
   redirectUrl,
   clientId,
@@ -36,6 +36,7 @@ export const warmUpChromeCustomTab = ({
     validateRedirectUrl(redirectUrl);
 
     const nativeMethodArguments = [
+      issuer,
       redirectUrl,
       clientId,
       scopes,
@@ -43,7 +44,7 @@ export const warmUpChromeCustomTab = ({
       dangerouslyAllowInsecureHttpRequests,
     ];
 
-    RNAppAuth.warmUpChromeCustomTab(...nativeMethodArguments);
+    RNAppAuth.prefetchOnce(...nativeMethodArguments);
   }
 };
 

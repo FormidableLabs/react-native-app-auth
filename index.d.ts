@@ -18,9 +18,9 @@ export type BaseAuthConfiguration =
     };
 
 interface BuiltInParameters {
-  display?: "page" | "popup" | "touch" | "wap";
+  display?: 'page' | 'popup' | 'touch' | 'wap';
   login_prompt?: string;
-  prompt?: "consent" |"login" | "none" | "select_account";
+  prompt?: 'consent' | 'login' | 'none' | 'select_account';
 }
 
 export type AuthConfiguration = BaseAuthConfiguration & {
@@ -49,7 +49,7 @@ export interface RefreshConfiguration {
   refreshToken: string;
 }
 
-export function warmUpChromeCustomTab(config: AuthConfiguration): Promise<void>;
+export function prefetchOnce(config: AuthConfiguration): Promise<void>;
 
 export function authorize(config: AuthConfiguration): Promise<AuthorizeResult>;
 

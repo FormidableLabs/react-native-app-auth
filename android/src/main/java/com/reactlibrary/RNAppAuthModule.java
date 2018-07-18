@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.support.customtabs.CustomTabsIntent;
-import android.os.Build;
 
 import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.Arguments;
@@ -54,9 +53,8 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     private Boolean dangerouslyAllowInsecureHttpRequests;
     private Map<String, String> additionalParametersMap;
     private String clientSecret;
-    private final AtomicReference<CustomTabsIntent> warmUpIntent = new AtomicReference<>();
-    private ExecutorService warmUpExecutor;
-    private CountDownLatch warmUpIntentLatch = new CountDownLatch(1);
+    private final AtomicReference<AuthorizationServiceConfiguration> mServiceConfiguration = new AtomicReference<>();
+    private boolean isPrefetched = false;
 
     public RNAppAuthModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -65,7 +63,8 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     }
 
     @ReactMethod
-    public void warmUpChromeCustomTab(
+    public void prefetchOnce(
+        final String issuer,
         final String redirectUrl,
         final String clientId,
         final ReadableArray scopes,
@@ -73,13 +72,39 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         final Boolean dangerouslyAllowInsecureHttpRequests,
         final Promise promise
     ) {
-        if (serviceConfiguration != null) {
-            try {
-                final Context context = this.reactContext;
-                final AuthorizationServiceConfiguration convertedServiceConfiguration = createAuthorizationServiceConfiguration(serviceConfiguration);
-                this.warmUpIntentLatch = new CountDownLatch(1);
-                this.warmUpExecutor = Executors.newSingleThreadExecutor();
+        final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests);
 
+        if (serviceConfiguration != null && mServiceConfiguration.get() == null) {
+            try {
+                mServiceConfiguration.set(createAuthorizationServiceConfiguration(serviceConfiguration));
+            } catch (Exception e) {
+                promise.reject("RNAppAuth Error", "Failed to convert serviceConfiguration", e);
+            }
+        } else if (mServiceConfiguration.get() == null) {
+            final Uri issuerUri = Uri.parse(issuer);
+            AuthorizationServiceConfiguration.fetchFromUrl(
+                    buildConfigurationUriFromIssuer(issuerUri),
+                    new AuthorizationServiceConfiguration.RetrieveConfigurationCallback() {
+                        public void onFetchConfigurationCompleted(
+                                @Nullable AuthorizationServiceConfiguration fetchedConfiguration,
+                                @Nullable AuthorizationException ex) {
+                            if (ex != null) {
+                                promise.reject("RNAppAuth Error", "Failed to fetch configuration", ex);
+                                return;
+                            }
+                            mServiceConfiguration.set(fetchedConfiguration);
+                        }
+                    },
+                    builder
+            );
+        }
+
+        if (!isPrefetched) {
+            try {
+                final AppAuthConfiguration appAuthConfiguration = this.createAppAuthConfiguration(builder);
+                final AuthorizationService warmUpAuthService = new AuthorizationService(this.reactContext, appAuthConfiguration);
+                CountDownLatch warmUpIntentLatch = new CountDownLatch(1);
+                ExecutorService warmUpExecutor = Executors.newSingleThreadExecutor();
                 String scopesString = null;
                 if (scopes != null) {
                     scopesString = this.arrayToString(scopes);
@@ -87,7 +112,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
                 AuthorizationRequest.Builder warmUpRequestBuilder =
                         new AuthorizationRequest.Builder(
-                                convertedServiceConfiguration,
+                                mServiceConfiguration.get(),
                                 clientId,
                                 ResponseTypeValues.CODE,
                                 Uri.parse(redirectUrl)
@@ -97,22 +122,18 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                     warmUpRequestBuilder.setScope(scopesString);
                 }
 
-                final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests);
-                final AppAuthConfiguration appAuthConfiguration = this.createAppAuthConfiguration(builder);
-                final AuthorizationService warmUpAuthService = new AuthorizationService(this.reactContext, appAuthConfiguration);
                 final AuthorizationRequest warmUpAuthRequest = warmUpRequestBuilder.build();
 
-                this.warmUpExecutor.execute(() -> {
+                warmUpExecutor.execute(() -> {
                     CustomTabsIntent.Builder intentBuilder = warmUpAuthService.createCustomTabsIntentBuilder(warmUpAuthRequest.toUri());
-                    this.warmUpIntent.set(intentBuilder.build());
-                    this.warmUpIntentLatch.countDown();
+                    CustomTabsIntent warmUpIntent = intentBuilder.build();
+                    warmUpIntentLatch.countDown();
                 });
-                promise.resolve(true);
-            } catch(Exception e) {
+                isPrefetched = true;
+                promise.resolve(isPrefetched);
+            } catch (Exception e) {
                 promise.reject("RNAppAuth Warm Up Error", "Failed to warm up Chrome Custom Tab", e);
             }
-        } else {
-            promise.reject("RNAppAuth Warm Up Error", "Failed to warm up Chrome Custom Tab: ServiceConfiguration missing");
         }
     }
 
@@ -143,10 +164,11 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         this.clientSecret = clientSecret;
 
         // when serviceConfiguration is provided, we don't need to hit up the OpenID well-known id endpoint
-        if (serviceConfiguration != null) {
+        if (serviceConfiguration != null || mServiceConfiguration.get() != null) {
             try {
+                final AuthorizationServiceConfiguration serviceConfig = mServiceConfiguration.get() != null ? mServiceConfiguration.get() : createAuthorizationServiceConfiguration(serviceConfiguration);
                 authorizeWithConfiguration(
-                        createAuthorizationServiceConfiguration(serviceConfiguration),
+                        serviceConfig,
                         appAuthConfiguration,
                         clientId,
                         scopes,
@@ -169,6 +191,8 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                 return;
                             }
 
+                            mServiceConfiguration.set(fetchedConfiguration);
+                            
                             authorizeWithConfiguration(
                                     fetchedConfiguration,
                                     appAuthConfiguration,
@@ -214,10 +238,11 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         this.additionalParametersMap = additionalParametersMap;
 
         // when serviceConfiguration is provided, we don't need to hit up the OpenID well-known id endpoint
-        if (serviceConfiguration != null) {
+        if (serviceConfiguration != null || mServiceConfiguration.get() != null) {
             try {
+                final AuthorizationServiceConfiguration serviceConfig = mServiceConfiguration.get() != null ? mServiceConfiguration.get() : createAuthorizationServiceConfiguration(serviceConfiguration);
                 refreshWithConfiguration(
-                        createAuthorizationServiceConfiguration(serviceConfiguration),
+                        serviceConfig,
                         appAuthConfiguration,
                         refreshToken,
                         clientId,
@@ -232,7 +257,6 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             }
         } else {
             final Uri issuerUri = Uri.parse(issuer);
-            // @TODO: Refactor to avoid hitting IDP endpoint on refresh, reuse fetchedConfiguration if possible.
             AuthorizationServiceConfiguration.fetchFromUrl(
                     buildConfigurationUriFromIssuer(issuerUri),
                     new AuthorizationServiceConfiguration.RetrieveConfigurationCallback() {
@@ -243,6 +267,8 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                 promise.reject("RNAppAuth Error", "Failed to fetch configuration", ex);
                                 return;
                             }
+
+                            mServiceConfiguration.set(fetchedConfiguration);
 
                             refreshWithConfiguration(
                                     fetchedConfiguration,
