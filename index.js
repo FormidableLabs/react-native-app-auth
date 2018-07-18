@@ -22,7 +22,7 @@ const validateClientId = clientId =>
 const validateRedirectUrl = redirectUrl =>
   invariant(typeof redirectUrl === 'string', 'Config error: redirectUrl must be a string');
 
-export const prefetchOnce = ({
+export const prefetchOnce = async ({
   issuer,
   redirectUrl,
   clientId,
@@ -44,7 +44,7 @@ export const prefetchOnce = ({
       dangerouslyAllowInsecureHttpRequests,
     ];
 
-    RNAppAuth.prefetchOnce(...nativeMethodArguments);
+    await RNAppAuth.prefetchOnce(...nativeMethodArguments);
   }
 };
 
