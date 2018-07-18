@@ -70,35 +70,39 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         final Promise promise
     ) {
         final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests);
-        CountDownLatch fetchConfigurationLatch = new CountDownLatch(1);
-        if (serviceConfiguration != null && mServiceConfiguration.get() == null) {
-            try {
-                mServiceConfiguration.set(createAuthorizationServiceConfiguration(serviceConfiguration));
-                isPrefetched = true;
-                fetchConfigurationLatch.countDown();
-            } catch (Exception e) {
-                promise.reject("RNAppAuth Error", "Failed to convert serviceConfiguration", e);
-            }
-        } else if (mServiceConfiguration.get() == null) {
-            final Uri issuerUri = Uri.parse(issuer);
-            AuthorizationServiceConfiguration.fetchFromUrl(
-                    buildConfigurationUriFromIssuer(issuerUri),
-                    new AuthorizationServiceConfiguration.RetrieveConfigurationCallback() {
-                        public void onFetchConfigurationCompleted(
-                                @Nullable AuthorizationServiceConfiguration fetchedConfiguration,
-                                @Nullable AuthorizationException ex) {
-                            if (ex != null) {
-                                promise.reject("RNAppAuth Error", "Failed to fetch configuration", ex);
-                                return;
+        CountDownLatch fetchConfigurationLatch = new CountDownLatch(1);¨
+
+        if(!isPrefetched) {
+            if (serviceConfiguration != null && mServiceConfiguration.get() == null) {
+                try {
+                    mServiceConfiguration.set(createAuthorizationServiceConfiguration(serviceConfiguration));
+                    isPrefetched = true;
+                    fetchConfigurationLatch.countDown();
+                } catch (Exception e) {
+                    promise.reject("RNAppAuth Error", "Failed to convert serviceConfiguration", e);
+                }
+            } else if (mServiceConfiguration.get() == null) {
+                final Uri issuerUri = Uri.parse(issuer);
+                AuthorizationServiceConfiguration.fetchFromUrl(
+                        buildConfigurationUriFromIssuer(issuerUri),
+                        new AuthorizationServiceConfiguration.RetrieveConfigurationCallback() {
+                            public void onFetchConfigurationCompleted(
+                                    @Nullable AuthorizationServiceConfiguration fetchedConfiguration,
+                                    @Nullable AuthorizationException ex) {
+                                if (ex != null) {
+                                    promise.reject("RNAppAuth Error", "Failed to fetch configuration", ex);
+                                    return;
+                                }
+                                mServiceConfiguration.set(fetchedConfiguration);
+                                isPrefetched = true;
+                                fetchConfigurationLatch.countDown();
                             }
-                            mServiceConfiguration.set(fetchedConfiguration);
-                            isPrefetched = true;
-                            fetchConfigurationLatch.countDown();
-                        }
-                    },
-                    builder
-            );
+                        },
+                        builder
+                );
+            }
         }
+        
         try {
             fetchConfigurationLatch.await();
             promise.resolve(isPrefetched);
