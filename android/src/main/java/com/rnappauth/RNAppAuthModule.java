@@ -73,7 +73,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         final Promise promise
     ) {
         final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests);
-        CountDownLatch fetchConfigurationLatch = new CountDownLatch(1);
+        final CountDownLatch fetchConfigurationLatch = new CountDownLatch(1);
 
         if(!isPrefetched) {
             if (serviceConfiguration != null && mServiceConfiguration.get() == null) {

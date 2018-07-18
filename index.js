@@ -70,7 +70,7 @@ export const prefetchOnce = async ({
       dangerouslyAllowInsecureHttpRequests,
     ];
 
-    await RNAppAuth.prefetchOnce(...nativeMethodArguments);
+    RNAppAuth.prefetchOnce(...nativeMethodArguments);
   }
 };
 
