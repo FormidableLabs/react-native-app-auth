@@ -104,6 +104,8 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                         builder
                 );
             }
+        } else {
+            fetchConfigurationLatch.countDown();
         }
         
         try {
