@@ -4,7 +4,16 @@
 #import <React/RCTConvert.h>
 #import "RNAppAuthAuthorizationFlowManager.h"
 
+@interface RNAppAuth()<RNAppAuthAuthorizationFlowManagerDelegate> {
+    id<OIDExternalUserAgentSession> _currentSession;
+}
+@end
+
 @implementation RNAppAuth
+
+-(BOOL)resumeExternalUserAgentFlowWithURL:(NSURL *)url {
+    return [_currentSession resumeExternalUserAgentFlowWithURL:url];
+}
 
 - (dispatch_queue_t)methodQueue
 {
@@ -141,26 +150,24 @@ RCT_REMAP_METHOD(refresh,
 
     // performs authentication request
     id<UIApplicationDelegate, RNAppAuthAuthorizationFlowManager> appDelegate = (id<UIApplicationDelegate, RNAppAuthAuthorizationFlowManager>)[UIApplication sharedApplication].delegate;
-
-    id<OIDAuthorizationFlowSession> currentSession =
-    [OIDAuthState authStateByPresentingAuthorizationRequest:request
+    if (![[appDelegate class] conformsToProtocol:@protocol(RNAppAuthAuthorizationFlowManager)]) {
+        [NSException raise:@"RNAppAuth Missing protocol conformance"
+                    format:@"%@ does not conform to RNAppAuthAuthorizationFlowManager", appDelegate];
+    }
+    appDelegate.authorizationFlowManagerDelegate = self;
+    __weak typeof(self) weakSelf = self;
+    _currentSession = [OIDAuthState authStateByPresentingAuthorizationRequest:request
                                    presentingViewController:appDelegate.window.rootViewController
                                                    callback:^(OIDAuthState *_Nullable authState,
                                                               NSError *_Nullable error) {
+                                                       typeof(self) strongSelf = weakSelf;
+                                                       strongSelf->_currentSession = nil;
                                                        if (authState) {
                                                            resolve([self formatResponse:authState.lastTokenResponse]);
                                                        } else {
                                                            reject(@"RNAppAuth Error", [error localizedDescription], error);
                                                        }
-
                                                    }]; // end [OIDAuthState authStateByPresentingAuthorizationRequest:request
-    if ([[appDelegate class] conformsToProtocol:@protocol(RNAppAuthAuthorizationFlowManager)]
-        && [appDelegate respondsToSelector: @selector(setCurrentAuthorizationFlowSession:)]) {
-        [appDelegate setCurrentAuthorizationFlowSession:currentSession];
-    } else {
-        [NSException raise:@"RNAppAuth Missing protocol conformance"
-                    format:@"%@ does not conform to RNAppAuthAuthorizationFlowManager", appDelegate];
-    }
 }
 
 
