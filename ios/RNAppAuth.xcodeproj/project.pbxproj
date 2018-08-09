@@ -210,7 +210,8 @@
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					"$(SRCROOT)/../../../React/**",
 					"$(SRCROOT)/../../react-native/React/**",
-					"$(SRCROOT)/../../../ios/**",
+					"$(SRCROOT)/../../../ios/Pods/AppAuth/**",
+					"$(SRCROOT)/../../../ios/Pods/Headers/**",
 				);
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_LDFLAGS = "-ObjC";
@@ -227,7 +228,8 @@
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					"$(SRCROOT)/../../../React/**",
 					"$(SRCROOT)/../../react-native/React/**",
-					"$(SRCROOT)/../../../ios/**",
+					"$(SRCROOT)/../../../ios/Pods/AppAuth/**",
+					"$(SRCROOT)/../../../ios/Pods/Headers/**",
 				);
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_LDFLAGS = "-ObjC";
