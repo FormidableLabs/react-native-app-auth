@@ -142,18 +142,36 @@ RCT_REMAP_METHOD(refresh,
     // performs authentication request
     id<UIApplicationDelegate, RNAppAuthAuthorizationFlowManager> appDelegate = (id<UIApplicationDelegate, RNAppAuthAuthorizationFlowManager>)[UIApplication sharedApplication].delegate;
 
-    id<OIDAuthorizationFlowSession> currentSession =
-    [OIDAuthState authStateByPresentingAuthorizationRequest:request
-                                   presentingViewController:appDelegate.window.rootViewController
-                                                   callback:^(OIDAuthState *_Nullable authState,
-                                                              NSError *_Nullable error) {
-                                                       if (authState) {
-                                                           resolve([self formatResponse:authState.lastTokenResponse]);
-                                                       } else {
-                                                           reject(@"RNAppAuth Error", [error localizedDescription], error);
-                                                       }
+    id<OIDAuthorizationFlowSession> currentSession;
 
-                                                   }]; // end [OIDAuthState authStateByPresentingAuthorizationRequest:request
+    if (additionalParameters[@"skipTokenExchange"] && [additionalParameters[@"skipTokenExchange"] isEqualToString:@"true"]) {
+      currentSession = [OIDAuthorizationService presentAuthorizationRequest:request presentingViewController:appDelegate.window.rootViewController callback:^(OIDAuthorizationResponse * _Nullable response, NSError * _Nullable error) {
+           if (error) {
+              reject(@"RNAppAuth Auth Callback Error",[error localizedDescription], error);
+          } else {
+               NSDictionary *map = @{
+                                   @"code" : response.authorizationCode,
+                                   @"state" : response.state,
+                                   @"redirectUri" : [response.request.redirectURL absoluteString]
+                                   };
+               resolve(map);
+          }
+       }];
+    } else {
+      currentSession =
+      [OIDAuthState authStateByPresentingAuthorizationRequest:request
+      presentingViewController:appDelegate.window.rootViewController
+      callback:^(OIDAuthState *_Nullable authState,
+        NSError *_Nullable error) {
+          if (authState) {
+            resolve([self formatResponse:authState.lastTokenResponse]);
+          } else {
+            reject(@"RNAppAuth Error", [error localizedDescription], error);
+          }
+
+        }]; // end [OIDAuthState authStateByPresentingAuthorizationRequest:request
+    }
+
     if ([[appDelegate class] conformsToProtocol:@protocol(RNAppAuthAuthorizationFlowManager)]
         && [appDelegate respondsToSelector: @selector(setCurrentAuthorizationFlowSession:)]) {
         [appDelegate setCurrentAuthorizationFlowSession:currentSession];
@@ -188,6 +206,8 @@ RCT_REMAP_METHOD(refresh,
                                       refreshToken:refreshToken
                                       codeVerifier:nil
                               additionalParameters:additionalParameters];
+
+
 
     [OIDAuthorizationService performTokenRequest:tokenRefreshRequest
                                         callback:^(OIDTokenResponse *_Nullable response,

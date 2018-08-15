@@ -2,6 +2,11 @@
 <h2 align="center">React Native App Auth</h2>
 <p align="center">
 <strong>React native bridge for AppAuth - an SDK for communicating with OAuth2 providers</strong>
+</p>
+<br><br>
+<p align="center">
+<img src="https://media.giphy.com/media/30pELz7CcpHsRINk7S/giphy.gif" />
+</p>
 <br><br>
 
 [![Build Status](https://travis-ci.org/FormidableLabs/react-native-app-auth.svg?branch=master)](https://travis-ci.org/FormidableLabs/react-native-app-auth)
