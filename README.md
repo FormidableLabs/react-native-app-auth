@@ -268,19 +268,22 @@ Furthermore, `RNAppAuth` expects the delegate instance to conform to the protoco
 Make `AppDelegate` conform to `RNAppAuthAuthorizationFlowManager` with the following changes to `AppDelegate.h`:
 
 ```diff
-+#import <RNAppAuth/RNAppAuthAuthorizationFlowManager.h>
-+@interface AppDelegate : UIResponder <UIApplicationDelegate, RNAppAuthAuthorizationFlowManager>
-+@property(nonatomic, weak)id<RNAppAuthAuthorizationFlowManagerDelegate>authorizationFlowManagerDelegate;
+#import <RNAppAuth/RNAppAuthAuthorizationFlowManager.h>
+
+- @interface AppDelegate : UIResponder <UIApplicationDelegate>
++ @interface AppDelegate : UIResponder <UIApplicationDelegate, RNAppAuthAuthorizationFlowManager>
+
+@property(nonatomic, weak)id<RNAppAuthAuthorizationFlowManagerDelegate>authorizationFlowManagerDelegate;
 ```
 
 The authorization response URL is returned to the app via the iOS openURL app delegate method, so
 you need to pipe this through to the current authorization session (created in the previous
 instruction). Thus, implement the following method from `UIApplicationDelegate` in `AppDelegate.m`:
 
-```diff
-+ - (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<NSString *, id> *)options {
-+ return return [self.authorizationFlowManagerDelegate resumeExternalUserAgentFlowWithURL:url];
-+ }
+```
+- (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<NSString *, id> *)options {
+ return [self.authorizationFlowManagerDelegate resumeExternalUserAgentFlowWithURL:url];
+}
 ```
 
 #### Integration of the library with a Swift iOS project
@@ -574,9 +577,10 @@ Azure Active Directory [does not specify a revocation endpoint](https://docs.mic
 See the [Azure docs on requesting an access token](https://docs.microsoft.com/en-us/azure/active-directory/develop/active-directory-protocols-oauth-code#request-an-authorization-code) for more info on additional parameters.
 
 Please Note:
-  * The [Azure docs](https://docs.microsoft.com/en-us/azure/active-directory/develop/active-directory-protocols-oauth-code#request-an-authorization-code) recommend `'urn:ietf:wg:oauth:2.0:oob'` as the `redirectUrl`.
-  * `Scopes` is ignored.
-  * `additionalParameters.resource` may be required based on the tenant settings.
+
+* The [Azure docs](https://docs.microsoft.com/en-us/azure/active-directory/develop/active-directory-protocols-oauth-code#request-an-authorization-code) recommend `'urn:ietf:wg:oauth:2.0:oob'` as the `redirectUrl`.
+* `Scopes` is ignored.
+* `additionalParameters.resource` may be required based on the tenant settings.
 
 ```js
 const config = {
