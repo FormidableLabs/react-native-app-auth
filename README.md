@@ -268,19 +268,19 @@ Furthermore, `RNAppAuth` expects the delegate instance to conform to the protoco
 Make `AppDelegate` conform to `RNAppAuthAuthorizationFlowManager` with the following changes to `AppDelegate.h`:
 
 ```diff
-#import <RNAppAuth/RNAppAuthAuthorizationFlowManager.h>
++ #import "RNAppAuthAuthorizationFlowManager.h"
 
 - @interface AppDelegate : UIResponder <UIApplicationDelegate>
 + @interface AppDelegate : UIResponder <UIApplicationDelegate, RNAppAuthAuthorizationFlowManager>
 
-@property(nonatomic, weak)id<RNAppAuthAuthorizationFlowManagerDelegate>authorizationFlowManagerDelegate;
++ @property(nonatomic, weak)id<RNAppAuthAuthorizationFlowManagerDelegate>authorizationFlowManagerDelegate;
 ```
 
 The authorization response URL is returned to the app via the iOS openURL app delegate method, so
 you need to pipe this through to the current authorization session (created in the previous
 instruction). Thus, implement the following method from `UIApplicationDelegate` in `AppDelegate.m`:
 
-```
+```swift
 - (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<NSString *, id> *)options {
  return [self.authorizationFlowManagerDelegate resumeExternalUserAgentFlowWithURL:url];
 }
