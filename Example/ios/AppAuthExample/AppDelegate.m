@@ -10,19 +10,8 @@
 #import "AppDelegate.h"
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTRootView.h>
-#import <AppAuth/AppAuth.h>
-#import <RNAppAuth/RNAppAuthAuthorizationFlowManager.h>
-
-@interface AppDelegate()<RNAppAuthAuthorizationFlowManager> {
-  id <OIDAuthorizationFlowSession> _currentSession;
-}
-@end
 
 @implementation AppDelegate
-
--(void)setCurrentAuthorizationFlowSession:(id<OIDAuthorizationFlowSession>)session {
-  _currentSession = session;
-}
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
@@ -45,9 +34,7 @@
 }
 
 - (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<NSString *, id> *)options {
-  BOOL shouldOpenUrl = [_currentSession resumeAuthorizationFlowWithURL:url];
-  _currentSession = nil;
-  return shouldOpenUrl;
+  return [self.authorizationFlowManagerDelegate resumeExternalUserAgentFlowWithURL:url];
 }
 
 @end

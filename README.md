@@ -213,7 +213,7 @@ AppAuth supports three options for dependency management.
 
        pod 'AppAuth', '>= 0.94'
 
-   Then run `pod install`. Note that version 0.91 is the first of the library to support iOS 11.
+   Then run `pod install`. Note that version 0.94 is the first of the library to support iOS 11.
 
 2. **Carthage**
 
@@ -265,39 +265,21 @@ authorization flow from the redirect. Follow these steps:
 
 `RNAppAuth` will call on the given app's delegate via `[UIApplication sharedApplication].delegate`.
 Furthermore, `RNAppAuth` expects the delegate instance to conform to the protocol `RNAppAuthAuthorizationFlowManager`.
-Make `AppDelegate` conform to `RNAppAuthAuthorizationFlowManager`:
+Make `AppDelegate` conform to `RNAppAuthAuthorizationFlowManager` with the following changes to `AppDelegate.h`:
 
 ```diff
-+ // Depending on build configurations, import either with:
-+@import RNAppAuth;
-+ // or:
-+import <AppAuth/AppAuth.h>
-+import "RNAppAuthAuthorizationFlowManager.h"
-
-+ @interface AppDelegate()<RNAppAuthAuthorizationFlowManager> {
-+  id <OIDAuthorizationFlowSession> _currentSession;
-+ }
-+ @end
-```
-
-Implement the required method of `RNAppAuthAuthorizationFlowManager` in `AppDelegate`:
-
-```diff
-+ -(void)setCurrentAuthorizationFlowSession:(id<OIDAuthorizationFlowSession>)session {
-+    // retain session for further use
-+    _currentSession = session;
-+ }
++#import <RNAppAuth/RNAppAuthAuthorizationFlowManager.h>
++@interface AppDelegate : UIResponder <UIApplicationDelegate, RNAppAuthAuthorizationFlowManager>
++@property(nonatomic, weak)id<RNAppAuthAuthorizationFlowManagerDelegate>authorizationFlowManagerDelegate;
 ```
 
 The authorization response URL is returned to the app via the iOS openURL app delegate method, so
 you need to pipe this through to the current authorization session (created in the previous
-instruction). Thus, implement the following method from `UIApplicationDelegate` in `AppDelegate`:
+instruction). Thus, implement the following method from `UIApplicationDelegate` in `AppDelegate.m`:
 
 ```diff
 + - (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<NSString *, id> *)options {
-+   BOOL shouldOpenUrl = [_currentSession resumeAuthorizationFlowWithURL:url];
-+   _currentSession = nil;
-+   return shouldOpenUrl;
++ return return [self.authorizationFlowManagerDelegate resumeExternalUserAgentFlowWithURL:url];
 + }
 ```
 
@@ -305,18 +287,17 @@ instruction). Thus, implement the following method from `UIApplicationDelegate` 
 
 The approach mentioned above should also be possible to employ with Swift. In this case one should have to import `RNAppAuth`
 and make `AppDelegate` conform to `RNAppAuthAuthorizationFlowManager`. Note that this has not been tested.
-`AppDelegate` should look something like this:
+`AppDelegate.swift` should look something like this:
 
 ```swift
 @import RNAppAuth
 class AppDelegate: UIApplicationDelegate, RNAppAuthAuthorizationFlowManager {
-  private var currentAuthorizationFlow: OIDAuthorizationFlowSession?
+  public weak var authorizationFlowManagerDelegate: RNAppAuthAuthorizationFlowManagerDelegate?
   func application(
       _ app: UIApplication,
       open url: URL,
       options: [UIApplicationOpenURLOptionsKey: Any] = [:]) -> Bool {
-      defer { currentAuthorizationFlow = nil }
-      return currentAuthorizationFlow?.resumeAuthorizationFlow(with: url) ?? false
+      return authorizationFlowManagerDelegate?.resumeExternalUserAgentFlowWithURL(with: url) ?? false
   }
 }
 ```

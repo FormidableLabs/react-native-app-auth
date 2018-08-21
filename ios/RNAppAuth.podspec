@@ -16,5 +16,5 @@ Pod::Spec.new do |s|
   s.requires_arc = true
 
   s.dependency "React"
-  s.dependency "AppAuth"
+  s.dependency "AppAuth", "0.94.0"
 end

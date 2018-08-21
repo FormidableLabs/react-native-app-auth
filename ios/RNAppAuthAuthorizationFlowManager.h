@@ -1,7 +1,7 @@
 #import <Foundation/Foundation.h>
-#import <AppAuth/AppAuth.h>
+#import "RNAppAuthAuthorizationFlowManagerDelegate.h"
 
 @protocol RNAppAuthAuthorizationFlowManager <NSObject>
 @required
--(void)setCurrentAuthorizationFlowSession:(id<OIDAuthorizationFlowSession>)session;
+@property(nonatomic, weak)id<RNAppAuthAuthorizationFlowManagerDelegate>authorizationFlowManagerDelegate;
 @end
