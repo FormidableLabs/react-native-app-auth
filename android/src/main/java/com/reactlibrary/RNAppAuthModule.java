@@ -40,6 +40,7 @@ import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
+import java.lang.reflect.Field;
 
 public class RNAppAuthModule extends ReactContextBaseJavaModule implements ActivityEventListener {
 
@@ -222,6 +223,15 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             AuthorizationService authService = new AuthorizationService(this.reactContext, configuration);
 
             TokenRequest tokenRequest = response.createTokenExchangeRequest(this.additionalParametersMap);
+            // Remove scope field for token request as it may cause errors
+            // e.g https://github.com/FormidableLabs/react-native-app-auth/issues/140
+            try{
+                Field scope = tokenRequest.getClass().getDeclaredField("scope");
+                scope.setAccessible(true);
+                scope.set(tokenRequest, null);
+            } catch (Exception e) {
+                promise.reject("RNAppAuth Error", "Error removing scope field", e);
+            }
 
             AuthorizationService.TokenResponseCallback tokenResponseCallback = new AuthorizationService.TokenResponseCallback() {
 
