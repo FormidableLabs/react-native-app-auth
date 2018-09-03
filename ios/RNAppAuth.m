@@ -20,6 +20,14 @@
     return dispatch_get_main_queue();
 }
 
+/*! @brief Number of random bytes generated for the @ state.
+ */
+static NSUInteger const kStateSizeBytes = 32;
+
+/*! @brief Number of random bytes generated for the @ codeVerifier.
+ */
+static NSUInteger const kCodeVerifierBytes = 32;
+
 RCT_EXPORT_MODULE()
 
 RCT_REMAP_METHOD(authorize,
@@ -129,6 +137,25 @@ RCT_REMAP_METHOD(refresh,
     return configuration;
 }
 
++ (nullable NSString *)generateCodeVerifier {
+  return [OIDTokenUtilities randomURLSafeStringWithSize:kCodeVerifierBytes];
+}
+
++ (nullable NSString *)generateState {
+  return [OIDTokenUtilities randomURLSafeStringWithSize:kStateSizeBytes];
+}
+
++ (nullable NSString *)codeChallengeS256ForVerifier:(NSString *)codeVerifier {
+  if (!codeVerifier) {
+    return nil;
+  }
+  // generates the code_challenge per spec https://tools.ietf.org/html/rfc7636#section-4.2
+  // code_challenge = BASE64URL-ENCODE(SHA256(ASCII(code_verifier)))
+  // NB. the ASCII conversion on the code_verifier entropy was done at time of generation.
+  NSData *sha256Verifier = [OIDTokenUtilities sha265:codeVerifier];
+  return [OIDTokenUtilities encodeBase64urlNoPadding:sha256Verifier];
+}
+
 /*
  * Authorize a user in exchange for a token with provided OIDServiceConfiguration
  */
@@ -142,15 +169,24 @@ RCT_REMAP_METHOD(refresh,
                            resolve: (RCTPromiseResolveBlock) resolve
                             reject: (RCTPromiseRejectBlock)  reject
 {
+
+    NSString *codeVerifier = [[self class] generateCodeVerifier];
+    NSString *codeChallenge = [[self class] codeChallengeS256ForVerifier:codeVerifier];
+    NSString *nonce = useNonce ? [[self class] generateState] : nil;
+
     // builds authentication request
     OIDAuthorizationRequest *request =
     [[OIDAuthorizationRequest alloc] initWithConfiguration:configuration
                                                   clientId:clientId
                                               clientSecret:clientSecret
-                                                    scopes:scopes
-                                                  useNonce:useNonce
+                                                     scope:[OIDScopeUtilities scopesWithArray:scopes]
                                                redirectURL:[NSURL URLWithString:redirectUrl]
                                               responseType:OIDResponseTypeCode
+                                                     state:[[self class] generateState]
+                                                     nonce:nonce
+                                              codeVerifier:codeVerifier
+                                             codeChallenge:codeChallenge
+                                      codeChallengeMethod:OIDOAuthorizationRequestCodeChallengeMethodS256
                                       additionalParameters:additionalParameters];
 
     // performs authentication request
