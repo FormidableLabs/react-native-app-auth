@@ -41,6 +41,7 @@ RCT_REMAP_METHOD(authorize,
                                 clientId: clientId
                             clientSecret: clientSecret
                                   scopes: scopes
+                                useNonce: useNonce
                     additionalParameters: additionalParameters
                                  resolve: resolve
                                   reject: reject];
@@ -56,6 +57,7 @@ RCT_REMAP_METHOD(authorize,
                                                                                         clientId: clientId
                                                                                     clientSecret: clientSecret
                                                                                           scopes: scopes
+                                                                                        useNonce: useNonce
                                                                             additionalParameters: additionalParameters
                                                                                          resolve: resolve
                                                                                           reject: reject];
@@ -134,6 +136,7 @@ RCT_REMAP_METHOD(refresh,
                           clientId: (NSString *) clientId
                       clientSecret: (NSString *) clientSecret
                             scopes: (NSArray *) scopes
+                          useNonce: (BOOL *) useNonce
               additionalParameters: (NSDictionary *_Nullable) additionalParameters
                            resolve: (RCTPromiseResolveBlock) resolve
                             reject: (RCTPromiseRejectBlock)  reject
@@ -144,6 +147,7 @@ RCT_REMAP_METHOD(refresh,
                                                   clientId:clientId
                                               clientSecret:clientSecret
                                                     scopes:scopes
+                                                  useNonce:useNonce
                                                redirectURL:[NSURL URLWithString:redirectUrl]
                                               responseType:OIDResponseTypeCode
                                       additionalParameters:additionalParameters];
