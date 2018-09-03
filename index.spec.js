@@ -32,6 +32,7 @@ describe('AppAuth', () => {
     additionalParameters: { hello: 'world' },
     serviceConfiguration: null,
     scopes: ['my-scope'],
+    useNonce: true,
   };
 
   describe('authorize', () => {
@@ -86,6 +87,7 @@ describe('AppAuth', () => {
         config.clientId,
         config.clientSecret,
         config.scopes,
+        config.useNonce,
         config.additionalParameters,
         config.serviceConfiguration
       );
