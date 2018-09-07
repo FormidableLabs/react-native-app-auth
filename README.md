@@ -4,8 +4,7 @@
 <strong>React native bridge for AppAuth - an SDK for communicating with OAuth2 providers</strong>
 <br><br>
 
-[![Build Status](https://travis-ci.org/FormidableLabs/react-native-app-auth.svg?branch=master)](https://travis-ci.org/FormidableLabs/react-native-app-auth)
-[![npm version](https://badge.fury.io/js/react-native-app-auth.svg)](https://badge.fury.io/js/react-native-app-auth)
+[![npm package version](https://badge.fury.io/js/react-native-app-auth.svg)](https://badge.fury.io/js/react-native-app-auth)
 
 #### This is the API documentation for `react-native-app-auth >= 3.0.`
 
