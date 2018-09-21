@@ -5,6 +5,6 @@ target 'AppAuthExample' do
   pod 'React', :path => '../node_modules/react-native'
   pod 'DoubleConversion', :podspec => '../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec'
   pod 'yoga', :path => '../node_modules/react-native/ReactCommon/yoga'
-  pod 'GLog', :podspec => '../node_modules/react-native/third-party-podspecs/GLog.podspec'
+  pod 'glog', :podspec => '../node_modules/react-native/third-party-podspecs/glog.podspec'
   pod 'RNAppAuth', :path => '../../ios/'
 end

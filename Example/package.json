@@ -7,18 +7,17 @@
 		"test": "jest"
 	},
 	"dependencies": {
-		"react": "16.0.0",
-		"react-native": "0.50.3",
+		"react": "16.5.0",
+		"react-native": "0.57.0",
 		"react-native-app-auth": "latest",
-		"styled-components": "^2.2.3"
+		"styled-components": "^3.4.9"
 	},
 	"devDependencies": {
-		"babel-jest": "21.2.0",
-		"babel-preset-react-native": "4.0.0",
+		"babel-jest": "23.6.0",
 		"eslint-plugin-react": "6.0.0",
-		"flow-bin": "0.56",
-		"jest": "21.2.1",
-		"react-test-renderer": "16.0.0"
+		"jest": "23.6.0",
+		"metro-react-native-babel-preset": "0.45.5",
+		"react-test-renderer": "16.5.0"
 	},
 	"jest": {
 		"preset": "react-native"
