@@ -1,19 +1,19 @@
 PODS:
   - AppAuth (0.94.0)
-  - DoubleConversion (1.1.5)
-  - GLog (0.3.4)
-  - React (0.50.3):
-    - React/Core (= 0.50.3)
-  - React/Core (0.50.3):
-    - yoga (= 0.50.3.React)
+  - DoubleConversion (1.1.6)
+  - glog (0.3.5)
+  - React (0.57.0):
+    - React/Core (= 0.57.0)
+  - React/Core (0.57.0):
+    - yoga (= 0.57.0.React)
   - RNAppAuth (1.0.0):
     - AppAuth (= 0.94.0)
     - React
-  - yoga (0.50.3.React)
+  - yoga (0.57.0.React)
 
 DEPENDENCIES:
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
-  - GLog (from `../node_modules/react-native/third-party-podspecs/GLog.podspec`)
+  - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - React (from `../node_modules/react-native`)
   - RNAppAuth (from `../../ios/`)
   - yoga (from `../node_modules/react-native/ReactCommon/yoga`)
@@ -25,8 +25,8 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   DoubleConversion:
     :podspec: "../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec"
-  GLog:
-    :podspec: "../node_modules/react-native/third-party-podspecs/GLog.podspec"
+  glog:
+    :podspec: "../node_modules/react-native/third-party-podspecs/glog.podspec"
   React:
     :path: "../node_modules/react-native"
   RNAppAuth:
@@ -36,12 +36,12 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   AppAuth: 0f099c2286a1a9754e5bd27211c43d307dc4f778
-  DoubleConversion: ebb6747c5b66026ad4f97b789c3ceac6f18e57a6
-  GLog: 3e4e4ae9746ce6bf6e9420c7fc1e08ad59c8ba1a
-  React: 541ba768b9855e10cdc76f55427a5cd0653ca806
+  DoubleConversion: bb338842f62ab1d708ceb63ec3d999f0f3d98ecd
+  glog: e8acf0ebbf99759d3ff18c86c292a5898282dcde
+  React: 1fe0eb13d90b625d94c3b117c274dcfd2e760e11
   RNAppAuth: 3e6fed16d55fe73dd4bd9b42ef433cf2a4cae338
-  yoga: 17521bbb0dd54a47c0b3ac43253e78cdac7488e0
+  yoga: b1ce48b6cf950b98deae82838f5173ea7cf89e85
 
-PODFILE CHECKSUM: b7604fdeeb5385cbc6a9a792e93cd2d2e08633af
+PODFILE CHECKSUM: 380b0d7d89cb92992d1746ed3ac6aaf7a36b42c8
 
-COCOAPODS: 1.5.2
+COCOAPODS: 1.5.3
