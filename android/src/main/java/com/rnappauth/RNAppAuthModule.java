@@ -1,4 +1,4 @@
-package com.reactlibrary;
+package com.rnappauth;
 
 import android.app.Activity;
 import android.app.PendingIntent;
@@ -16,8 +16,8 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
-import com.reactlibrary.utils.MapUtils;
-import com.reactlibrary.utils.UnsafeConnectionBuilder;
+import com.rnappauth.utils.MapUtils;
+import com.rnappauth.utils.UnsafeConnectionBuilder;
 
 import net.openid.appauth.AppAuthConfiguration;
 import net.openid.appauth.AuthorizationException;
