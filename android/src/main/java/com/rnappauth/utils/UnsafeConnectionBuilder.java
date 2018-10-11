@@ -1,4 +1,4 @@
-package com.reactlibrary.utils;
+package com.rnappauth.utils;
 
 /*
  * Copyright 2016 The AppAuth for Android Authors. All Rights Reserved.

@@ -1,4 +1,4 @@
-package com.reactlibrary.utils;
+package com.rnappauth.utils;
 
 import android.support.annotation.Nullable;
 
