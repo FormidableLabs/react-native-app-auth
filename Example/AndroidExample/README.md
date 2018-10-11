@@ -5,7 +5,7 @@ Demo application for Android
 ## Versions
 - **React Native** 0.57.2
 - **App Auth:** 0.94.0
-- **React Native App Auth:** 3.1.0
+- **React Native App Auth:** Latest
 
 ## Setup
 
