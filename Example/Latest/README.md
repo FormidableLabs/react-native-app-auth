@@ -3,9 +3,9 @@
 Demo application that uses the version of react-native-app-auth in this repo
 
 ## Versions
-**React Native** 0.57.2
-**App Auth:** Latest
-**React Native App Auth:** Latest
+- **React Native** 0.57.2
+- **App Auth:** Latest
+- **React Native App Auth:** Latest
 
 ## Setup
 
@@ -25,10 +25,12 @@ yarn
 
 ## Run
 
+iOS
 ```
 react-native run-ios
 ```
 
+Android
 ```
 react-native run-android
 ```
