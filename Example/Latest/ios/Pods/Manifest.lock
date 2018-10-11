@@ -15,7 +15,7 @@ DEPENDENCIES:
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - React (from `../node_modules/react-native`)
-  - RNAppAuth (from `../../ios/`)
+  - RNAppAuth (from `../../../ios/`)
   - yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -30,7 +30,7 @@ EXTERNAL SOURCES:
   React:
     :path: "../node_modules/react-native"
   RNAppAuth:
-    :path: "../../ios/"
+    :path: "../../../ios/"
   yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -42,6 +42,6 @@ SPEC CHECKSUMS:
   RNAppAuth: 3e6fed16d55fe73dd4bd9b42ef433cf2a4cae338
   yoga: b1ce48b6cf950b98deae82838f5173ea7cf89e85
 
-PODFILE CHECKSUM: 380b0d7d89cb92992d1746ed3ac6aaf7a36b42c8
+PODFILE CHECKSUM: 65d027f962b2e4dff876b79c1769c990a52dd9dc
 
-COCOAPODS: 1.5.3
+COCOAPODS: 1.5.2

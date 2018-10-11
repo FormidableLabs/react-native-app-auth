@@ -1,4 +1,4 @@
 import { AppRegistry } from 'react-native';
-import App from '../shared/App';
+import App from './App';
 
 AppRegistry.registerComponent('AppAuthExample', () => App);
