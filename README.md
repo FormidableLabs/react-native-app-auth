@@ -220,7 +220,11 @@ AppAuth supports three options for dependency management.
 
        github "openid/AppAuth-iOS" "master"
 
-   Then run `carthage bootstrap`.
+   Then run `carthage update --platform iOS`.
+
+   Drag and drop `AppAuth.framework` from `ios/Carthage/Build/iOS` under `Frameworks` in `Xcode`.
+
+   Add a copy files build step for `AppAuth.framework`: open Build Phases on Xcode, add a new "Cope Files" phase, choose "Frameworks" as destination, add `AppAuth.framework` and ensure "Code Sign on Copy" is checked.
 
 3. **Static Library**
 
