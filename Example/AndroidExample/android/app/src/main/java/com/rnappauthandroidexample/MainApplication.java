@@ -3,7 +3,7 @@ package com.rnappauthandroidexample;
 import android.app.Application;
 
 import com.facebook.react.ReactApplication;
-import com.reactlibrary.RNAppAuthPackage;
+import com.rnappauth.RNAppAuthPackage;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.shell.MainReactPackage;

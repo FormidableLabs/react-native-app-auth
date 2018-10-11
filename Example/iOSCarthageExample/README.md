@@ -5,7 +5,7 @@ Demo application installing the AppAuth dependency using Carthage
 ## Versions
 - **React Native** 0.57.2
 - **App Auth:** 0.94.0
-- **React Native App Auth:** [from PR](https://github.com/FormidableLabs/react-native-app-auth/pull/189)
+- **React Native App Auth:** Latest
 
 ## Setup
 
