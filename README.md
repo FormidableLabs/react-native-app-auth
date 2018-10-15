@@ -174,7 +174,7 @@ steps instead.
 
 1. Open up `android/app/src/main/java/[...]/MainApplication.java`
 
-* Add `import com.reactlibrary.RNAppAuthPackage;` to the imports at the top of the file
+* Add `import com.rnappauth.RNAppAuthPackage;` to the imports at the top of the file
 * Add `new RNAppAuthPackage()` to the list returned by the `getPackages()` method
 
 2. Append the following lines to `android/settings.gradle`:
