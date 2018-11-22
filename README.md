@@ -413,8 +413,7 @@ const config = {
 const authState = await authorize(config);
 
 // Refresh token
-const refreshedState = await refresh({
-  ...config,
+const refreshedState = await refresh(config, {
   refreshToken: authState.refreshToken,
 });
 
@@ -463,8 +462,7 @@ const config = {
 const authState = await authorize(config);
 
 // Refresh token
-const refreshedState = await refresh({
-  ...config,
+const refreshedState = await refresh(config, {
   refreshToken: authState.refreshToken,
 });
 
