@@ -207,7 +207,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     @Override
     public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
         if (requestCode == 0) {
-            AuthorizationResponse response = AuthorizationResponse.fromIntent(data);
+            final AuthorizationResponse response = AuthorizationResponse.fromIntent(data);
             AuthorizationException exception = AuthorizationException.fromIntent(data);
             if (exception != null) {
                 promise.reject("RNAppAuth Error", "Failed to authenticate", exception);
@@ -229,7 +229,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                 public void onTokenRequestCompleted(
                         TokenResponse resp, AuthorizationException ex) {
                     if (resp != null) {
-                        WritableMap map = tokenResponseToMap(resp);
+                        WritableMap map = tokenResponseToMap(resp, response.additionalParameters);
                         authorizePromise.resolve(map);
                     } else {
                         promise.reject("RNAppAuth Error", "Failed exchange token", ex);
@@ -362,7 +362,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             @Override
             public void onTokenRequestCompleted(@Nullable TokenResponse response, @Nullable AuthorizationException ex) {
                 if (response != null) {
-                    WritableMap map = tokenResponseToMap(response);
+                    WritableMap map = tokenResponseToMap(response, null);
                     promise.resolve(map);
                 } else {
                     promise.reject("RNAppAuth Error", "Failed refresh token");
@@ -397,7 +397,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     /*
      * Read raw token response into a React Native map to be passed down the bridge
      */
-    private WritableMap tokenResponseToMap(TokenResponse response) {
+    private WritableMap tokenResponseToMap(TokenResponse response, Map<String, String> responseAdditionalParameters) {
         WritableMap map = Arguments.createMap();
 
         map.putString("accessToken", response.accessToken);
@@ -412,13 +412,23 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
         WritableMap additionalParametersMap = Arguments.createMap();
 
-        if (!response.additionalParameters.isEmpty()) {
+        if (!responseAdditionalParameters.isEmpty()) {
 
-            Iterator<String> iterator = response.additionalParameters.keySet().iterator();
+            Iterator<String> iterator = responseAdditionalParameters.keySet().iterator();
 
             while(iterator.hasNext()) {
                 String key = iterator.next();
-                additionalParametersMap.putString(key, response.additionalParameters.get(key));
+                additionalParametersMap.putString(key, responseAdditionalParameters.get(key));
+            }
+        }
+
+        if(!this.additionalParametersMap.isEmpty()) {
+
+            Iterator<String> iterator = this.additionalParametersMap.keySet().iterator();
+
+            while(iterator.hasNext()) {
+                String key = iterator.next();
+                additionalParametersMap.putString(key, this.additionalParametersMap.get(key));
             }
         }
 
