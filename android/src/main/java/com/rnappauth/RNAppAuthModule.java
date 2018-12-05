@@ -362,7 +362,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             @Override
             public void onTokenRequestCompleted(@Nullable TokenResponse response, @Nullable AuthorizationException ex) {
                 if (response != null) {
-                    WritableMap map = tokenResponseToMap(response, null);
+                    WritableMap map = tokenResponseToMap(response);
                     promise.resolve(map);
                 } else {
                     promise.reject("RNAppAuth Error", "Failed refresh token");
@@ -392,6 +392,42 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             strBuilder.append(array.getString(i));
         }
         return strBuilder.toString();
+    }
+
+/*
+     * Read raw token response into a React Native map to be passed down the bridge
+     */
+    private WritableMap tokenResponseToMap(TokenResponse response) {
+        WritableMap map = Arguments.createMap();
+
+        map.putString("accessToken", response.accessToken);
+
+        if (response.accessTokenExpirationTime != null) {
+            Date expirationDate = new Date(response.accessTokenExpirationTime);
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
+            formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+            String expirationDateString = formatter.format(expirationDate);
+            map.putString("accessTokenExpirationDate", expirationDateString);
+        }
+
+        WritableMap additionalParametersMap = Arguments.createMap();
+
+        if (!response.additionalParameters.isEmpty()) {
+
+            Iterator<String> iterator = response.additionalParameters.keySet().iterator();
+
+            while(iterator.hasNext()) {
+                String key = iterator.next();
+                additionalParametersMap.putString(key, response.additionalParameters.get(key));
+            }
+        }
+
+        map.putMap("additionalParameters", additionalParametersMap);
+        map.putString("idToken", response.idToken);
+        map.putString("refreshToken", response.refreshToken);
+        map.putString("tokenType", response.tokenType);
+
+        return map;
     }
 
     /*
