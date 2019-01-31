@@ -10,7 +10,6 @@
 
 Past documentation: [`3.1`](https://github.com/FormidableLabs/react-native-app-auth/tree/v3.1.0) [`3.0`](https://github.com/FormidableLabs/react-native-app-auth/tree/v3.0.0) [`2.x`](https://github.com/FormidableLabs/react-native-app-auth/tree/v2.0.0) [`1.x`](https://github.com/FormidableLabs/react-native-app-auth/tree/v1.0.1).
 
-
 React Native bridge for [AppAuth-iOS](https://github.com/openid/AppAuth-iOS) and
 [AppAuth-Android](https://github.com/openid/AppAuth-Android) SDKS for communicating with
 [OAuth 2.0](https://tools.ietf.org/html/rfc6749) and
@@ -97,6 +96,7 @@ with optional overrides.
   Must be string values! E.g. setting `additionalParameters: { hello: 'world', foo: 'bar' }` would add
   `hello=world&foo=bar` to the authorization request.
 * **dangerouslyAllowInsecureHttpRequests** - (`boolean`) _ANDROID_ whether to allow requests over plain HTTP or with self-signed SSL certificates. :warning: Can be useful for testing against local server, _should not be used in production._ This setting has no effect on iOS; to enable insecure HTTP requests, add a [NSExceptionAllowsInsecureHTTPLoads exception](https://cocoacasts.com/how-to-add-app-transport-security-exception-domains) to your App Transport Security settings.
+* **useNonce** - (`boolean`) _IOS_ (default: true) optionally allows not sending the nonce parameter, to support non-compliant providers
 
 #### result
 
@@ -682,11 +682,11 @@ First, set up a your user pool in [the AWS console](https://eu-west-1.console.aw
 Now you need to set up your domain name. This will be on the left menu in your pool details page, under App Integration -> Domain Name. What this is depends on your preference. E.g. for AppAuth demo, mine is `https://app-auth-test.auth.eu-west-1.amazoncognito.com` as I chose `app-auth-test` as the domain and `eu-west-1` as the region.
 
 Finally, you need to configure your app client. Go to App Integration -> App Client Settings.
+
 1. Enable your newly created user pool under Enabled Identity Providers.
 2. Add the callback url (must be same as in your config, e.g. `com.myclientapp://myclient/redirect`)
 3. Enable the Authorization code grant
 4. Enable openid scope
-
 
 ```js
 const config = {
