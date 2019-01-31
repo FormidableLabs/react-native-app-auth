@@ -39,6 +39,7 @@ RCT_REMAP_METHOD(authorize,
                  additionalParameters: (NSDictionary *_Nullable) additionalParameters
                  serviceConfiguration: (NSDictionary *_Nullable) serviceConfiguration
                  useNonce: (BOOL *) useNonce
+                 usePKCE: (BOOL *) usePKCE
                  resolve: (RCTPromiseResolveBlock) resolve
                  reject: (RCTPromiseRejectBlock)  reject)
 {
@@ -51,6 +52,7 @@ RCT_REMAP_METHOD(authorize,
                             clientSecret: clientSecret
                                   scopes: scopes
                                 useNonce: useNonce
+                                 usePKCE: usePKCE
                     additionalParameters: additionalParameters
                                  resolve: resolve
                                   reject: reject];
@@ -67,6 +69,7 @@ RCT_REMAP_METHOD(authorize,
                                                                                     clientSecret: clientSecret
                                                                                           scopes: scopes
                                                                                         useNonce: useNonce
+                                                                                         usePKCE: usePKCE
                                                                             additionalParameters: additionalParameters
                                                                                          resolve: resolve
                                                                                           reject: reject];
@@ -165,13 +168,14 @@ RCT_REMAP_METHOD(refresh,
                       clientSecret: (NSString *) clientSecret
                             scopes: (NSArray *) scopes
                           useNonce: (BOOL *) useNonce
+                           usePKCE: (BOOL *) usePKCE
               additionalParameters: (NSDictionary *_Nullable) additionalParameters
                            resolve: (RCTPromiseResolveBlock) resolve
                             reject: (RCTPromiseRejectBlock)  reject
 {
 
-    NSString *codeVerifier = [[self class] generateCodeVerifier];
-    NSString *codeChallenge = [[self class] codeChallengeS256ForVerifier:codeVerifier];
+    NSString *codeVerifier = usePKCE ? [[self class] generateCodeVerifier] : nil;
+    NSString *codeChallenge = usePKCE ? [[self class] codeChallengeS256ForVerifier:codeVerifier] : nil;
     NSString *nonce = useNonce ? [[self class] generateState] : nil;
 
     // builds authentication request
@@ -186,7 +190,7 @@ RCT_REMAP_METHOD(refresh,
                                                      nonce:nonce
                                               codeVerifier:codeVerifier
                                              codeChallenge:codeChallenge
-                                      codeChallengeMethod:OIDOAuthorizationRequestCodeChallengeMethodS256
+                                      codeChallengeMethod: usePKCE ? OIDOAuthorizationRequestCodeChallengeMethodS256 : nil
                                       additionalParameters:additionalParameters];
 
     // performs authentication request
@@ -205,7 +209,7 @@ RCT_REMAP_METHOD(refresh,
                                                        strongSelf->_currentSession = nil;
                                                        if (authState) {
                                                            resolve([self formatResponse:authState.lastTokenResponse
-                                                               withAdditionalParameters:authState.lastAuthorizationResponse.additionalParameters]);
+                                                               withAdditionalParameters:authState.lastTokenResponse.additionalParameters]);
                                                        } else {
                                                            reject(@"RNAppAuth Error", [error localizedDescription], error);
                                                        }

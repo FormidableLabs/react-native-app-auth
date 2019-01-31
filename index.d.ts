@@ -30,6 +30,7 @@ export type AuthConfiguration = BaseAuthConfiguration & {
   additionalParameters?: BuiltInParameters & { [name: string]: string };
   dangerouslyAllowInsecureHttpRequests?: boolean;
   useNonce?: boolean;
+  usePKCE?: boolean;
 };
 
 export interface AuthorizeResult {
