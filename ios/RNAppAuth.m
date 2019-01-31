@@ -20,6 +20,14 @@
     return dispatch_get_main_queue();
 }
 
+/*! @brief Number of random bytes generated for the @ state.
+ */
+static NSUInteger const kStateSizeBytes = 32;
+
+/*! @brief Number of random bytes generated for the @ codeVerifier.
+ */
+static NSUInteger const kCodeVerifierBytes = 32;
+
 RCT_EXPORT_MODULE()
 
 RCT_REMAP_METHOD(authorize,
@@ -28,6 +36,7 @@ RCT_REMAP_METHOD(authorize,
                  clientId: (NSString *) clientId
                  clientSecret: (NSString *) clientSecret
                  scopes: (NSArray *) scopes
+                 useNonce: (BOOL *) useNonce
                  additionalParameters: (NSDictionary *_Nullable) additionalParameters
                  serviceConfiguration: (NSDictionary *_Nullable) serviceConfiguration
                  resolve: (RCTPromiseResolveBlock) resolve
@@ -41,6 +50,7 @@ RCT_REMAP_METHOD(authorize,
                                 clientId: clientId
                             clientSecret: clientSecret
                                   scopes: scopes
+                                useNonce: useNonce
                     additionalParameters: additionalParameters
                                  resolve: resolve
                                   reject: reject];
@@ -56,6 +66,7 @@ RCT_REMAP_METHOD(authorize,
                                                                                         clientId: clientId
                                                                                     clientSecret: clientSecret
                                                                                           scopes: scopes
+                                                                                        useNonce: useNonce
                                                                             additionalParameters: additionalParameters
                                                                                          resolve: resolve
                                                                                           reject: reject];
@@ -126,6 +137,25 @@ RCT_REMAP_METHOD(refresh,
     return configuration;
 }
 
++ (nullable NSString *)generateCodeVerifier {
+  return [OIDTokenUtilities randomURLSafeStringWithSize:kCodeVerifierBytes];
+}
+
++ (nullable NSString *)generateState {
+  return [OIDTokenUtilities randomURLSafeStringWithSize:kStateSizeBytes];
+}
+
++ (nullable NSString *)codeChallengeS256ForVerifier:(NSString *)codeVerifier {
+  if (!codeVerifier) {
+    return nil;
+  }
+  // generates the code_challenge per spec https://tools.ietf.org/html/rfc7636#section-4.2
+  // code_challenge = BASE64URL-ENCODE(SHA256(ASCII(code_verifier)))
+  // NB. the ASCII conversion on the code_verifier entropy was done at time of generation.
+  NSData *sha256Verifier = [OIDTokenUtilities sha256:codeVerifier];
+  return [OIDTokenUtilities encodeBase64urlNoPadding:sha256Verifier];
+}
+
 /*
  * Authorize a user in exchange for a token with provided OIDServiceConfiguration
  */
@@ -134,18 +164,29 @@ RCT_REMAP_METHOD(refresh,
                           clientId: (NSString *) clientId
                       clientSecret: (NSString *) clientSecret
                             scopes: (NSArray *) scopes
+                          useNonce: (BOOL *) useNonce
               additionalParameters: (NSDictionary *_Nullable) additionalParameters
                            resolve: (RCTPromiseResolveBlock) resolve
                             reject: (RCTPromiseRejectBlock)  reject
 {
+
+    NSString *codeVerifier = [[self class] generateCodeVerifier];
+    NSString *codeChallenge = [[self class] codeChallengeS256ForVerifier:codeVerifier];
+    NSString *nonce = useNonce ? [[self class] generateState] : nil;
+
     // builds authentication request
     OIDAuthorizationRequest *request =
     [[OIDAuthorizationRequest alloc] initWithConfiguration:configuration
                                                   clientId:clientId
                                               clientSecret:clientSecret
-                                                    scopes:scopes
+                                                     scope:[OIDScopeUtilities scopesWithArray:scopes]
                                                redirectURL:[NSURL URLWithString:redirectUrl]
                                               responseType:OIDResponseTypeCode
+                                                     state:[[self class] generateState]
+                                                     nonce:nonce
+                                              codeVerifier:codeVerifier
+                                             codeChallenge:codeChallenge
+                                      codeChallengeMethod:OIDOAuthorizationRequestCodeChallengeMethodS256
                                       additionalParameters:additionalParameters];
 
     // performs authentication request
@@ -163,7 +204,8 @@ RCT_REMAP_METHOD(refresh,
                                                        typeof(self) strongSelf = weakSelf;
                                                        strongSelf->_currentSession = nil;
                                                        if (authState) {
-                                                           resolve([self formatResponse:authState.lastTokenResponse]);
+                                                           resolve([self formatResponse:authState.lastTokenResponse
+                                                               withAdditionalParameters:authState.lastAuthorizationResponse.additionalParameters]);
                                                        } else {
                                                            reject(@"RNAppAuth Error", [error localizedDescription], error);
                                                        }
@@ -219,6 +261,26 @@ RCT_REMAP_METHOD(refresh,
     return @{@"accessToken": response.accessToken ? response.accessToken : @"",
              @"accessTokenExpirationDate": response.accessTokenExpirationDate ? [dateFormat stringFromDate:response.accessTokenExpirationDate] : @"",
              @"additionalParameters": response.additionalParameters,
+             @"idToken": response.idToken ? response.idToken : @"",
+             @"refreshToken": response.refreshToken ? response.refreshToken : @"",
+             @"tokenType": response.tokenType ? response.tokenType : @"",
+             };
+}
+
+/*
+ * Take raw OIDTokenResponse and additional paramaeters from an OIDAuthorizationResponse
+ *  and turn them into an extended token response format to pass to JavaScript caller
+ */
+- (NSDictionary*)formatResponse: (OIDTokenResponse*) response
+       withAdditionalParameters:(NSDictionary*) params{
+    NSDateFormatter *dateFormat = [[NSDateFormatter alloc] init];
+    dateFormat.timeZone = [NSTimeZone timeZoneWithAbbreviation: @"UTC"];
+    [dateFormat setLocale:[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"]];
+    [dateFormat setDateFormat:@"yyyy-MM-dd'T'HH:mm:ss'Z'"];
+    
+    return @{@"accessToken": response.accessToken ? response.accessToken : @"",
+             @"accessTokenExpirationDate": response.accessTokenExpirationDate ? [dateFormat stringFromDate:response.accessTokenExpirationDate] : @"",
+             @"additionalParameters": params,
              @"idToken": response.idToken ? response.idToken : @"",
              @"refreshToken": response.refreshToken ? response.refreshToken : @"",
              @"tokenType": response.tokenType ? response.tokenType : @"",
