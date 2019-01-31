@@ -47,6 +47,7 @@ export const authorize = ({
     additionalParameters,
     serviceConfiguration,
   ];
+
   if (Platform.OS === 'android') {
     nativeMethodArguments.push(dangerouslyAllowInsecureHttpRequests);
   }
