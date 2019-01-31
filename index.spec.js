@@ -87,9 +87,9 @@ describe('AppAuth', () => {
         config.clientId,
         config.clientSecret,
         config.scopes,
-        config.useNonce,
         config.additionalParameters,
-        config.serviceConfiguration
+        config.serviceConfiguration,
+        config.useNonce
       );
     });
 
@@ -267,6 +267,40 @@ describe('AppAuth', () => {
           config.additionalParameters,
           config.serviceConfiguration,
           true
+        );
+      });
+    });
+
+    describe('iOS-specific useNonce parameter', () => {
+      beforeEach(() => {
+        require('react-native').Platform.OS = 'ios';
+      });
+
+      it('calls the native wrapper with default value `true`', () => {
+        authorize(config, { refreshToken: 'such-token' });
+        expect(mockAuthorize).toHaveBeenCalledWith(
+          config.issuer,
+          config.redirectUrl,
+          config.clientId,
+          config.clientSecret,
+          config.scopes,
+          config.additionalParameters,
+          config.serviceConfiguration,
+          true
+        );
+      });
+
+      it('calls the native wrapper with passed value `false`', () => {
+        authorize({ ...config, useNonce: false }, { refreshToken: 'such-token' });
+        expect(mockAuthorize).toHaveBeenCalledWith(
+          config.issuer,
+          config.redirectUrl,
+          config.clientId,
+          config.clientSecret,
+          config.scopes,
+          config.additionalParameters,
+          config.serviceConfiguration,
+          false
         );
       });
     });

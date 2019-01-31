@@ -47,12 +47,13 @@ export const authorize = ({
     additionalParameters,
     serviceConfiguration,
   ];
+
   if (Platform.OS === 'android') {
     nativeMethodArguments.push(dangerouslyAllowInsecureHttpRequests);
-  } else {
-    // add a new useNonce param on iOS to support making it optional
-    const nonceParamIndex = 5;
-    nativeMethodArguments.splice(nonceParamIndex, 0, useNonce);
+  }
+
+  if (Platform.OS === 'ios') {
+    nativeMethodArguments.push(useNonce);
   }
 
   return RNAppAuth.authorize(...nativeMethodArguments);

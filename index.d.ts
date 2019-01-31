@@ -29,6 +29,7 @@ export type AuthConfiguration = BaseAuthConfiguration & {
   redirectUrl: string;
   additionalParameters?: BuiltInParameters & { [name: string]: string };
   dangerouslyAllowInsecureHttpRequests?: boolean;
+  useNonce?: boolean;
 };
 
 export interface AuthorizeResult {
