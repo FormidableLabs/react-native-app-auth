@@ -36,9 +36,9 @@ RCT_REMAP_METHOD(authorize,
                  clientId: (NSString *) clientId
                  clientSecret: (NSString *) clientSecret
                  scopes: (NSArray *) scopes
-                 useNonce: (BOOL *) useNonce
                  additionalParameters: (NSDictionary *_Nullable) additionalParameters
                  serviceConfiguration: (NSDictionary *_Nullable) serviceConfiguration
+                 useNonce: (BOOL *) useNonce
                  resolve: (RCTPromiseResolveBlock) resolve
                  reject: (RCTPromiseRejectBlock)  reject)
 {
@@ -277,7 +277,7 @@ RCT_REMAP_METHOD(refresh,
     dateFormat.timeZone = [NSTimeZone timeZoneWithAbbreviation: @"UTC"];
     [dateFormat setLocale:[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"]];
     [dateFormat setDateFormat:@"yyyy-MM-dd'T'HH:mm:ss'Z'"];
-    
+
     return @{@"accessToken": response.accessToken ? response.accessToken : @"",
              @"accessTokenExpirationDate": response.accessTokenExpirationDate ? [dateFormat stringFromDate:response.accessTokenExpirationDate] : @"",
              @"additionalParameters": params,
