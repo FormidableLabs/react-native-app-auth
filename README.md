@@ -109,6 +109,7 @@ This is the result from the auth server
 * **idToken** - (`string`) the id token
 * **refreshToken** - (`string`) the refresh token
 * **tokenType** - (`string`) the token type, e.g. Bearer
+* **scopes** - ([`string`]) the scopes the user has agreed to be granted
 
 ### `refresh`
 

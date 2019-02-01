@@ -18,9 +18,9 @@ export type BaseAuthConfiguration =
     };
 
 interface BuiltInParameters {
-  display?: "page" | "popup" | "touch" | "wap";
+  display?: 'page' | 'popup' | 'touch' | 'wap';
   login_prompt?: string;
-  prompt?: "consent" |"login" | "none" | "select_account";
+  prompt?: 'consent' | 'login' | 'none' | 'select_account';
 }
 
 export type AuthConfiguration = BaseAuthConfiguration & {
@@ -40,6 +40,7 @@ export interface AuthorizeResult {
   idToken: string;
   refreshToken: string;
   tokenType: string;
+  scopes: [string];
 }
 
 export interface RevokeConfiguration {

@@ -15,6 +15,7 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.rnappauth.utils.MapUtils;
 import com.rnappauth.utils.UnsafeConnectionBuilder;
@@ -229,7 +230,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                 public void onTokenRequestCompleted(
                         TokenResponse resp, AuthorizationException ex) {
                     if (resp != null) {
-                        WritableMap map = tokenResponseToMap(resp, response.additionalParameters);
+                        WritableMap map = tokenResponseToMap(resp, response);
                         authorizePromise.resolve(map);
                     } else {
                         promise.reject("RNAppAuth Error", "Failed exchange token", ex);
@@ -394,7 +395,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         return strBuilder.toString();
     }
 
-/*
+    /*
      * Read raw token response into a React Native map to be passed down the bridge
      */
     private WritableMap tokenResponseToMap(TokenResponse response) {
@@ -433,7 +434,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     /*
      * Read raw token response into a React Native map to be passed down the bridge
      */
-    private WritableMap tokenResponseToMap(TokenResponse response, Map<String, String> responseAdditionalParameters) {
+    private WritableMap tokenResponseToMap(TokenResponse response, AuthorizationResponse authResponse) {
         WritableMap map = Arguments.createMap();
 
         map.putString("accessToken", response.accessToken);
@@ -448,13 +449,13 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
         WritableMap additionalParametersMap = Arguments.createMap();
 
-        if (!responseAdditionalParameters.isEmpty()) {
+        if (!authResponse.additionalParameters.isEmpty()) {
 
-            Iterator<String> iterator = responseAdditionalParameters.keySet().iterator();
+            Iterator<String> iterator = authResponse.additionalParameters.keySet().iterator();
 
             while(iterator.hasNext()) {
                 String key = iterator.next();
-                additionalParametersMap.putString(key, responseAdditionalParameters.get(key));
+                additionalParametersMap.putString(key, authResponse.additionalParameters.get(key));
             }
         }
 
@@ -472,6 +473,18 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         map.putString("idToken", response.idToken);
         map.putString("refreshToken", response.refreshToken);
         map.putString("tokenType", response.tokenType);
+
+        if (!authResponse.scope.isEmpty()) {
+            WritableArray scopes = Arguments.createArray();
+            String[] scopesArray = authResponse.scope.split(" ");
+
+            for( int i = 0; i < scopesArray.length - 1; i++)
+            {
+                scopes.pushString(scopesArray[i]);
+            }
+
+            map.putArray("scopes", scopes);
+        }
 
         return map;
     }
