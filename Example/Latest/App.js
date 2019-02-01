@@ -53,7 +53,8 @@ export default class App extends Component<{}, State> {
           hasLoggedInOnce: true,
           accessToken: authState.accessToken,
           accessTokenExpirationDate: authState.accessTokenExpirationDate,
-          refreshToken: authState.refreshToken
+          refreshToken: authState.refreshToken,
+          scopes: authState.scopes
         },
         500
       );
@@ -107,6 +108,8 @@ export default class App extends Component<{}, State> {
             <Form.Value>{state.accessTokenExpirationDate}</Form.Value>
             <Form.Label>refreshToken</Form.Label>
             <Form.Value>{state.refreshToken}</Form.Value>
+            <Form.Label>scopes</Form.Label>
+            <Form.Value>{state.scopes.join(', ')}</Form.Value>
           </Form>
         ) : (
           <Heading>{state.hasLoggedInOnce ? 'Goodbye.' : 'Hello, stranger.'}</Heading>
