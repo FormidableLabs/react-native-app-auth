@@ -205,7 +205,7 @@ RCT_REMAP_METHOD(refresh,
                                                        strongSelf->_currentSession = nil;
                                                        if (authState) {
                                                            resolve([self formatResponse:authState.lastTokenResponse
-                                                               withAdditionalParameters:authState.lastAuthorizationResponse.additionalParameters]);
+                                                               withAuthResponse:authState.lastAuthorizationResponse]);
                                                        } else {
                                                            reject(@"RNAppAuth Error", [error localizedDescription], error);
                                                        }
@@ -272,7 +272,7 @@ RCT_REMAP_METHOD(refresh,
  *  and turn them into an extended token response format to pass to JavaScript caller
  */
 - (NSDictionary*)formatResponse: (OIDTokenResponse*) response
-       withAdditionalParameters:(NSDictionary*) params{
+       withAuthResponse:(OIDAuthorizationResponse*) authResponse {
     NSDateFormatter *dateFormat = [[NSDateFormatter alloc] init];
     dateFormat.timeZone = [NSTimeZone timeZoneWithAbbreviation: @"UTC"];
     [dateFormat setLocale:[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"]];
@@ -280,10 +280,11 @@ RCT_REMAP_METHOD(refresh,
 
     return @{@"accessToken": response.accessToken ? response.accessToken : @"",
              @"accessTokenExpirationDate": response.accessTokenExpirationDate ? [dateFormat stringFromDate:response.accessTokenExpirationDate] : @"",
-             @"additionalParameters": params,
+             @"additionalParameters": authResponse.additionalParameters,
              @"idToken": response.idToken ? response.idToken : @"",
              @"refreshToken": response.refreshToken ? response.refreshToken : @"",
              @"tokenType": response.tokenType ? response.tokenType : @"",
+             @"scopes": authResponse.scope ? [authResponse.scope componentsSeparatedByString:@" "] : [NSArray new],
              };
 }
 
