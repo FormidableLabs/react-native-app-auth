@@ -447,7 +447,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             map.putString("accessTokenExpirationDate", expirationDateString);
         }
 
-        WritableMap additionalParametersMap = Arguments.createMap();
+        WritableMap authorizeAdditionalParameters = Arguments.createMap();
 
         if (!authResponse.additionalParameters.isEmpty()) {
 
@@ -455,21 +455,24 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
             while(iterator.hasNext()) {
                 String key = iterator.next();
-                additionalParametersMap.putString(key, authResponse.additionalParameters.get(key));
+                authorizeAdditionalParameters.putString(key, authResponse.additionalParameters.get(key));
             }
         }
 
-        if(!this.additionalParametersMap.isEmpty()) {
+        WritableMap tokenAdditionalParameters = Arguments.createMap();
 
-            Iterator<String> iterator = this.additionalParametersMap.keySet().iterator();
+        if (!response.additionalParameters.isEmpty()) {
+
+            Iterator<String> iterator = response.additionalParameters.keySet().iterator();
 
             while(iterator.hasNext()) {
                 String key = iterator.next();
-                additionalParametersMap.putString(key, this.additionalParametersMap.get(key));
+                tokenAdditionalParameters.putString(key, response.additionalParameters.get(key));
             }
         }
 
-        map.putMap("additionalParameters", additionalParametersMap);
+        map.putMap("authorizeAdditionalParameters", authorizeAdditionalParameters);
+        map.putMap("tokenAdditionalParameters", tokenAdditionalParameters);
         map.putString("idToken", response.idToken);
         map.putString("refreshToken", response.refreshToken);
         map.putString("tokenType", response.tokenType);

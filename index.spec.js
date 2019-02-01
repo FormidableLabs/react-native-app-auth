@@ -33,6 +33,7 @@ describe('AppAuth', () => {
     serviceConfiguration: null,
     scopes: ['my-scope'],
     useNonce: true,
+    usePKCE: true,
   };
 
   describe('authorize', () => {
@@ -89,7 +90,8 @@ describe('AppAuth', () => {
         config.scopes,
         config.additionalParameters,
         config.serviceConfiguration,
-        config.useNonce
+        config.useNonce,
+        config.usePKCE
       );
     });
 
@@ -286,6 +288,7 @@ describe('AppAuth', () => {
           config.scopes,
           config.additionalParameters,
           config.serviceConfiguration,
+          true,
           true
         );
       });
@@ -300,6 +303,43 @@ describe('AppAuth', () => {
           config.scopes,
           config.additionalParameters,
           config.serviceConfiguration,
+          false,
+          true
+        );
+      });
+    });
+
+    describe('iOS-specific usePKCE parameter', () => {
+      beforeEach(() => {
+        require('react-native').Platform.OS = 'ios';
+      });
+
+      it('calls the native wrapper with default value `true`', () => {
+        authorize(config, { refreshToken: 'such-token' });
+        expect(mockAuthorize).toHaveBeenCalledWith(
+          config.issuer,
+          config.redirectUrl,
+          config.clientId,
+          config.clientSecret,
+          config.scopes,
+          config.additionalParameters,
+          config.serviceConfiguration,
+          config.useNonce,
+          true
+        );
+      });
+
+      it('calls the native wrapper with passed value `false`', () => {
+        authorize({ ...config, usePKCE: false }, { refreshToken: 'such-token' });
+        expect(mockAuthorize).toHaveBeenCalledWith(
+          config.issuer,
+          config.redirectUrl,
+          config.clientId,
+          config.clientSecret,
+          config.scopes,
+          config.additionalParameters,
+          config.serviceConfiguration,
+          config.useNonce,
           false
         );
       });

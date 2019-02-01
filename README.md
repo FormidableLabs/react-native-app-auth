@@ -37,6 +37,7 @@ These providers implement the OAuth2 spec, but are not OpenID providers, which m
 
 * [Uber](https://developer.uber.com/docs/deliveries/guides/three-legged-oauth) ([Example configuration](#uber))
 * [Fitbit](https://dev.fitbit.com/build/reference/web-api/oauth2/) ([Example configuration](#fitbit))
+* [Dropbox](https://www.dropbox.com/developers/reference/oauth-guide) ([Example configuration](#dropbox))
 
 ## Why you may want to use this library
 
@@ -97,6 +98,7 @@ with optional overrides.
   `hello=world&foo=bar` to the authorization request.
 * **dangerouslyAllowInsecureHttpRequests** - (`boolean`) _ANDROID_ whether to allow requests over plain HTTP or with self-signed SSL certificates. :warning: Can be useful for testing against local server, _should not be used in production._ This setting has no effect on iOS; to enable insecure HTTP requests, add a [NSExceptionAllowsInsecureHTTPLoads exception](https://cocoacasts.com/how-to-add-app-transport-security-exception-domains) to your App Transport Security settings.
 * **useNonce** - (`boolean`) _IOS_ (default: true) optionally allows not sending the nonce parameter, to support non-compliant providers
+* **usePKCE** - (`boolean`) _IOS_ (default: true) optionally allows not sending the code_challenge parameter and skipping PKCE code verification, to support non-compliant providers.
 
 #### result
 
@@ -104,7 +106,8 @@ This is the result from the auth server
 
 * **accessToken** - (`string`) the access token
 * **accessTokenExpirationDate** - (`string`) the token expiration date
-* **additionalParameters** - (`Object`) additional url parameters from the auth server
+* **authorizeAdditionalParameters** - (`Object`) additional url parameters from the authorizationEndpoint response.
+* **tokenAdditionalParameters** - (`Object`) additional url parameters from the tokenEndpoint response.
 * **idToken** - (`string`) the id token
 * **refreshToken** - (`string`) the refresh token
 * **tokenType** - (`string`) the token type, e.g. Bearer
@@ -712,6 +715,36 @@ const refreshedState = await refresh(config, {
 await revoke(config, {
   tokenToRevoke: refreshedState.refreshToken
 });
+```
+
+### Dropbox
+
+Dropbox provides an OAuth 2.0 endpoint for logging in with a Dropbox user's credentials. You'll need to first [register your Dropbox application here](https://www.dropbox.com/developers/apps/create).
+
+Please note:
+
+* Dropbox does not provide a OIDC discovery endpoint, so `serviceConfiguration` is used instead.
+* Dropbox OAuth requires a [client secret](#note-about-client-secrets).
+* Dropbox OAuth does not allow non-https redirect URLs, so you'll need to use a [Universal Link on iOS](https://developer.apple.com/library/archive/documentation/General/Conceptual/AppSearch/UniversalLinks.html) or write a HTTPS endpoint.
+* Dropbox OAuth does not provide refresh tokens or a revoke endpoint.
+
+```js
+const config = {
+  clientId: 'your-client-id-generated-by-dropbox',
+  clientSecret: 'your-client-secret-generated-by-dropbox',
+  redirectUrl: 'https://native-redirect-endpoint/oauth/dropbox',
+  scopes: [],
+  serviceConfiguration: {
+    authorizationEndpoint: 'https://www.dropbox.com/oauth2/authorize',
+    tokenEndpoint: `https://www.dropbox.com/oauth2/token`,
+  },
+  useNonce: false,
+  usePKCE: false,
+};
+
+// Log in to get an authentication token
+const authState = await authorize(config);
+const dropboxUID = authState.tokenAdditionalParameters.account_id;
 ```
 
 ## Contributors
