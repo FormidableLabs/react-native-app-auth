@@ -36,11 +36,21 @@ export type AuthConfiguration = BaseAuthConfiguration & {
 export interface AuthorizeResult {
   accessToken: string;
   accessTokenExpirationDate: string;
-  additionalParameters?: { [name: string]: string };
+  authorizeAdditionalParameters?: { [name: string]: string };
+  tokenAdditionalParameters?: { [name: string]: string };
   idToken: string;
   refreshToken: string;
   tokenType: string;
   scopes: [string];
+}
+
+export interface RefreshResult {
+  accessToken: string;
+  accessTokenExpirationDate: string;
+  additionalParameters?: { [name: string]: string };
+  idToken: string;
+  refreshToken: string;
+  tokenType: string;
 }
 
 export interface RevokeConfiguration {
@@ -57,7 +67,7 @@ export function authorize(config: AuthConfiguration): Promise<AuthorizeResult>;
 export function refresh(
   config: AuthConfiguration,
   refreshConfig: RefreshConfiguration
-): Promise<AuthorizeResult>;
+): Promise<RefreshResult>;
 
 export function revoke(
   config: BaseAuthConfiguration,

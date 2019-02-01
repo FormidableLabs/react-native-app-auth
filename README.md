@@ -105,7 +105,8 @@ This is the result from the auth server
 
 * **accessToken** - (`string`) the access token
 * **accessTokenExpirationDate** - (`string`) the token expiration date
-* **additionalParameters** - (`Object`) additional url parameters from the auth server
+* **authorizeAdditionalParameters** - (`Object`) additional url parameters from the authorizationEndpoint response.
+* **tokenAdditionalParameters** - (`Object`) additional url parameters from the tokenEndpoint response.
 * **idToken** - (`string`) the id token
 * **refreshToken** - (`string`) the refresh token
 * **tokenType** - (`string`) the token type, e.g. Bearer
