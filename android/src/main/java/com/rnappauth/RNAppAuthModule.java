@@ -8,17 +8,16 @@ import android.net.Uri;
 import android.support.annotation.Nullable;
 
 import com.facebook.react.bridge.ActivityEventListener;
-import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
-import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
-import com.rnappauth.utils.MapUtils;
+import com.rnappauth.utils.MapUtil;
 import com.rnappauth.utils.UnsafeConnectionBuilder;
+import com.rnappauth.utils.TokenResponseFactory;
 
 import net.openid.appauth.AppAuthConfiguration;
 import net.openid.appauth.AuthorizationException;
@@ -34,13 +33,8 @@ import net.openid.appauth.TokenRequest;
 import net.openid.appauth.connectivity.ConnectionBuilder;
 import net.openid.appauth.connectivity.DefaultConnectionBuilder;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Locale;
 import java.util.Map;
-import java.util.TimeZone;
 
 public class RNAppAuthModule extends ReactContextBaseJavaModule implements ActivityEventListener {
 
@@ -70,7 +64,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     ) {
         final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests);
         final AppAuthConfiguration appAuthConfiguration = this.createAppAuthConfiguration(builder);
-        final HashMap<String, String> additionalParametersMap = MapUtils.readableMapToHashMap(additionalParameters);
+        final HashMap<String, String> additionalParametersMap = MapUtil.readableMapToHashMap(additionalParameters);
 
         if (clientSecret != null) {
             additionalParametersMap.put("client_secret", clientSecret);
@@ -94,7 +88,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                         additionalParametersMap
                 );
             } catch (Exception e) {
-                promise.reject("RNAppAuth Error", "Failed to authenticate", e);
+                promise.reject("Failed to authenticate", e.getMessage());
             }
         } else {
             final Uri issuerUri = Uri.parse(issuer);
@@ -105,7 +99,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                 @Nullable AuthorizationServiceConfiguration fetchedConfiguration,
                                 @Nullable AuthorizationException ex) {
                             if (ex != null) {
-                                promise.reject("RNAppAuth Error", "Failed to fetch configuration", ex);
+                                promise.reject("Failed to fetch configuration", ex.errorDescription);
                                 return;
                             }
 
@@ -143,7 +137,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     ) {
         final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests);
         final AppAuthConfiguration appAuthConfiguration = createAppAuthConfiguration(builder);
-        final HashMap<String, String> additionalParametersMap = MapUtils.readableMapToHashMap(additionalParameters);
+        final HashMap<String, String> additionalParametersMap = MapUtil.readableMapToHashMap(additionalParameters);
 
         if (clientSecret != null) {
             additionalParametersMap.put("client_secret", clientSecret);
@@ -168,7 +162,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                         promise
                 );
             } catch (Exception e) {
-                promise.reject("RNAppAuth Error", "Failed to refresh token", e);
+                promise.reject("Failed to refresh token", e.getMessage());
             }
         } else {
             final Uri issuerUri = Uri.parse(issuer);
@@ -180,7 +174,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                 @Nullable AuthorizationServiceConfiguration fetchedConfiguration,
                                 @Nullable AuthorizationException ex) {
                             if (ex != null) {
-                                promise.reject("RNAppAuth Error", "Failed to fetch configuration", ex);
+                                promise.reject("Failed to fetch configuration", ex.errorDescription);
                                 return;
                             }
 
@@ -211,7 +205,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final AuthorizationResponse response = AuthorizationResponse.fromIntent(data);
             AuthorizationException exception = AuthorizationException.fromIntent(data);
             if (exception != null) {
-                promise.reject("RNAppAuth Error", "Failed to authenticate", exception);
+                promise.reject("Failed to authenticate", exception.errorDescription);
                 return;
             }
 
@@ -230,10 +224,10 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                 public void onTokenRequestCompleted(
                         TokenResponse resp, AuthorizationException ex) {
                     if (resp != null) {
-                        WritableMap map = tokenResponseToMap(resp, response);
+                        WritableMap map = TokenResponseFactory.tokenResponseToMap(resp, response);
                         authorizePromise.resolve(map);
                     } else {
-                        promise.reject("RNAppAuth Error", "Failed exchange token", ex);
+                        promise.reject("Failed exchange token", ex.errorDescription);
                     }
                 }
             };
@@ -363,10 +357,10 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             @Override
             public void onTokenRequestCompleted(@Nullable TokenResponse response, @Nullable AuthorizationException ex) {
                 if (response != null) {
-                    WritableMap map = tokenResponseToMap(response);
+                    WritableMap map = TokenResponseFactory.tokenResponseToMap(response);
                     promise.resolve(map);
                 } else {
-                    promise.reject("RNAppAuth Error", "Failed refresh token");
+                    promise.reject("Failed to refresh token", ex.errorDescription);
                 }
             }
         };
@@ -393,103 +387,6 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             strBuilder.append(array.getString(i));
         }
         return strBuilder.toString();
-    }
-
-    /*
-     * Read raw token response into a React Native map to be passed down the bridge
-     */
-    private WritableMap tokenResponseToMap(TokenResponse response) {
-        WritableMap map = Arguments.createMap();
-
-        map.putString("accessToken", response.accessToken);
-
-        if (response.accessTokenExpirationTime != null) {
-            Date expirationDate = new Date(response.accessTokenExpirationTime);
-            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
-            formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-            String expirationDateString = formatter.format(expirationDate);
-            map.putString("accessTokenExpirationDate", expirationDateString);
-        }
-
-        WritableMap additionalParametersMap = Arguments.createMap();
-
-        if (!response.additionalParameters.isEmpty()) {
-
-            Iterator<String> iterator = response.additionalParameters.keySet().iterator();
-
-            while(iterator.hasNext()) {
-                String key = iterator.next();
-                additionalParametersMap.putString(key, response.additionalParameters.get(key));
-            }
-        }
-
-        map.putMap("additionalParameters", additionalParametersMap);
-        map.putString("idToken", response.idToken);
-        map.putString("refreshToken", response.refreshToken);
-        map.putString("tokenType", response.tokenType);
-
-        return map;
-    }
-
-    /*
-     * Read raw token response into a React Native map to be passed down the bridge
-     */
-    private WritableMap tokenResponseToMap(TokenResponse response, AuthorizationResponse authResponse) {
-        WritableMap map = Arguments.createMap();
-
-        map.putString("accessToken", response.accessToken);
-
-        if (response.accessTokenExpirationTime != null) {
-            Date expirationDate = new Date(response.accessTokenExpirationTime);
-            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
-            formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-            String expirationDateString = formatter.format(expirationDate);
-            map.putString("accessTokenExpirationDate", expirationDateString);
-        }
-
-        WritableMap authorizeAdditionalParameters = Arguments.createMap();
-
-        if (!authResponse.additionalParameters.isEmpty()) {
-
-            Iterator<String> iterator = authResponse.additionalParameters.keySet().iterator();
-
-            while(iterator.hasNext()) {
-                String key = iterator.next();
-                authorizeAdditionalParameters.putString(key, authResponse.additionalParameters.get(key));
-            }
-        }
-
-        WritableMap tokenAdditionalParameters = Arguments.createMap();
-
-        if (!response.additionalParameters.isEmpty()) {
-
-            Iterator<String> iterator = response.additionalParameters.keySet().iterator();
-
-            while(iterator.hasNext()) {
-                String key = iterator.next();
-                tokenAdditionalParameters.putString(key, response.additionalParameters.get(key));
-            }
-        }
-
-        map.putMap("authorizeAdditionalParameters", authorizeAdditionalParameters);
-        map.putMap("tokenAdditionalParameters", tokenAdditionalParameters);
-        map.putString("idToken", response.idToken);
-        map.putString("refreshToken", response.refreshToken);
-        map.putString("tokenType", response.tokenType);
-
-        if (!authResponse.scope.isEmpty()) {
-            WritableArray scopes = Arguments.createArray();
-            String[] scopesArray = authResponse.scope.split(" ");
-
-            for( int i = 0; i < scopesArray.length - 1; i++)
-            {
-                scopes.pushString(scopesArray[i]);
-            }
-
-            map.putArray("scopes", scopes);
-        }
-
-        return map;
     }
 
     /*
