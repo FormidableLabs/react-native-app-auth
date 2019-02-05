@@ -7,11 +7,7 @@ import com.facebook.react.bridge.WritableMap;
 import net.openid.appauth.AuthorizationResponse;
 import net.openid.appauth.TokenResponse;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Iterator;
-import java.util.Locale;
-import java.util.TimeZone;
 
 public final class TokenResponseFactory {
     /*
@@ -23,11 +19,7 @@ public final class TokenResponseFactory {
         map.putString("accessToken", response.accessToken);
 
         if (response.accessTokenExpirationTime != null) {
-            Date expirationDate = new Date(response.accessTokenExpirationTime);
-            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
-            formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-            String expirationDateString = formatter.format(expirationDate);
-            map.putString("accessTokenExpirationDate", expirationDateString);
+            map.putString("accessTokenExpirationDate", DateUtil.formatTimestamp(response.accessTokenExpirationTime));
         }
 
         WritableMap additionalParametersMap = Arguments.createMap();
@@ -59,11 +51,7 @@ public final class TokenResponseFactory {
         map.putString("accessToken", response.accessToken);
 
         if (response.accessTokenExpirationTime != null) {
-            Date expirationDate = new Date(response.accessTokenExpirationTime);
-            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
-            formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-            String expirationDateString = formatter.format(expirationDate);
-            map.putString("accessTokenExpirationDate", expirationDateString);
+            map.putString("accessTokenExpirationDate", DateUtil.formatTimestamp(response.accessTokenExpirationTime));
         }
 
         WritableMap authorizeAdditionalParameters = Arguments.createMap();
