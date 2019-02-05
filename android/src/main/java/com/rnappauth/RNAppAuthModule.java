@@ -15,7 +15,7 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
-import com.rnappauth.utils.MapUtils;
+import com.rnappauth.utils.MapUtil;
 import com.rnappauth.utils.UnsafeConnectionBuilder;
 import com.rnappauth.utils.TokenResponseFactory;
 
@@ -64,7 +64,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     ) {
         final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests);
         final AppAuthConfiguration appAuthConfiguration = this.createAppAuthConfiguration(builder);
-        final HashMap<String, String> additionalParametersMap = MapUtils.readableMapToHashMap(additionalParameters);
+        final HashMap<String, String> additionalParametersMap = MapUtil.readableMapToHashMap(additionalParameters);
 
         if (clientSecret != null) {
             additionalParametersMap.put("client_secret", clientSecret);
@@ -137,7 +137,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     ) {
         final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests);
         final AppAuthConfiguration appAuthConfiguration = createAppAuthConfiguration(builder);
-        final HashMap<String, String> additionalParametersMap = MapUtils.readableMapToHashMap(additionalParameters);
+        final HashMap<String, String> additionalParametersMap = MapUtil.readableMapToHashMap(additionalParameters);
 
         if (clientSecret != null) {
             additionalParametersMap.put("client_secret", clientSecret);
