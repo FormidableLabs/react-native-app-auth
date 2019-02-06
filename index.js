@@ -29,6 +29,7 @@ export const onlyAuthorize = ({
   clientSecret,
   scopes,
   useNonce = true,
+  usePKCE = true,
   additionalParameters,
   serviceConfiguration,
   dangerouslyAllowInsecureHttpRequests = false,
@@ -54,6 +55,7 @@ export const onlyAuthorize = ({
 
   if (Platform.OS === 'ios') {
     nativeMethodArguments.push(useNonce);
+    nativeMethodArguments.push(usePKCE);
   }
 
   return RNAppAuth.onlyAuthorize(...nativeMethodArguments);
