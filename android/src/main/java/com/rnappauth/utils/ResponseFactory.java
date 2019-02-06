@@ -10,7 +10,7 @@ import net.openid.appauth.TokenResponse;
 import java.util.Iterator;
 import java.util.Map;
 
-public final class TokenResponseFactory {
+public final class ResponseFactory {
     private static final WritableMap createAdditionalParametersMap(Map<String, String> additionalParameters) {
         WritableMap additionalParametersMap = Arguments.createMap();
 
@@ -64,19 +64,23 @@ public final class TokenResponseFactory {
     /*
      * Read raw token response into a React Native map to be passed down the bridge
      */
-    public static final WritableMap tokenResponseToMap(TokenResponse response, AuthorizationResponse authResponse) {
+    public static final WritableMap authorizationResponseToMap(AuthorizationResponse response) {
         WritableMap map = Arguments.createMap();
 
         map.putString("accessToken", response.accessToken);
-        map.putMap("authorizeAdditionalParameters", createAdditionalParametersMap(authResponse.additionalParameters));
-        map.putMap("tokenAdditionalParameters", createAdditionalParametersMap(response.additionalParameters));
+        map.putMap("additionalParameters", createAdditionalParametersMap(response.additionalParameters));
         map.putString("idToken", response.idToken);
-        map.putString("refreshToken", response.refreshToken);
         map.putString("tokenType", response.tokenType);
-        map.putArray("scopes", createScopeArray(authResponse.scope));
+        map.putArray("scopes", createScopeArray(response.scope));
+        map.putString("authorizationCode", response.authorizationCode);
+        map.putString("state", response.state);
 
         if (response.accessTokenExpirationTime != null) {
             map.putString("accessTokenExpirationDate", DateUtil.formatTimestamp(response.accessTokenExpirationTime));
+        }
+
+        if (response.accessTokenExpirationTime != null) {
+            map.putString("accessTokenExpirationTime", DateUtil.formatTimestamp(response.accessTokenExpirationTime));
         }
 
 

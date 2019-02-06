@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { UIManager, LayoutAnimation, Alert } from 'react-native';
-import { authorize, refresh, revoke } from 'react-native-app-auth';
+import { authorize, refresh, revoke, onlyAuthorize, onlyTokenExchange } from 'react-native-app-auth';
 import { Page, Button, ButtonContainer, Form, Heading } from './components';
 
 UIManager.setLayoutAnimationEnabledExperimental &&
@@ -18,13 +18,13 @@ const config = {
   clientId: 'native.code',
   redirectUrl: 'io.identityserver.demo:/oauthredirect',
   additionalParameters: {},
-  scopes: ['openid', 'profile', 'email', 'offline_access']
+  scopes: ['openid', 'profile', 'email', 'offline_access'],
 
-  // serviceConfiguration: {
-  //   authorizationEndpoint: 'https://demo.identityserver.io/connect/authorize',
-  //   tokenEndpoint: 'https://demo.identityserver.io/connect/token',
-  //   revocationEndpoint: 'https://demo.identityserver.io/connect/revoke'
-  // }
+  serviceConfiguration: {
+    authorizationEndpoint: 'https://demo.identityserver.io/connect/authorize',
+    tokenEndpoint: 'https://demo.identityserver.io/connect/token',
+    revocationEndpoint: 'https://demo.identityserver.io/connect/revoke'
+  }
 };
 
 export default class App extends Component<{}, State> {
@@ -58,6 +58,26 @@ export default class App extends Component<{}, State> {
         },
         500
       );
+    } catch (error) {
+      Alert.alert('Failed to log in', error.message);
+    }
+  };
+
+  onlyAuthorize = async () => {
+    try {
+      const authState = await onlyAuthorize(config);
+
+      console.log(authState);
+    } catch (error) {
+      Alert.alert('Failed to log in', error.message);
+    }
+  };
+
+  onlyTokenExchange = async () => {
+    try {
+      const authState = await onlyTokenExchange();
+
+      console.log(authState);
     } catch (error) {
       Alert.alert('Failed to log in', error.message);
     }
@@ -116,6 +136,9 @@ export default class App extends Component<{}, State> {
         )}
 
         <ButtonContainer>
+        <Button onPress={this.onlyAuthorize} text="Only Authorize" color="#00b300" />
+        <Button onPress={this.onlyTokenExchange} text="Only Token Exchange" color="#FFA500" />
+
           {!state.accessToken && (
             <Button onPress={this.authorize} text="Authorize" color="#DA2536" />
           )}

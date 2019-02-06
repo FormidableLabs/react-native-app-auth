@@ -22,14 +22,13 @@ const validateClientId = clientId =>
 const validateRedirectUrl = redirectUrl =>
   invariant(typeof redirectUrl === 'string', 'Config error: redirectUrl must be a string');
 
-export const authorize = ({
+export const onlyAuthorize = ({
   issuer,
   redirectUrl,
   clientId,
   clientSecret,
   scopes,
   useNonce = true,
-  usePKCE = true,
   additionalParameters,
   serviceConfiguration,
   dangerouslyAllowInsecureHttpRequests = false,
@@ -55,10 +54,55 @@ export const authorize = ({
 
   if (Platform.OS === 'ios') {
     nativeMethodArguments.push(useNonce);
-    nativeMethodArguments.push(usePKCE);
   }
 
-  return RNAppAuth.authorize(...nativeMethodArguments);
+  return RNAppAuth.onlyAuthorize(...nativeMethodArguments);
+};
+
+export const onlyTokenExchange = () => {
+  return RNAppAuth.onlyTokenExchange();
+};
+
+export const authorize = async ({
+  issuer,
+  redirectUrl,
+  clientId,
+  clientSecret,
+  scopes,
+  useNonce = true,
+  additionalParameters,
+  serviceConfiguration,
+  dangerouslyAllowInsecureHttpRequests = false,
+}) => {
+  validateIssuerOrServiceConfigurationEndpoints(issuer, serviceConfiguration);
+  validateClientId(clientId);
+  validateRedirectUrl(redirectUrl);
+  // TODO: validateAdditionalParameters
+
+  const nativeMethodArguments = [
+    issuer,
+    redirectUrl,
+    clientId,
+    clientSecret,
+    scopes,
+    additionalParameters,
+    serviceConfiguration,
+  ];
+
+  if (Platform.OS === 'android') {
+    nativeMethodArguments.push(dangerouslyAllowInsecureHttpRequests);
+  }
+
+  if (Platform.OS === 'ios') {
+    nativeMethodArguments.push(useNonce);
+  }
+
+  const authRespone = await RNAppAuth.onlyAuthorize(...nativeMethodArguments);
+  const tokenExhangeResponse = await RNAppAuth.onlyTokenExchange();
+  return {
+    ...authRespone,
+    ...tokenExhangeResponse,
+  };
 };
 
 export const refresh = (
