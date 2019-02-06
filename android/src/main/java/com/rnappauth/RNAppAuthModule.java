@@ -121,6 +121,12 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
     @ReactMethod
     public void onlyTokenExchange(final Promise promise) {
+
+        if (this.lastAuthorizeResponse == null) {
+            promise.reject("Could not find authorization context", "Authorize must be called before token exchange");
+            return;
+        }
+
         final AppAuthConfiguration configuration = createAppAuthConfiguration(
                 createConnectionBuilder(this.dangerouslyAllowInsecureHttpRequests)
         );
