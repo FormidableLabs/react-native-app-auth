@@ -1,150 +1,40 @@
 import React, { Component } from 'react';
-import { UIManager, LayoutAnimation, Alert } from 'react-native';
-import { authorize, refresh, revoke, onlyAuthorize, onlyTokenExchange } from 'react-native-app-auth';
-import { Page, Button, ButtonContainer, Form, Heading } from './components';
+import { Text, TouchableOpacity } from 'react-native';
+import styled from 'styled-components/native';
+import { Advanced, Authenticate, Page } from './components';
 
-UIManager.setLayoutAnimationEnabledExperimental &&
-  UIManager.setLayoutAnimationEnabledExperimental(true);
+const Toggle = styled.View`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  justify-content: center;
+  align-items: center;
+`;
 
 type State = {
-  hasLoggedInOnce: boolean,
-  accessToken: ?string,
-  accessTokenExpirationDate: ?string,
-  refreshToken: ?string
-};
-
-const config = {
-  issuer: 'https://demo.identityserver.io',
-  clientId: 'native.code',
-  redirectUrl: 'io.identityserver.demo:/oauthredirect',
-  additionalParameters: {},
-  scopes: ['openid', 'profile', 'email', 'offline_access'],
-
-  serviceConfiguration: {
-    authorizationEndpoint: 'https://demo.identityserver.io/connect/authorize',
-    tokenEndpoint: 'https://demo.identityserver.io/connect/token',
-    revocationEndpoint: 'https://demo.identityserver.io/connect/revoke'
-  }
+  isAdvanced: boolean
 };
 
 export default class App extends Component<{}, State> {
   state = {
-    hasLoggedInOnce: false,
-    accessToken: '',
-    accessTokenExpirationDate: '',
-    refreshToken: ''
+    isAdvanced: false
   };
 
-  animateState(nextState: $Shape<State>, delay: number = 0) {
-    setTimeout(() => {
-      this.setState(() => {
-        LayoutAnimation.easeInEaseOut();
-        return nextState;
-      });
-    }, delay);
-  }
-
-  authorize = async () => {
-    try {
-      const authState = await authorize(config);
-
-      this.animateState(
-        {
-          hasLoggedInOnce: true,
-          accessToken: authState.accessToken,
-          accessTokenExpirationDate: authState.accessTokenExpirationDate,
-          refreshToken: authState.refreshToken,
-          scopes: authState.scopes
-        },
-        500
-      );
-    } catch (error) {
-      Alert.alert('Failed to log in', error.message);
-    }
-  };
-
-  onlyAuthorize = async () => {
-    try {
-      const authState = await onlyAuthorize(config);
-
-      console.log(authState);
-    } catch (error) {
-      Alert.alert('Failed to log in', error.message);
-    }
-  };
-
-  onlyTokenExchange = async () => {
-    try {
-      const authState = await onlyTokenExchange();
-
-      console.log(authState);
-    } catch (error) {
-      Alert.alert('Failed to log in', error.message);
-    }
-  };
-
-  refresh = async () => {
-    try {
-      const authState = await refresh(config, {
-        refreshToken: this.state.refreshToken
-      });
-
-      this.animateState({
-        accessToken: authState.accessToken || this.state.accessToken,
-        accessTokenExpirationDate:
-          authState.accessTokenExpirationDate || this.state.accessTokenExpirationDate,
-        refreshToken: authState.refreshToken || this.state.refreshToken
-      });
-    } catch (error) {
-      Alert.alert('Failed to refresh token', error.message);
-    }
-  };
-
-  revoke = async () => {
-    try {
-      await revoke(config, {
-        tokenToRevoke: this.state.accessToken,
-        sendClientId: true
-      });
-      this.animateState({
-        accessToken: '',
-        accessTokenExpirationDate: '',
-        refreshToken: ''
-      });
-    } catch (error) {
-      Alert.alert('Failed to revoke token', error.message);
-    }
+  toggleAdvanced = () => {
+    this.setState({ isAdvanced: !this.state.isAdvanced });
   };
 
   render() {
     const { state } = this;
     return (
       <Page>
-        {!!state.accessToken ? (
-          <Form>
-            <Form.Label>accessToken</Form.Label>
-            <Form.Value>{state.accessToken}</Form.Value>
-            <Form.Label>accessTokenExpirationDate</Form.Label>
-            <Form.Value>{state.accessTokenExpirationDate}</Form.Value>
-            <Form.Label>refreshToken</Form.Label>
-            <Form.Value>{state.refreshToken}</Form.Value>
-            <Form.Label>scopes</Form.Label>
-            <Form.Value>{state.scopes.join(', ')}</Form.Value>
-          </Form>
-        ) : (
-          <Heading>{state.hasLoggedInOnce ? 'Goodbye.' : 'Hello, stranger.'}</Heading>
-        )}
-
-        <ButtonContainer>
-        <Button onPress={this.onlyAuthorize} text="Only Authorize" color="#00b300" />
-        <Button onPress={this.onlyTokenExchange} text="Only Token Exchange" color="#FFA500" />
-
-          {!state.accessToken && (
-            <Button onPress={this.authorize} text="Authorize" color="#DA2536" />
-          )}
-          {!!state.refreshToken && <Button onPress={this.refresh} text="Refresh" color="#24C2CB" />}
-          {!!state.accessToken && <Button onPress={this.revoke} text="Revoke" color="#EF525B" />}
-        </ButtonContainer>
+        {state.isAdvanced ? <Advanced /> : <Authenticate />}
+        <Toggle>
+          <TouchableOpacity onPress={this.toggleAdvanced}>
+            <Text>{state.isAdvanced ? 'Back' : 'Advanced options'}</Text>
+          </TouchableOpacity>
+        </Toggle>
       </Page>
     );
   }

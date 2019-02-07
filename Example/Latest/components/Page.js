@@ -12,7 +12,7 @@ const Background = styled.ImageBackground.attrs({
 })`
   flex: 1;
   background-color: white;
-  padding: 40px 10px 10px 10px;
+  padding: 30px 10px 10px 10px;
 `;
 
 export default ({ children }) => (

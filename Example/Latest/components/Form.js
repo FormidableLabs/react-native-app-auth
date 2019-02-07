@@ -3,6 +3,7 @@
 import styled from 'styled-components/native';
 
 const Form = styled.View`
+  margin-top: 20px;
   flex: 1;
 `;
 
