@@ -55,7 +55,7 @@ public final class ResponseFactory {
         map.putString("tokenType", response.tokenType);
 
         if (response.accessTokenExpirationTime != null) {
-            map.putString("accessTokenExpirationDate", DateUtil.formatTimestamp(response.accessTokenExpirationTime));
+            map.putString("accessTokenExpirationTime", DateUtil.formatTimestamp(response.accessTokenExpirationTime));
         }
 
         return map;
@@ -67,22 +67,10 @@ public final class ResponseFactory {
     public static final WritableMap authorizationResponseToMap(AuthorizationResponse response) {
         WritableMap map = Arguments.createMap();
 
-        map.putString("accessToken", response.accessToken);
         map.putMap("additionalParameters", createAdditionalParametersMap(response.additionalParameters));
-        map.putString("idToken", response.idToken);
-        map.putString("tokenType", response.tokenType);
         map.putArray("scopes", createScopeArray(response.scope));
         map.putString("authorizationCode", response.authorizationCode);
         map.putString("state", response.state);
-
-        if (response.accessTokenExpirationTime != null) {
-            map.putString("accessTokenExpirationDate", DateUtil.formatTimestamp(response.accessTokenExpirationTime));
-        }
-
-        if (response.accessTokenExpirationTime != null) {
-            map.putString("accessTokenExpirationTime", DateUtil.formatTimestamp(response.accessTokenExpirationTime));
-        }
-
 
         return map;
     }

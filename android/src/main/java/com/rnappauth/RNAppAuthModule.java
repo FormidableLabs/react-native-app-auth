@@ -63,7 +63,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final Boolean dangerouslyAllowInsecureHttpRequests,
             final Promise promise
     ) {
-        final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests);
+        final ConnectionBuilder builder = this.createConnectionBuilder(dangerouslyAllowInsecureHttpRequests);
         final AppAuthConfiguration appAuthConfiguration = this.createAppAuthConfiguration(builder);
         final HashMap<String, String> additionalParametersMap = MapUtil.readableMapToHashMap(additionalParameters);
 
@@ -128,7 +128,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         }
 
         final AppAuthConfiguration configuration = createAppAuthConfiguration(
-                createConnectionBuilder(this.dangerouslyAllowInsecureHttpRequests)
+                this.createConnectionBuilder(this.dangerouslyAllowInsecureHttpRequests)
         );
 
         AuthorizationService authService = new AuthorizationService(this.reactContext, configuration);
@@ -247,7 +247,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
             this.lastAuthorizeResponse = response;
 
-            promise.resolve(ResponseFactory.authorizationResponseToMap(response));
+            this.promise.resolve(ResponseFactory.authorizationResponseToMap(response));
         }
     }
 
