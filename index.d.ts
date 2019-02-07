@@ -34,26 +34,29 @@ export type AuthConfiguration = BaseAuthConfiguration & {
 };
 
 export interface AuthorizeResult {
-  accessToken: string;
-  accessTokenExpirationDate: string;
-  authorizeAdditionalParameters?: { [name: string]: string };
-  tokenAdditionalParameters?: { [name: string]: string };
-  idToken: string;
-  refreshToken: string;
-  tokenType: string;
+  additionalParameters: { [name: string]: string };
   scopes: [string];
+  authorizationCode: string;
+  state: string;
 }
 
 export interface RefreshResult {
   accessToken: string;
   accessTokenExpirationDate: string;
-  additionalParameters?: { [name: string]: string };
+  additionalParameters: { [name: string]: string };
   idToken: string;
   refreshToken: string;
   tokenType: string;
 }
 
-export interface TokenExchangeRresult {}
+export interface TokenExchangeResult {
+  accessToken: string;
+  additionalParameters: { [name: string]: string };
+  idToken: string;
+  refreshToken: string;
+  tokenType: string;
+  accessTokenExpirationTime?: string;
+}
 
 export interface RevokeConfiguration {
   tokenToRevoke: string;
@@ -66,12 +69,12 @@ export interface RefreshConfiguration {
 
 export interface AuthorizeAndTokenResult {
   authorizeResult: AuthorizeResult;
-  tokenResult: TokenExchangeRresult;
+  tokenResult: TokenExchangeResult;
 }
 
 export function onlyAuthorize(config: AuthConfiguration): Promise<AuthorizeResult>;
 
-export function onlyTokenExchange(): Promise<TokenExchangeRresult>;
+export function onlyTokenExchange(): Promise<TokenExchangeResult>;
 
 export function authorize(config: AuthConfiguration): Promise<AuthorizeAndTokenResult>;
 
