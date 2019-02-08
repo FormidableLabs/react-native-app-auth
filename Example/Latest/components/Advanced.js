@@ -73,15 +73,13 @@ export default class App extends Component<{}, State> {
         tokenResult: null
       });
     } catch (error) {
-      Alert.alert('Failed to log in', error.message);
+      Alert.alert('Failed to authorize', error.message);
     }
   };
 
   onlyTokenExchange = async () => {
     try {
       const tokenResult = await onlyTokenExchange();
-
-      console.log(tokenResult);
 
       this.animateState(
         {
@@ -94,7 +92,7 @@ export default class App extends Component<{}, State> {
         tokenResult
       });
     } catch (error) {
-      Alert.alert('Failed to log in', error.message);
+      Alert.alert('Failed to exchange token', error.message);
     }
   };
 

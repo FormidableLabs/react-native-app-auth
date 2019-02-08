@@ -2,6 +2,11 @@ import { NativeModules } from 'react-native';
 
 const { RNAppAuth } = NativeModules;
 
-export default () => {
-  return RNAppAuth.onlyTokenExchange();
+export default config => {
+  const { clientSecret, additionalParameters, dangerouslyAllowInsecureHttpRequests } = config || {};
+  return RNAppAuth.onlyTokenExchange(
+    clientSecret,
+    additionalParameters,
+    dangerouslyAllowInsecureHttpRequests
+  );
 };

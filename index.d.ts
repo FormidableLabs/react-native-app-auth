@@ -33,6 +33,12 @@ export type AuthConfiguration = BaseAuthConfiguration & {
   usePKCE?: boolean;
 };
 
+export type TokenExchangeConfigurarion = {
+  clientSecret?: string;
+  additionalParameters?: { [name: string]: string };
+  dangerouslyAllowInsecureHttpRequests?: boolean;
+};
+
 export interface AuthorizeResult {
   additionalParameters: { [name: string]: string };
   scopes: [string];
@@ -74,7 +80,7 @@ export interface AuthorizeAndTokenResult {
 
 export function onlyAuthorize(config: AuthConfiguration): Promise<AuthorizeResult>;
 
-export function onlyTokenExchange(): Promise<TokenExchangeResult>;
+export function onlyTokenExchange(config: TokenExchangeConfigurarion): Promise<TokenExchangeResult>;
 
 export function authorize(config: AuthConfiguration): Promise<AuthorizeAndTokenResult>;
 
