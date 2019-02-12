@@ -1,5 +1,9 @@
 #import "RNAppAuth.h"
+#if __has_include("<AppAuth/AppAuth.h>")
 #import <AppAuth/AppAuth.h>
+#else
+#import "AppAuth.h"
+#endif
 #import <React/RCTLog.h>
 #import <React/RCTConvert.h>
 #import "RNAppAuthAuthorizationFlowManager.h"
