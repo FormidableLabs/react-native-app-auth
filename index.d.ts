@@ -38,6 +38,7 @@ export interface AuthorizeResult {
   accessTokenExpirationDate: string;
   authorizeAdditionalParameters?: { [name: string]: string };
   tokenAdditionalParameters?: { [name: string]: string };
+  additionalParameters?: { [name: string]: string };
   idToken: string;
   refreshToken: string;
   tokenType: string;
