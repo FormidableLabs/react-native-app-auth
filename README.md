@@ -314,6 +314,8 @@ class AppDelegate: UIApplicationDelegate, RNAppAuthAuthorizationFlowManager {
 
 ### Android Setup
 
+**Note:** for RN >= 0.57, you will get a warning about compile being obsolete. To get rid of this warning, use [patch-package](https://github.com/ds300/patch-package) to replace compile with implementation [as in this PR](https://github.com/FormidableLabs/react-native-app-auth/pull/242) - we're not deploying this right now, because it would break the build for RN < 57.
+
 To setup the Android project, you need to perform two steps:
 
 1. [Install Android support libraries](#install-android-support-libraries)
