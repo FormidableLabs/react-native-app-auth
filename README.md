@@ -108,6 +108,7 @@ This is the result from the auth server
 * **accessTokenExpirationDate** - (`string`) the token expiration date
 * **authorizeAdditionalParameters** - (`Object`) additional url parameters from the authorizationEndpoint response.
 * **tokenAdditionalParameters** - (`Object`) additional url parameters from the tokenEndpoint response.
+* **additionalParameters** - (`Object`)  :warning:  _DEPRECATED_ legacy implementation. Will be removed in a future release. Returns just `tokenAdditionalParameters` for Android and `authorizeAdditionalParameters` on iOS
 * **idToken** - (`string`) the id token
 * **refreshToken** - (`string`) the refresh token
 * **tokenType** - (`string`) the token type, e.g. Bearer
@@ -313,6 +314,8 @@ class AppDelegate: UIApplicationDelegate, RNAppAuthAuthorizationFlowManager {
 ```
 
 ### Android Setup
+
+**Note:** for RN >= 0.57, you will get a warning about compile being obsolete. To get rid of this warning, use [patch-package](https://github.com/ds300/patch-package) to replace compile with implementation [as in this PR](https://github.com/FormidableLabs/react-native-app-auth/pull/242) - we're not deploying this right now, because it would break the build for RN < 57.
 
 To setup the Android project, you need to perform two steps:
 
@@ -654,9 +657,9 @@ Please note:
 
 ```js
 const config = {
-  clientId: 'your-client-id-generated-by-uber',
+  clientId: 'your-client-id-generated-by-fitbit',
   clientSecret: 'your-client-secret-generated-by-fitbit',
-  redirectUrl: 'com.whatever.url.you.configured.in.uber.oauth://redirect', //note: path is required
+  redirectUrl: 'com.whatever.url.you.configured.in.fitbit.oauth://redirect', //note: path is required
   scopes: ['activity', 'sleep'],
   serviceConfiguration: {
     authorizationEndpoint: 'https://www.fitbit.com/oauth2/authorize',
