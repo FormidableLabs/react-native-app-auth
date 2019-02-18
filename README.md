@@ -657,9 +657,9 @@ Please note:
 
 ```js
 const config = {
-  clientId: 'your-client-id-generated-by-uber',
+  clientId: 'your-client-id-generated-by-fitbit',
   clientSecret: 'your-client-secret-generated-by-fitbit',
-  redirectUrl: 'com.whatever.url.you.configured.in.uber.oauth://redirect', //note: path is required
+  redirectUrl: 'com.whatever.url.you.configured.in.fitbit.oauth://redirect', //note: path is required
   scopes: ['activity', 'sleep'],
   serviceConfiguration: {
     authorizationEndpoint: 'https://www.fitbit.com/oauth2/authorize',
