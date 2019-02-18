@@ -70,6 +70,7 @@ public final class TokenResponseFactory {
         map.putString("accessToken", response.accessToken);
         map.putMap("authorizeAdditionalParameters", createAdditionalParametersMap(authResponse.additionalParameters));
         map.putMap("tokenAdditionalParameters", createAdditionalParametersMap(response.additionalParameters));
+        map.putMap("additionalParameters", createAdditionalParametersMap(response.additionalParameters)); // DEPRECATED
         map.putString("idToken", response.idToken);
         map.putString("refreshToken", response.refreshToken);
         map.putString("tokenType", response.tokenType);
