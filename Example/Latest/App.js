@@ -116,11 +116,15 @@ export default class App extends Component<{}, State> {
         )}
 
         <ButtonContainer>
-          {!state.accessToken && (
+          {!state.accessToken ? (
             <Button onPress={this.authorize} text="Authorize" color="#DA2536" />
-          )}
-          {!!state.refreshToken && <Button onPress={this.refresh} text="Refresh" color="#24C2CB" />}
-          {!!state.accessToken && <Button onPress={this.revoke} text="Revoke" color="#EF525B" />}
+          ) : null}
+          {!!state.refreshToken ? (
+            <Button onPress={this.refresh} text="Refresh" color="#24C2CB" />
+          ) : null}
+          {!!state.accessToken ? (
+            <Button onPress={this.revoke} text="Revoke" color="#EF525B" />
+          ) : null}
         </ButtonContainer>
       </Page>
     );
