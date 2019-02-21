@@ -22,22 +22,22 @@ This library _should_ support any OAuth provider that implements the
 
 These providers are OpenID compliant, which means you can use [autodiscovery](https://openid.net/specs/openid-connect-discovery-1_0.html).
 
-* [Identity Server4](https://demo.identityserver.io/) ([Example configuration](./docs/config-examples/identity-server-4))
-* [Identity Server3](https://github.com/IdentityServer/IdentityServer3) ([Example configuration](./docs/config-examples/identity-server-3))
+* [Identity Server4](https://demo.identityserver.io/) ([Example configuration](./docs/config-examples/identity-server-4.md))
+* [Identity Server3](https://github.com/IdentityServer/IdentityServer3.md) ([Example configuration](./docs/config-examples/identity-server-3.md))
 * [Google](https://developers.google.com/identity/protocols/OAuth2)
-  ([Example configuration](./docs/config-examples/google))
-* [Okta](https://developer.okta.com) ([Example configuration](./docs/config-examples/okta))
-* [Keycloak](http://www.keycloak.org/) ([Example configuration](./docs/config-examples/keycloak))
-* [Azure Active Directory](https://docs.microsoft.com/en-us/azure/active-directory) ([Example configuration](./docs/config-examples/azure-active-directory))
-* [AWS Cognito](https://eu-west-1.console.aws.amazon.com/cognito) ([Example configuration](./docs/config-examples/aws-cognito))
+  ([Example configuration](./docs/config-examples/google.md))
+* [Okta](https://developer.okta.com) ([Example configuration](./docs/config-examples/okta.md))
+* [Keycloak](http://www.keycloak.org/) ([Example configuration](./docs/config-examples/keycloak.md))
+* [Azure Active Directory](https://docs.microsoft.com/en-us/azure/active-directory) ([Example configuration](./docs/config-examples/azure-active-directory.md))
+* [AWS Cognito](https://eu-west-1.console.aws.amazon.com/cognito) ([Example configuration](./docs/config-examples/aws-cognito.md))
 
 ### Tested OAuth2 providers:
 
 These providers implement the OAuth2 spec, but are not OpenID providers, which means you must configure the authorization and token endpoints yourself.
 
-* [Uber](https://developer.uber.com/docs/deliveries/guides/three-legged-oauth) ([Example configuration](./docs/config-examples/uber))
-* [Fitbit](https://dev.fitbit.com/build/reference/web-api/oauth2/) ([Example configuration](./docs/config-examples/fitbit))
-* [Dropbox](https://www.dropbox.com/developers/reference/oauth-guide) ([Example configuration](./docs/config-examples/dropbox))
+* [Uber](https://developer.uber.com/docs/deliveries/guides/three-legged-oauth.md) ([Example configuration](./docs/config-examples/uber))
+* [Fitbit](https://dev.fitbit.com/build/reference/web-api/oauth2/) ([Example configuration](./docs/config-examples/fitbit.md))
+* [Dropbox](https://www.dropbox.com/developers/reference/oauth-guide) ([Example configuration](./docs/config-examples/dropbox.md))
 
 ## Why you may want to use this library
 
@@ -398,3 +398,4 @@ Some authentication providers, including examples cited below, require you to pr
 > [strongly recommend](https://github.com/openid/AppAuth-Android#utilizing-client-secrets-dangerous) you avoid using static client secrets in your native applications whenever possible. Client secrets derived via a dynamic client registration are safe to use, but static client secrets can be easily extracted from your apps and allow others to impersonate your app and steal user data. If client secrets must be used by the OAuth2 provider you are integrating with, we strongly recommend performing the code exchange step on your backend, where the client secret can be kept hidden.
 
 Having said this, in some cases using client secrets is unavoidable. In these cases, a `clientSecret` parameter can be provided to `authorize`/`refresh` calls when performing a token request.
+g
