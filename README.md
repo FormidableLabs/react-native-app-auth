@@ -398,19 +398,3 @@ Some authentication providers, including examples cited below, require you to pr
 > [strongly recommend](https://github.com/openid/AppAuth-Android#utilizing-client-secrets-dangerous) you avoid using static client secrets in your native applications whenever possible. Client secrets derived via a dynamic client registration are safe to use, but static client secrets can be easily extracted from your apps and allow others to impersonate your app and steal user data. If client secrets must be used by the OAuth2 provider you are integrating with, we strongly recommend performing the code exchange step on your backend, where the client secret can be kept hidden.
 
 Having said this, in some cases using client secrets is unavoidable. In these cases, a `clientSecret` parameter can be provided to `authorize`/`refresh` calls when performing a token request.
-
-## Contributors
-
-Thanks goes to these wonderful people
-([emoji key](https://github.com/kentcdodds/all-contributors#emoji-key)):
-
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-
-<!-- prettier-ignore -->
-| [<img src="https://avatars0.githubusercontent.com/u/6534400?v=4" width="100px;"/><br /><sub><b>Kadi Kraman</b></sub>](https://github.com/kadikraman)<br />[💻](https://github.com/FormidableLabs/react-native-app-auth/commits?author=kadikraman "Code") [📖](https://github.com/FormidableLabs/react-native-app-auth/commits?author=kadikraman "Documentation") [🚇](#infra-kadikraman "Infrastructure (Hosting, Build-Tools, etc)") [⚠️](https://github.com/FormidableLabs/react-native-app-auth/commits?author=kadikraman "Tests") [👀](#review-kadikraman "Reviewed Pull Requests") [💡](#example-kadikraman "Examples") | [<img src="https://avatars1.githubusercontent.com/u/1203949?v=4" width="100px;"/><br /><sub><b>Jani Eväkallio</b></sub>](https://twitter.com/jevakallio)<br />[💡](#example-jevakallio "Examples") [📖](https://github.com/FormidableLabs/react-native-app-auth/commits?author=jevakallio "Documentation") [⚠️](https://github.com/FormidableLabs/react-native-app-auth/commits?author=jevakallio "Tests") [👀](#review-jevakallio "Reviewed Pull Requests") [🤔](#ideas-jevakallio "Ideas, Planning, & Feedback") | [<img src="https://avatars0.githubusercontent.com/u/2041385?v=4" width="100px;"/><br /><sub><b>Phil Plückthun</b></sub>](https://twitter.com/_philpl)<br />[📖](https://github.com/FormidableLabs/react-native-app-auth/commits?author=philpl "Documentation") [👀](#review-philpl "Reviewed Pull Requests") [🤔](#ideas-philpl "Ideas, Planning, & Feedback") | [<img src="https://avatars1.githubusercontent.com/u/4206028?v=4" width="100px;"/><br /><sub><b>Imran Sulemanji</b></sub>](https://github.com/imranolas)<br />[🤔](#ideas-imranolas "Ideas, Planning, & Feedback") [👀](#review-imranolas "Reviewed Pull Requests") | [<img src="https://avatars3.githubusercontent.com/u/2393035?v=4" width="100px;"/><br /><sub><b>JP</b></sub>](http://twitter.com/jpdriver)<br />[🤔](#ideas-jpdriver "Ideas, Planning, & Feedback") [👀](#review-jpdriver "Reviewed Pull Requests") | [<img src="https://avatars2.githubusercontent.com/u/6714912?v=4" width="100px;"/><br /><sub><b>Matt Cubitt</b></sub>](https://github.com/mattcubitt)<br />[🤔](#ideas-mattcubitt "Ideas, Planning, & Feedback") [👀](#review-mattcubitt "Reviewed Pull Requests") |
-| :---: | :---: | :---: | :---: | :---: | :---: |
-
-<!-- ALL-CONTRIBUTORS-LIST:END -->
-
-This project follows the [all-contributors](https://github.com/kentcdodds/all-contributors)
-specification. Contributions of any kind are welcome!
