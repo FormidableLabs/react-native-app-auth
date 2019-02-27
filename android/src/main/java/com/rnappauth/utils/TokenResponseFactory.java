@@ -1,5 +1,7 @@
 package com.rnappauth.utils;
 
+import android.text.TextUtils;
+
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
@@ -29,7 +31,7 @@ public final class TokenResponseFactory {
 
     private static final WritableArray createScopeArray(String scope) {
         WritableArray scopeArray = Arguments.createArray();
-        if (!scope.isEmpty()) {
+        if (!TextUtils.isEmpty(scope)) {
             String[] scopesArray = scope.split(" ");
 
             for( int i = 0; i < scopesArray.length - 1; i++)
