@@ -24,8 +24,8 @@ interface BuiltInParameters {
 }
 
 type CustomHeaders = {
-  authorize: Record<string, string>;
-  token: Record<string, string>;
+  authorize?: Record<string, string>;
+  token?: Record<string, string>;
 };
 
 export type AuthConfiguration = BaseAuthConfiguration & {
