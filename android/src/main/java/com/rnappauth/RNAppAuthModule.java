@@ -144,7 +144,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final Promise promise
     ) {
         this.parseHeaderMap(headers);
-        final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests, this.authorizationRequestHeaders);
+        final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests, this.tokenRequestHeaders);
         final AppAuthConfiguration appAuthConfiguration = createAppAuthConfiguration(builder);
         final HashMap<String, String> additionalParametersMap = MapUtil.readableMapToHashMap(additionalParameters);
 
