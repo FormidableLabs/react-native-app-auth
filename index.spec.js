@@ -34,6 +34,7 @@ describe('AppAuth', () => {
     scopes: ['my-scope'],
     useNonce: true,
     usePKCE: true,
+    customHeaders: null,
   };
 
   describe('authorize', () => {
@@ -80,6 +81,55 @@ describe('AppAuth', () => {
       }).toThrow('Config error: clientId must be a string');
     });
 
+    it('throws an error when customHeaders has too few keys', () => {
+      expect(() => {
+        authorize({ ...config, customHeaders: {} });
+      }).toThrow();
+    });
+
+    it('throws an error when customHeaders has too many keys', () => {
+      expect(() => {
+        authorize({
+          ...config,
+          customHeaders: {
+            token: new Headers(),
+            authorize: new Headers(),
+            unknownKey: new Headers(),
+          },
+        });
+      }).toThrow();
+    });
+
+    it('throws an error when customHeaders has unknown keys', () => {
+      expect(() => {
+        authorize({
+          ...config,
+          customHeaders: {
+            tokn: new Headers(),
+            authorize: new Headers(),
+          },
+        });
+      }).toThrow();
+      expect(() => {
+        authorize({
+          ...config,
+          customHeaders: {
+            tokn: new Headers(),
+          },
+        });
+      }).toThrow();
+    });
+    it('throws an error when customHeaders values arent Record<string,string>', () => {
+      expect(() => {
+        authorize({
+          ...config,
+          customHeaders: {
+            token: { toto: {} },
+          },
+        });
+      }).toThrow();
+    });
+
     it('calls the native wrapper with the correct args on iOS', () => {
       authorize(config);
       expect(mockAuthorize).toHaveBeenCalledWith(
@@ -95,7 +145,7 @@ describe('AppAuth', () => {
       );
     });
 
-    describe('Android-specific dangerouslyAllowInsecureHttpRequests parameter', () => {
+    describe('Android-specific', () => {
       beforeEach(() => {
         require('react-native').Platform.OS = 'android';
       });
@@ -103,47 +153,70 @@ describe('AppAuth', () => {
       afterEach(() => {
         require('react-native').Platform.OS = 'ios';
       });
+      describe('dangerouslyAllowInsecureHttpRequests parameter', () => {
+        it('calls the native wrapper with default value `false`', () => {
+          authorize(config);
+          expect(mockAuthorize).toHaveBeenCalledWith(
+            config.issuer,
+            config.redirectUrl,
+            config.clientId,
+            config.clientSecret,
+            config.scopes,
+            config.additionalParameters,
+            config.serviceConfiguration,
+            false,
+            config.customHeaders
+          );
+        });
 
-      it('calls the native wrapper with default value `false`', () => {
-        authorize(config);
-        expect(mockAuthorize).toHaveBeenCalledWith(
-          config.issuer,
-          config.redirectUrl,
-          config.clientId,
-          config.clientSecret,
-          config.scopes,
-          config.additionalParameters,
-          config.serviceConfiguration,
-          false
-        );
+        it('calls the native wrapper with passed value `false`', () => {
+          authorize({ ...config, dangerouslyAllowInsecureHttpRequests: false });
+          expect(mockAuthorize).toHaveBeenCalledWith(
+            config.issuer,
+            config.redirectUrl,
+            config.clientId,
+            config.clientSecret,
+            config.scopes,
+            config.additionalParameters,
+            config.serviceConfiguration,
+            false,
+            config.customHeaders
+          );
+        });
+
+        it('calls the native wrapper with passed value `true`', () => {
+          authorize({ ...config, dangerouslyAllowInsecureHttpRequests: true });
+          expect(mockAuthorize).toHaveBeenCalledWith(
+            config.issuer,
+            config.redirectUrl,
+            config.clientId,
+            config.clientSecret,
+            config.scopes,
+            config.additionalParameters,
+            config.serviceConfiguration,
+            true,
+            config.customHeaders
+          );
+        });
       });
-
-      it('calls the native wrapper with passed value `false`', () => {
-        authorize({ ...config, dangerouslyAllowInsecureHttpRequests: false });
-        expect(mockAuthorize).toHaveBeenCalledWith(
-          config.issuer,
-          config.redirectUrl,
-          config.clientId,
-          config.clientSecret,
-          config.scopes,
-          config.additionalParameters,
-          config.serviceConfiguration,
-          false
-        );
-      });
-
-      it('calls the native wrapper with passed value `true`', () => {
-        authorize({ ...config, dangerouslyAllowInsecureHttpRequests: true });
-        expect(mockAuthorize).toHaveBeenCalledWith(
-          config.issuer,
-          config.redirectUrl,
-          config.clientId,
-          config.clientSecret,
-          config.scopes,
-          config.additionalParameters,
-          config.serviceConfiguration,
-          true
-        );
+      describe('customHeaders parameter', () => {
+        it('calls the native wrapper with headers', () => {
+          const customTokenHeaders = { Authorization: 'Basic someBase64Value' };
+          const customAuthorizeHeaders = { Authorization: 'Basic someOtherBase64Value' };
+          const customHeaders = { token: customTokenHeaders, authorize: customAuthorizeHeaders };
+          authorize({ ...config, customHeaders });
+          expect(mockAuthorize).toHaveBeenCalledWith(
+            config.issuer,
+            config.redirectUrl,
+            config.clientId,
+            config.clientSecret,
+            config.scopes,
+            config.additionalParameters,
+            config.serviceConfiguration,
+            false,
+            customHeaders
+          );
+        });
       });
     });
   });
@@ -212,7 +285,7 @@ describe('AppAuth', () => {
       );
     });
 
-    describe('Android-specific dangerouslyAllowInsecureHttpRequests parameter', () => {
+    describe('Android-specific', () => {
       beforeEach(() => {
         require('react-native').Platform.OS = 'android';
       });
@@ -220,56 +293,79 @@ describe('AppAuth', () => {
       afterEach(() => {
         require('react-native').Platform.OS = 'ios';
       });
+      describe(' dangerouslyAllowInsecureHttpRequests parameter', () => {
+        it('calls the native wrapper with default value `false`', () => {
+          refresh(config, { refreshToken: 'such-token' });
+          expect(mockRefresh).toHaveBeenCalledWith(
+            config.issuer,
+            config.redirectUrl,
+            config.clientId,
+            config.clientSecret,
+            'such-token',
+            config.scopes,
+            config.additionalParameters,
+            config.serviceConfiguration,
+            false,
+            config.customHeaders
+          );
+        });
 
-      it('calls the native wrapper with default value `false`', () => {
-        refresh(config, { refreshToken: 'such-token' });
-        expect(mockRefresh).toHaveBeenCalledWith(
-          config.issuer,
-          config.redirectUrl,
-          config.clientId,
-          config.clientSecret,
-          'such-token',
-          config.scopes,
-          config.additionalParameters,
-          config.serviceConfiguration,
-          false
-        );
+        it('calls the native wrapper with passed value `false`', () => {
+          refresh(
+            { ...config, dangerouslyAllowInsecureHttpRequests: false },
+            { refreshToken: 'such-token' }
+          );
+          expect(mockRefresh).toHaveBeenCalledWith(
+            config.issuer,
+            config.redirectUrl,
+            config.clientId,
+            config.clientSecret,
+            'such-token',
+            config.scopes,
+            config.additionalParameters,
+            config.serviceConfiguration,
+            false,
+            config.customHeaders
+          );
+        });
+
+        it('calls the native wrapper with passed value `true`', () => {
+          refresh(
+            { ...config, dangerouslyAllowInsecureHttpRequests: true },
+            { refreshToken: 'such-token' }
+          );
+          expect(mockRefresh).toHaveBeenCalledWith(
+            config.issuer,
+            config.redirectUrl,
+            config.clientId,
+            config.clientSecret,
+            'such-token',
+            config.scopes,
+            config.additionalParameters,
+            config.serviceConfiguration,
+            true,
+            config.customHeaders
+          );
+        });
       });
-
-      it('calls the native wrapper with passed value `false`', () => {
-        refresh(
-          { ...config, dangerouslyAllowInsecureHttpRequests: false },
-          { refreshToken: 'such-token' }
-        );
-        expect(mockRefresh).toHaveBeenCalledWith(
-          config.issuer,
-          config.redirectUrl,
-          config.clientId,
-          config.clientSecret,
-          'such-token',
-          config.scopes,
-          config.additionalParameters,
-          config.serviceConfiguration,
-          false
-        );
-      });
-
-      it('calls the native wrapper with passed value `true`', () => {
-        refresh(
-          { ...config, dangerouslyAllowInsecureHttpRequests: true },
-          { refreshToken: 'such-token' }
-        );
-        expect(mockRefresh).toHaveBeenCalledWith(
-          config.issuer,
-          config.redirectUrl,
-          config.clientId,
-          config.clientSecret,
-          'such-token',
-          config.scopes,
-          config.additionalParameters,
-          config.serviceConfiguration,
-          true
-        );
+      describe('customHeaders parameter', () => {
+        it('calls the native wrapper with headers', () => {
+          const customTokenHeaders = { Authorization: 'Basic someBase64Value' };
+          const customAuthorizeHeaders = { Authorization: 'Basic someOtherBase64Value' };
+          const customHeaders = { token: customTokenHeaders, authorize: customAuthorizeHeaders };
+          authorize({ ...config, customHeaders });
+          expect(mockAuthorize).toHaveBeenCalledWith(
+            config.issuer,
+            config.redirectUrl,
+            config.clientId,
+            config.clientSecret,
+            config.scopes,
+            config.additionalParameters,
+            config.serviceConfiguration,
+            false,
+            customHeaders
+          );
+        });
       });
     });
 

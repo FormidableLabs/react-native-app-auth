@@ -22,8 +22,37 @@ const validateClientId = clientId =>
 const validateRedirectUrl = redirectUrl =>
   invariant(typeof redirectUrl === 'string', 'Config error: redirectUrl must be a string');
 
-const validateHeaders = headers =>
-  invariant(typeof headers === Headers, 'Config errors: customHeaders must be a Headers object');
+const validateHeaders = headers => {
+  if (!headers) {
+    return;
+  }
+  const customHeaderTypeErrorMessage =
+    'Config error: customHeaders type must be { token?: { [key: string]: string }, authorize?: { [key: string]: string }}';
+
+  const authorizedKeys = ['token', 'authorize'];
+  const keys = Object.keys(headers);
+  const correctKeys = keys.filter(key => authorizedKeys.includes(key));
+  invariant(
+    keys.length <= authorizedKeys.length &&
+      correctKeys.length > 0 &&
+      correctKeys.length === keys.length,
+    customHeaderTypeErrorMessage
+  );
+  if (headers.token) {
+    invariant(typeof headers.token === 'object', customHeaderTypeErrorMessage);
+    invariant(
+      Object.values(headers.token).filter(key => typeof key !== 'string').length === 0,
+      customHeaderTypeErrorMessage
+    );
+  }
+  if (headers.authorize) {
+    invariant(typeof headers.authorize === 'object', customHeaderTypeErrorMessage);
+    invariant(
+      Object.values(headers.authorize).filter(key => typeof key !== 'string').length === 0,
+      customHeaderTypeErrorMessage
+    );
+  }
+};
 
 export const authorize = ({
   issuer,
@@ -77,12 +106,14 @@ export const refresh = (
     additionalParameters,
     serviceConfiguration,
     dangerouslyAllowInsecureHttpRequests = false,
+    customHeaders,
   },
   { refreshToken }
 ) => {
   validateIssuerOrServiceConfigurationEndpoints(issuer, serviceConfiguration);
   validateClientId(clientId);
   validateRedirectUrl(redirectUrl);
+  validateHeaders(customHeaders);
   invariant(refreshToken, 'Please pass in a refresh token');
   // TODO: validateAdditionalParameters
 
@@ -99,6 +130,7 @@ export const refresh = (
 
   if (Platform.OS === 'android') {
     nativeMethodArguments.push(dangerouslyAllowInsecureHttpRequests);
+    nativeMethodArguments.push(customHeaders);
   }
 
   return RNAppAuth.refresh(...nativeMethodArguments);
