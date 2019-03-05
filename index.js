@@ -22,6 +22,9 @@ const validateClientId = clientId =>
 const validateRedirectUrl = redirectUrl =>
   invariant(typeof redirectUrl === 'string', 'Config error: redirectUrl must be a string');
 
+const validateHeaders = headers =>
+  invariant(typeof headers === Headers, 'Config errors: customHeaders must be a Headers object');
+
 export const authorize = ({
   issuer,
   redirectUrl,
@@ -33,10 +36,12 @@ export const authorize = ({
   additionalParameters,
   serviceConfiguration,
   dangerouslyAllowInsecureHttpRequests = false,
+  customHeaders,
 }) => {
   validateIssuerOrServiceConfigurationEndpoints(issuer, serviceConfiguration);
   validateClientId(clientId);
   validateRedirectUrl(redirectUrl);
+  validateHeaders(customHeaders);
   // TODO: validateAdditionalParameters
 
   const nativeMethodArguments = [
@@ -51,6 +56,7 @@ export const authorize = ({
 
   if (Platform.OS === 'android') {
     nativeMethodArguments.push(dangerouslyAllowInsecureHttpRequests);
+    nativeMethodArguments.push(customHeaders);
   }
 
   if (Platform.OS === 'ios') {
