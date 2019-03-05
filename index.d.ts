@@ -23,12 +23,18 @@ interface BuiltInParameters {
   prompt?: 'consent' | 'login' | 'none' | 'select_account';
 }
 
+type CustomHeaders = {
+  authorize: Record<string, string>;
+  token: Record<string, string>;
+};
+
 export type AuthConfiguration = BaseAuthConfiguration & {
   clientSecret?: string;
   scopes: string[];
   redirectUrl: string;
   additionalParameters?: BuiltInParameters & { [name: string]: string };
   dangerouslyAllowInsecureHttpRequests?: boolean;
+  customHeaders?: CustomHeaders;
   useNonce?: boolean;
   usePKCE?: boolean;
 };
