@@ -9,7 +9,7 @@
   "dependencies": {
     "react": "16.5.0",
     "react-native": "0.57.2",
-    "react-native-app-auth": "FormidableLabs/react-native-app-auth",
+    "react-native-app-auth": "4.1.1",
     "styled-components": "^3.4.10"
   },
   "devDependencies": {

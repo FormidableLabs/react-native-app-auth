@@ -4873,9 +4873,10 @@ react-is@^16.3.1, react-is@^16.5.0:
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-16.5.2.tgz#e2a7b7c3f5d48062eb769fcb123505eb928722e3"
   integrity sha512-hSl7E6l25GTjNEZATqZIuWOgSnpXb3kD0DVCujmg46K5zLxsbiKaaT6VO9slkSBDPZfYs30lwfJwbOFOnoEnKQ==
 
-react-native-app-auth@FormidableLabs/react-native-app-auth:
-  version "3.1.0"
-  resolved "https://codeload.github.com/FormidableLabs/react-native-app-auth/tar.gz/9747213b00b0ac46449ff19fa5c720a45720e1cd"
+react-native-app-auth@4.1.1:
+  version "4.1.1"
+  resolved "https://registry.yarnpkg.com/react-native-app-auth/-/react-native-app-auth-4.1.1.tgz#ae1b57b29c139109d8c2969598a346c9b42d26fb"
+  integrity sha512-MIwu0uzNcoDjPbSNnU24WKKtvKunxOAQEPatw+UNe/ED/GtDfYbyLJ5/SEObsfOH3fDd/yEP2svsyxqeR+Fh1Q==
 
 react-native@0.57.2:
   version "0.57.2"
