@@ -92,9 +92,9 @@ describe('AppAuth', () => {
         authorize({
           ...config,
           customHeaders: {
-            token: new Headers(),
-            authorize: new Headers(),
-            unknownKey: new Headers(),
+            token: { toto: 'titi' },
+            authorize: { toto: 'titi' },
+            unknownKey: { toto: 'titi' },
           },
         });
       }).toThrow();
@@ -105,8 +105,8 @@ describe('AppAuth', () => {
         authorize({
           ...config,
           customHeaders: {
-            tokn: new Headers(),
-            authorize: new Headers(),
+            tokn: { toto: 'titi' },
+            authorize: { toto: 'titi' },
           },
         });
       }).toThrow();
@@ -114,7 +114,7 @@ describe('AppAuth', () => {
         authorize({
           ...config,
           customHeaders: {
-            tokn: new Headers(),
+            tokn: { toto: 'titi' },
           },
         });
       }).toThrow();
