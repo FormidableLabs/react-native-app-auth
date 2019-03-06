@@ -38,20 +38,14 @@ const validateHeaders = headers => {
       correctKeys.length === keys.length,
     customHeaderTypeErrorMessage
   );
-  if (headers.token) {
-    invariant(typeof headers.token === 'object', customHeaderTypeErrorMessage);
+
+  Object.values(headers).forEach(value => {
+    invariant(typeof value === 'object', customHeaderTypeErrorMessage);
     invariant(
-      Object.values(headers.token).filter(key => typeof key !== 'string').length === 0,
+      Object.values(value).filter(key => typeof key !== 'string').length === 0,
       customHeaderTypeErrorMessage
     );
-  }
-  if (headers.authorize) {
-    invariant(typeof headers.authorize === 'object', customHeaderTypeErrorMessage);
-    invariant(
-      Object.values(headers.authorize).filter(key => typeof key !== 'string').length === 0,
-      customHeaderTypeErrorMessage
-    );
-  }
+  });
 };
 
 export const authorize = ({
