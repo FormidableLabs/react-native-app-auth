@@ -108,12 +108,12 @@ export default class App extends Component<{}, State> {
             <Form.Value>{state.accessTokenExpirationDate}</Form.Value>
             <Form.Label>refreshToken</Form.Label>
             <Form.Value>{state.refreshToken}</Form.Value>
-            <Form.Label>Scopes</Form.Label>
+            <Form.Label>scopes</Form.Label>
             <Form.Value>{state.scopes.join(', ')}</Form.Value>
           </Form>
         ) : (
-          <Heading>{state.hasLoggedInOnce ? 'Goodbye.' : 'Hello, stranger.'}</Heading>
-        )}
+            <Heading>{state.hasLoggedInOnce ? 'Goodbye.' : 'Hello, stranger.'}</Heading>
+          )}
 
         <ButtonContainer>
           {!state.accessToken ? (
