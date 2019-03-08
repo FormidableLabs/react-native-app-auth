@@ -15,9 +15,12 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.bridge.ReadableType;
+
 import com.rnappauth.utils.MapUtil;
 import com.rnappauth.utils.UnsafeConnectionBuilder;
 import com.rnappauth.utils.TokenResponseFactory;
+import com.rnappauth.utils.CustomConnectionBuilder;
 
 import net.openid.appauth.AppAuthConfiguration;
 import net.openid.appauth.AuthorizationException;
@@ -41,6 +44,8 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     private final ReactApplicationContext reactContext;
     private Promise promise;
     private Boolean dangerouslyAllowInsecureHttpRequests;
+    private Map<String, String> authorizationRequestHeaders = null;
+    private Map<String, String> tokenRequestHeaders = null;
     private Map<String, String> additionalParametersMap;
     private String clientSecret;
 
@@ -60,9 +65,11 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final ReadableMap additionalParameters,
             final ReadableMap serviceConfiguration,
             final Boolean dangerouslyAllowInsecureHttpRequests,
+            final ReadableMap headers,
             final Promise promise
     ) {
-        final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests);
+        this.parseHeaderMap(headers);
+        final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests, this.authorizationRequestHeaders);
         final AppAuthConfiguration appAuthConfiguration = this.createAppAuthConfiguration(builder);
         final HashMap<String, String> additionalParametersMap = MapUtil.readableMapToHashMap(additionalParameters);
 
@@ -133,9 +140,11 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final ReadableMap additionalParameters,
             final ReadableMap serviceConfiguration,
             final Boolean dangerouslyAllowInsecureHttpRequests,
+            final ReadableMap headers,
             final Promise promise
     ) {
-        final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests);
+        this.parseHeaderMap(headers);
+        final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests, this.tokenRequestHeaders);
         final AppAuthConfiguration appAuthConfiguration = createAppAuthConfiguration(builder);
         final HashMap<String, String> additionalParametersMap = MapUtil.readableMapToHashMap(additionalParameters);
 
@@ -211,7 +220,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
             final Promise authorizePromise = this.promise;
             final AppAuthConfiguration configuration = createAppAuthConfiguration(
-                    createConnectionBuilder(this.dangerouslyAllowInsecureHttpRequests)
+                    createConnectionBuilder(this.dangerouslyAllowInsecureHttpRequests, this.tokenRequestHeaders)
             );
 
             AuthorizationService authService = new AuthorizationService(this.reactContext, configuration);
@@ -375,6 +384,19 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         }
     }
 
+    private void parseHeaderMap (ReadableMap headerMap) {
+        if (headerMap == null) {
+            return;
+        }
+        if (headerMap.hasKey("authorize") && headerMap.getType("authorize") == ReadableType.Map) {
+            this.authorizationRequestHeaders = MapUtil.readableMapToHashMap(headerMap.getMap("authorize"));
+        }
+        if (headerMap.hasKey("token") && headerMap.getType("token") == ReadableType.Map) {
+            this.tokenRequestHeaders = MapUtil.readableMapToHashMap(headerMap.getMap("token"));
+        }
+
+    }
+
     /*
      * Create a space-delimited string from an array
      */
@@ -402,12 +424,21 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     /*
      *  Create appropriate connection builder based on provided settings
      */
-    private ConnectionBuilder createConnectionBuilder(Boolean allowInsecureConnections) {
+    private ConnectionBuilder createConnectionBuilder(Boolean allowInsecureConnections, Map<String, String> headers) {
+        ConnectionBuilder proxiedBuilder;
+
         if (allowInsecureConnections.equals(true)) {
-            return UnsafeConnectionBuilder.INSTANCE;
+            proxiedBuilder =UnsafeConnectionBuilder.INSTANCE;
+        } else {
+            proxiedBuilder = DefaultConnectionBuilder.INSTANCE;
         }
 
-        return DefaultConnectionBuilder.INSTANCE;
+        CustomConnectionBuilder customConnection = new CustomConnectionBuilder(proxiedBuilder);
+        if (headers != null) {
+            customConnection.setHeaders(headers);
+        }
+
+        return customConnection;
     }
 
     /*

@@ -22,6 +22,32 @@ const validateClientId = clientId =>
 const validateRedirectUrl = redirectUrl =>
   invariant(typeof redirectUrl === 'string', 'Config error: redirectUrl must be a string');
 
+const validateHeaders = headers => {
+  if (!headers) {
+    return;
+  }
+  const customHeaderTypeErrorMessage =
+    'Config error: customHeaders type must be { token?: { [key: string]: string }, authorize?: { [key: string]: string }}';
+
+  const authorizedKeys = ['token', 'authorize'];
+  const keys = Object.keys(headers);
+  const correctKeys = keys.filter(key => authorizedKeys.includes(key));
+  invariant(
+    keys.length <= authorizedKeys.length &&
+      correctKeys.length > 0 &&
+      correctKeys.length === keys.length,
+    customHeaderTypeErrorMessage
+  );
+
+  Object.values(headers).forEach(value => {
+    invariant(typeof value === 'object', customHeaderTypeErrorMessage);
+    invariant(
+      Object.values(value).filter(key => typeof key !== 'string').length === 0,
+      customHeaderTypeErrorMessage
+    );
+  });
+};
+
 export const authorize = ({
   issuer,
   redirectUrl,
@@ -33,10 +59,12 @@ export const authorize = ({
   additionalParameters,
   serviceConfiguration,
   dangerouslyAllowInsecureHttpRequests = false,
+  customHeaders,
 }) => {
   validateIssuerOrServiceConfigurationEndpoints(issuer, serviceConfiguration);
   validateClientId(clientId);
   validateRedirectUrl(redirectUrl);
+  validateHeaders(customHeaders);
   // TODO: validateAdditionalParameters
 
   const nativeMethodArguments = [
@@ -51,6 +79,7 @@ export const authorize = ({
 
   if (Platform.OS === 'android') {
     nativeMethodArguments.push(dangerouslyAllowInsecureHttpRequests);
+    nativeMethodArguments.push(customHeaders);
   }
 
   if (Platform.OS === 'ios') {
@@ -71,12 +100,14 @@ export const refresh = (
     additionalParameters,
     serviceConfiguration,
     dangerouslyAllowInsecureHttpRequests = false,
+    customHeaders,
   },
   { refreshToken }
 ) => {
   validateIssuerOrServiceConfigurationEndpoints(issuer, serviceConfiguration);
   validateClientId(clientId);
   validateRedirectUrl(redirectUrl);
+  validateHeaders(customHeaders);
   invariant(refreshToken, 'Please pass in a refresh token');
   // TODO: validateAdditionalParameters
 
@@ -93,6 +124,7 @@ export const refresh = (
 
   if (Platform.OS === 'android') {
     nativeMethodArguments.push(dangerouslyAllowInsecureHttpRequests);
+    nativeMethodArguments.push(customHeaders);
   }
 
   return RNAppAuth.refresh(...nativeMethodArguments);
