@@ -1,5 +1,5 @@
 #import "RNAppAuth.h"
-#if __has_include("<AppAuth/AppAuth.h>")
+#if __has_include(<AppAuth/AppAuth.h>)
 #import <AppAuth/AppAuth.h>
 #else
 #import "AppAuth.h"
