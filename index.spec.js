@@ -30,6 +30,7 @@ describe('AppAuth', () => {
     clientId: 'test-clientId',
     clientSecret: 'test-clientSecret',
     additionalParameters: { hello: 'world' },
+    clientAuthMethod: 'post',
     serviceConfiguration: null,
     scopes: ['my-scope'],
     useNonce: true,

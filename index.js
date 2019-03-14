@@ -58,6 +58,7 @@ export const authorize = ({
   usePKCE = true,
   additionalParameters,
   serviceConfiguration,
+  clientAuthMethod = 'basic',
   dangerouslyAllowInsecureHttpRequests = false,
   customHeaders,
 }) => {
@@ -78,6 +79,7 @@ export const authorize = ({
   ];
 
   if (Platform.OS === 'android') {
+    nativeMethodArguments.push(clientAuthMethod);
     nativeMethodArguments.push(dangerouslyAllowInsecureHttpRequests);
     nativeMethodArguments.push(customHeaders);
   }
@@ -99,6 +101,7 @@ export const refresh = (
     scopes,
     additionalParameters,
     serviceConfiguration,
+    clientAuthMethod = 'basic',
     dangerouslyAllowInsecureHttpRequests = false,
     customHeaders,
   },
@@ -123,6 +126,7 @@ export const refresh = (
   ];
 
   if (Platform.OS === 'android') {
+    nativeMethodArguments.push(clientAuthMethod);
     nativeMethodArguments.push(dangerouslyAllowInsecureHttpRequests);
     nativeMethodArguments.push(customHeaders);
   }
