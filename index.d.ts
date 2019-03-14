@@ -33,6 +33,7 @@ export type AuthConfiguration = BaseAuthConfiguration & {
   scopes: string[];
   redirectUrl: string;
   additionalParameters?: BuiltInParameters & { [name: string]: string };
+  clientAuthMethod?: 'basic' | 'post';
   dangerouslyAllowInsecureHttpRequests?: boolean;
   customHeaders?: CustomHeaders;
   useNonce?: boolean;

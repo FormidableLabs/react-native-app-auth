@@ -30,6 +30,7 @@ describe('AppAuth', () => {
     clientId: 'test-clientId',
     clientSecret: 'test-clientSecret',
     additionalParameters: { hello: 'world' },
+    clientAuthMethod: 'post',
     serviceConfiguration: null,
     scopes: ['my-scope'],
     useNonce: true,
@@ -164,6 +165,7 @@ describe('AppAuth', () => {
             config.scopes,
             config.additionalParameters,
             config.serviceConfiguration,
+            config.clientAuthMethod,
             false,
             config.customHeaders
           );
@@ -179,6 +181,7 @@ describe('AppAuth', () => {
             config.scopes,
             config.additionalParameters,
             config.serviceConfiguration,
+            config.clientAuthMethod,
             false,
             config.customHeaders
           );
@@ -194,6 +197,7 @@ describe('AppAuth', () => {
             config.scopes,
             config.additionalParameters,
             config.serviceConfiguration,
+            config.clientAuthMethod,
             true,
             config.customHeaders
           );
@@ -213,6 +217,7 @@ describe('AppAuth', () => {
             config.scopes,
             config.additionalParameters,
             config.serviceConfiguration,
+            config.clientAuthMethod,
             false,
             customHeaders
           );
@@ -305,6 +310,7 @@ describe('AppAuth', () => {
             config.scopes,
             config.additionalParameters,
             config.serviceConfiguration,
+            config.clientAuthMethod,
             false,
             config.customHeaders
           );
@@ -324,6 +330,7 @@ describe('AppAuth', () => {
             config.scopes,
             config.additionalParameters,
             config.serviceConfiguration,
+            config.clientAuthMethod,
             false,
             config.customHeaders
           );
@@ -343,6 +350,7 @@ describe('AppAuth', () => {
             config.scopes,
             config.additionalParameters,
             config.serviceConfiguration,
+            config.clientAuthMethod,
             true,
             config.customHeaders
           );
@@ -362,6 +370,7 @@ describe('AppAuth', () => {
             config.scopes,
             config.additionalParameters,
             config.serviceConfiguration,
+            config.clientAuthMethod,
             false,
             customHeaders
           );

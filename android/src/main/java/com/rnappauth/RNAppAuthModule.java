@@ -30,6 +30,7 @@ import net.openid.appauth.AuthorizationService;
 import net.openid.appauth.AuthorizationServiceConfiguration;
 import net.openid.appauth.ClientAuthentication;
 import net.openid.appauth.ClientSecretBasic;
+import net.openid.appauth.ClientSecretPost;
 import net.openid.appauth.ResponseTypeValues;
 import net.openid.appauth.TokenResponse;
 import net.openid.appauth.TokenRequest;
@@ -44,6 +45,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     private final ReactApplicationContext reactContext;
     private Promise promise;
     private Boolean dangerouslyAllowInsecureHttpRequests;
+    private String clientAuthMethod = "basic";
     private Map<String, String> authorizationRequestHeaders = null;
     private Map<String, String> tokenRequestHeaders = null;
     private Map<String, String> additionalParametersMap;
@@ -64,6 +66,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final ReadableArray scopes,
             final ReadableMap additionalParameters,
             final ReadableMap serviceConfiguration,
+            final String clientAuthMethod,
             final Boolean dangerouslyAllowInsecureHttpRequests,
             final ReadableMap headers,
             final Promise promise
@@ -82,6 +85,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         this.dangerouslyAllowInsecureHttpRequests = dangerouslyAllowInsecureHttpRequests;
         this.additionalParametersMap = additionalParametersMap;
         this.clientSecret = clientSecret;
+        this.clientAuthMethod = clientAuthMethod;
 
         // when serviceConfiguration is provided, we don't need to hit up the OpenID well-known id endpoint
         if (serviceConfiguration != null) {
@@ -139,6 +143,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final ReadableArray scopes,
             final ReadableMap additionalParameters,
             final ReadableMap serviceConfiguration,
+            final String clientAuthMethod,
             final Boolean dangerouslyAllowInsecureHttpRequests,
             final ReadableMap headers,
             final Promise promise
@@ -167,6 +172,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                         scopes,
                         redirectUrl,
                         additionalParametersMap,
+                        clientAuthMethod,
                         clientSecret,
                         promise
                 );
@@ -195,6 +201,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                     scopes,
                                     redirectUrl,
                                     additionalParametersMap,
+                                    clientAuthMethod,
                                     clientSecret,
                                     promise
                             );
@@ -242,7 +249,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             };
 
             if (this.clientSecret != null) {
-                ClientAuthentication clientAuth = new ClientSecretBasic(this.clientSecret);
+                ClientAuthentication clientAuth = this.getClientAuthentication(this.clientSecret, this.clientAuthMethod);
                 authService.performTokenRequest(tokenRequest, clientAuth, tokenResponseCallback);
 
             } else {
@@ -330,6 +337,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final ReadableArray scopes,
             final String redirectUrl,
             final Map<String, String> additionalParametersMap,
+            final String clientAuthMethod,
             final String clientSecret,
             final Promise promise
     ) {
@@ -376,7 +384,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
 
         if (clientSecret != null) {
-            ClientAuthentication clientAuth = new ClientSecretBasic(clientSecret);
+            ClientAuthentication clientAuth = this.getClientAuthentication(clientSecret, clientAuthMethod);
             authService.performTokenRequest(tokenRequest, clientAuth, tokenResponseCallback);
 
         } else {
@@ -395,6 +403,14 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             this.tokenRequestHeaders = MapUtil.readableMapToHashMap(headerMap.getMap("token"));
         }
 
+    }
+
+    private ClientAuthentication getClientAuthentication(String clientSecret, String clientAuthMethod) {
+        if (clientAuthMethod.equals("post")) {
+            return new ClientSecretPost(clientSecret);
+        }
+
+        return new ClientSecretBasic(clientSecret);
     }
 
     /*
