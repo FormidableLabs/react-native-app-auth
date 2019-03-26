@@ -76,6 +76,7 @@ export const authorize = ({
     scopes,
     additionalParameters,
     serviceConfiguration,
+    usePKCE
   ];
 
   if (Platform.OS === 'android') {
@@ -86,7 +87,6 @@ export const authorize = ({
 
   if (Platform.OS === 'ios') {
     nativeMethodArguments.push(useNonce);
-    nativeMethodArguments.push(usePKCE);
   }
 
   return RNAppAuth.authorize(...nativeMethodArguments);
