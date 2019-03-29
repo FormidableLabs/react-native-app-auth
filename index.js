@@ -76,7 +76,7 @@ export const authorize = ({
     scopes,
     additionalParameters,
     serviceConfiguration,
-    usePKCE
+    usePKCE,
   ];
 
   if (Platform.OS === 'android') {

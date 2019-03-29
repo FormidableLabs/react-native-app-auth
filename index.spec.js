@@ -165,6 +165,7 @@ describe('AppAuth', () => {
             config.scopes,
             config.additionalParameters,
             config.serviceConfiguration,
+            config.usePKCE,
             config.clientAuthMethod,
             false,
             config.customHeaders
@@ -181,6 +182,7 @@ describe('AppAuth', () => {
             config.scopes,
             config.additionalParameters,
             config.serviceConfiguration,
+            config.usePKCE,
             config.clientAuthMethod,
             false,
             config.customHeaders
@@ -197,6 +199,7 @@ describe('AppAuth', () => {
             config.scopes,
             config.additionalParameters,
             config.serviceConfiguration,
+            config.usePKCE,
             config.clientAuthMethod,
             true,
             config.customHeaders
@@ -217,6 +220,7 @@ describe('AppAuth', () => {
             config.scopes,
             config.additionalParameters,
             config.serviceConfiguration,
+            config.usePKCE,
             config.clientAuthMethod,
             false,
             customHeaders
@@ -370,6 +374,7 @@ describe('AppAuth', () => {
             config.scopes,
             config.additionalParameters,
             config.serviceConfiguration,
+            config.usePKCE,
             config.clientAuthMethod,
             false,
             customHeaders
@@ -408,8 +413,8 @@ describe('AppAuth', () => {
           config.scopes,
           config.additionalParameters,
           config.serviceConfiguration,
-          false,
-          true
+          true,
+          false
         );
       });
     });
@@ -429,8 +434,8 @@ describe('AppAuth', () => {
           config.scopes,
           config.additionalParameters,
           config.serviceConfiguration,
-          config.useNonce,
-          true
+          true,
+          config.useNonce
         );
       });
 
@@ -444,8 +449,48 @@ describe('AppAuth', () => {
           config.scopes,
           config.additionalParameters,
           config.serviceConfiguration,
-          config.useNonce,
-          false
+          false,
+          config.useNonce
+        );
+      });
+    });
+
+    describe('Android-specific usePKCE parameter', () => {
+      beforeEach(() => {
+        require('react-native').Platform.OS = 'android';
+      });
+
+      it('calls the native wrapper with default value `true`', () => {
+        authorize(config, { refreshToken: 'such-token' });
+        expect(mockAuthorize).toHaveBeenCalledWith(
+          config.issuer,
+          config.redirectUrl,
+          config.clientId,
+          config.clientSecret,
+          config.scopes,
+          config.additionalParameters,
+          config.serviceConfiguration,
+          true,
+          config.clientAuthMethod,
+          false,
+          config.customHeaders
+        );
+      });
+
+      it('calls the native wrapper with passed value `false`', () => {
+        authorize({ ...config, usePKCE: false }, { refreshToken: 'such-token' });
+        expect(mockAuthorize).toHaveBeenCalledWith(
+          config.issuer,
+          config.redirectUrl,
+          config.clientId,
+          config.clientSecret,
+          config.scopes,
+          config.additionalParameters,
+          config.serviceConfiguration,
+          false,
+          config.clientAuthMethod,
+          false,
+          config.customHeaders
         );
       });
     });
