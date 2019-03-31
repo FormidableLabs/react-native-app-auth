@@ -167,7 +167,8 @@ describe('AppAuth', () => {
             config.serviceConfiguration,
             config.clientAuthMethod,
             false,
-            config.customHeaders
+            config.customHeaders,
+            config.usePKCE
           );
         });
 
@@ -183,7 +184,8 @@ describe('AppAuth', () => {
             config.serviceConfiguration,
             config.clientAuthMethod,
             false,
-            config.customHeaders
+            config.customHeaders,
+            config.usePKCE
           );
         });
 
@@ -199,7 +201,8 @@ describe('AppAuth', () => {
             config.serviceConfiguration,
             config.clientAuthMethod,
             true,
-            config.customHeaders
+            config.customHeaders,
+            config.usePKCE
           );
         });
       });
@@ -219,7 +222,8 @@ describe('AppAuth', () => {
             config.serviceConfiguration,
             config.clientAuthMethod,
             false,
-            customHeaders
+            customHeaders,
+            config.usePKCE
           );
         });
       });
@@ -372,7 +376,8 @@ describe('AppAuth', () => {
             config.serviceConfiguration,
             config.clientAuthMethod,
             false,
-            customHeaders
+            customHeaders,
+            config.usePKCE
           );
         });
       });

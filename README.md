@@ -103,7 +103,7 @@ with optional overrides.
   * **authorize** - (`{ [key: string]: value }`) headers to be passed during authorization request.
   * **token** - (`{ [key: string]: value }`) headers to be passed during token retrieval request.
 * **useNonce** - (`boolean`) _IOS_ (default: true) optionally allows not sending the nonce parameter, to support non-compliant providers
-* **usePKCE** - (`boolean`) _IOS_ (default: true) optionally allows not sending the code_challenge parameter and skipping PKCE code verification, to support non-compliant providers.
+* **usePKCE** - (`boolean`) (default: true) optionally allows not sending the code_challenge parameter and skipping PKCE code verification, to support non-compliant providers.
 
 #### result
 

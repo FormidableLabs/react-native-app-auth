@@ -82,6 +82,7 @@ export const authorize = ({
     nativeMethodArguments.push(clientAuthMethod);
     nativeMethodArguments.push(dangerouslyAllowInsecureHttpRequests);
     nativeMethodArguments.push(customHeaders);
+    nativeMethodArguments.push(usePKCE);
   }
 
   if (Platform.OS === 'ios') {
