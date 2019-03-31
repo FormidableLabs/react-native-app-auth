@@ -344,7 +344,7 @@ correct Android Support library version to your project:
    of the appcompat libraries and need to upgdrade:
    ```
    dependencies {
-     compile "com.android.support:appcompat-v7:25.3.1"
+     implementation "com.android.support:appcompat-v7:${rootProject.ext.supportLibVersion}"
    }
    ```
 3. If necessary, update the `compileSdkVersion` to 25:
