@@ -76,17 +76,18 @@ export const authorize = ({
     scopes,
     additionalParameters,
     serviceConfiguration,
-    usePKCE,
   ];
 
   if (Platform.OS === 'android') {
     nativeMethodArguments.push(clientAuthMethod);
     nativeMethodArguments.push(dangerouslyAllowInsecureHttpRequests);
     nativeMethodArguments.push(customHeaders);
+    nativeMethodArguments.push(usePKCE);
   }
 
   if (Platform.OS === 'ios') {
     nativeMethodArguments.push(useNonce);
+    nativeMethodArguments.push(usePKCE);
   }
 
   return RNAppAuth.authorize(...nativeMethodArguments);

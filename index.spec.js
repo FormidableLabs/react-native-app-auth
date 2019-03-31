@@ -165,10 +165,10 @@ describe('AppAuth', () => {
             config.scopes,
             config.additionalParameters,
             config.serviceConfiguration,
-            config.usePKCE,
             config.clientAuthMethod,
             false,
-            config.customHeaders
+            config.customHeaders,
+            config.usePKCE
           );
         });
 
@@ -182,10 +182,10 @@ describe('AppAuth', () => {
             config.scopes,
             config.additionalParameters,
             config.serviceConfiguration,
-            config.usePKCE,
             config.clientAuthMethod,
             false,
-            config.customHeaders
+            config.customHeaders,
+            config.usePKCE
           );
         });
 
@@ -199,10 +199,10 @@ describe('AppAuth', () => {
             config.scopes,
             config.additionalParameters,
             config.serviceConfiguration,
-            config.usePKCE,
             config.clientAuthMethod,
             true,
-            config.customHeaders
+            config.customHeaders,
+            config.usePKCE
           );
         });
       });
@@ -220,10 +220,10 @@ describe('AppAuth', () => {
             config.scopes,
             config.additionalParameters,
             config.serviceConfiguration,
-            config.usePKCE,
             config.clientAuthMethod,
             false,
-            customHeaders
+            customHeaders,
+            config.usePKCE
           );
         });
       });
@@ -374,10 +374,10 @@ describe('AppAuth', () => {
             config.scopes,
             config.additionalParameters,
             config.serviceConfiguration,
-            config.usePKCE,
             config.clientAuthMethod,
             false,
-            customHeaders
+            customHeaders,
+            config.usePKCE
           );
         });
       });
@@ -413,8 +413,8 @@ describe('AppAuth', () => {
           config.scopes,
           config.additionalParameters,
           config.serviceConfiguration,
-          true,
-          false
+          false,
+          true
         );
       });
     });
@@ -434,8 +434,8 @@ describe('AppAuth', () => {
           config.scopes,
           config.additionalParameters,
           config.serviceConfiguration,
-          true,
-          config.useNonce
+          config.useNonce,
+          true
         );
       });
 
@@ -449,48 +449,8 @@ describe('AppAuth', () => {
           config.scopes,
           config.additionalParameters,
           config.serviceConfiguration,
-          false,
-          config.useNonce
-        );
-      });
-    });
-
-    describe('Android-specific usePKCE parameter', () => {
-      beforeEach(() => {
-        require('react-native').Platform.OS = 'android';
-      });
-
-      it('calls the native wrapper with default value `true`', () => {
-        authorize(config, { refreshToken: 'such-token' });
-        expect(mockAuthorize).toHaveBeenCalledWith(
-          config.issuer,
-          config.redirectUrl,
-          config.clientId,
-          config.clientSecret,
-          config.scopes,
-          config.additionalParameters,
-          config.serviceConfiguration,
-          true,
-          config.clientAuthMethod,
-          false,
-          config.customHeaders
-        );
-      });
-
-      it('calls the native wrapper with passed value `false`', () => {
-        authorize({ ...config, usePKCE: false }, { refreshToken: 'such-token' });
-        expect(mockAuthorize).toHaveBeenCalledWith(
-          config.issuer,
-          config.redirectUrl,
-          config.clientId,
-          config.clientSecret,
-          config.scopes,
-          config.additionalParameters,
-          config.serviceConfiguration,
-          false,
-          config.clientAuthMethod,
-          false,
-          config.customHeaders
+          config.useNonce,
+          false
         );
       });
     });
