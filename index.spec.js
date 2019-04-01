@@ -165,10 +165,10 @@ describe('AppAuth', () => {
             config.scopes,
             config.additionalParameters,
             config.serviceConfiguration,
+            config.usePKCE,
             config.clientAuthMethod,
             false,
-            config.customHeaders,
-            config.usePKCE
+            config.customHeaders
           );
         });
 
@@ -182,10 +182,10 @@ describe('AppAuth', () => {
             config.scopes,
             config.additionalParameters,
             config.serviceConfiguration,
+            config.usePKCE,
             config.clientAuthMethod,
             false,
-            config.customHeaders,
-            config.usePKCE
+            config.customHeaders
           );
         });
 
@@ -199,10 +199,10 @@ describe('AppAuth', () => {
             config.scopes,
             config.additionalParameters,
             config.serviceConfiguration,
+            config.usePKCE,
             config.clientAuthMethod,
             true,
-            config.customHeaders,
-            config.usePKCE
+            config.customHeaders
           );
         });
       });
@@ -220,10 +220,10 @@ describe('AppAuth', () => {
             config.scopes,
             config.additionalParameters,
             config.serviceConfiguration,
+            config.usePKCE,
             config.clientAuthMethod,
             false,
-            customHeaders,
-            config.usePKCE
+            customHeaders
           );
         });
       });
@@ -374,10 +374,10 @@ describe('AppAuth', () => {
             config.scopes,
             config.additionalParameters,
             config.serviceConfiguration,
+            config.usePKCE,
             config.clientAuthMethod,
             false,
-            customHeaders,
-            config.usePKCE
+            customHeaders
           );
         });
       });
