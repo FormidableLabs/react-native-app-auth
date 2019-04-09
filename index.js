@@ -55,11 +55,13 @@ export const prefetchConfiguration = async ({
   scopes,
   serviceConfiguration,
   dangerouslyAllowInsecureHttpRequests = false,
+  customHeaders,
 }) => {
   if (Platform.OS === 'android') {
     validateIssuerOrServiceConfigurationEndpoints(issuer, serviceConfiguration);
     validateClientId(clientId);
     validateRedirectUrl(redirectUrl);
+    validateHeaders(customHeaders)
 
     const nativeMethodArguments = [
       issuer,
@@ -68,6 +70,7 @@ export const prefetchConfiguration = async ({
       scopes,
       serviceConfiguration,
       dangerouslyAllowInsecureHttpRequests,
+      customHeaders
     ];
 
     RNAppAuth.prefetchConfiguration(...nativeMethodArguments);

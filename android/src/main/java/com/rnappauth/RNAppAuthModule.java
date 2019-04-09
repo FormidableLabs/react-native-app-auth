@@ -70,9 +70,11 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         final ReadableArray scopes,
         final ReadableMap serviceConfiguration,
         final Boolean dangerouslyAllowInsecureHttpRequests,
+        final ReadableMap headers,
         final Promise promise
     ) {
-        final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests);
+        this.parseHeaderMap(headers);
+        final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests, this.authorizationRequestHeaders);
         final CountDownLatch fetchConfigurationLatch = new CountDownLatch(1);
 
         if(!isPrefetched) {
