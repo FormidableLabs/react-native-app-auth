@@ -70,7 +70,7 @@ export interface RefreshConfiguration {
   refreshToken: string;
 }
 
-export function prefetchOnce(config: AuthConfiguration): Promise<void>;
+export function prefetchConfiguration(config: AuthConfiguration): Promise<void>;
 
 export function authorize(config: AuthConfiguration): Promise<AuthorizeResult>;
 

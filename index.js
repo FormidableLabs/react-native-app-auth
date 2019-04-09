@@ -48,7 +48,7 @@ const validateHeaders = headers => {
   });
 };
 
-export const prefetchOnce = async ({
+export const prefetchConfiguration = async ({
   issuer,
   redirectUrl,
   clientId,
@@ -70,7 +70,7 @@ export const prefetchOnce = async ({
       dangerouslyAllowInsecureHttpRequests,
     ];
 
-    RNAppAuth.prefetchOnce(...nativeMethodArguments);
+    RNAppAuth.prefetchConfiguration(...nativeMethodArguments);
   }
 };
 

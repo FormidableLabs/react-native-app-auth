@@ -63,7 +63,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     }
 
     @ReactMethod
-    public void prefetchOnce(
+    public void prefetchConfiguration(
         final String issuer,
         final String redirectUrl,
         final String clientId,
@@ -107,7 +107,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         } else {
             fetchConfigurationLatch.countDown();
         }
-        
+
         try {
             fetchConfigurationLatch.await();
             promise.resolve(isPrefetched);
@@ -177,7 +177,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                             }
 
                             mServiceConfiguration.set(fetchedConfiguration);
-                            
+
                             authorizeWithConfiguration(
                                     fetchedConfiguration,
                                     appAuthConfiguration,
