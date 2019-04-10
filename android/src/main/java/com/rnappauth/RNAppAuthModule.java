@@ -2,10 +2,16 @@ package com.rnappauth;
 
 import android.app.Activity;
 import android.app.PendingIntent;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.customtabs.CustomTabsCallback;
+import android.support.customtabs.CustomTabsClient;
+import android.support.customtabs.CustomTabsServiceConnection;
+import android.util.Log;
 
 import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -37,13 +43,15 @@ import net.openid.appauth.TokenRequest;
 import net.openid.appauth.connectivity.ConnectionBuilder;
 import net.openid.appauth.connectivity.DefaultConnectionBuilder;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.CountDownLatch;
 
 public class RNAppAuthModule extends ReactContextBaseJavaModule implements ActivityEventListener {
+
+    public static final String CUSTOM_TAB_PACKAGE_NAME = "com.android.chrome";
 
     private final ReactApplicationContext reactContext;
     private Promise promise;
@@ -73,6 +81,8 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         final ReadableMap headers,
         final Promise promise
     ) {
+        warmChromeCustomTab(reactContext, issuer);
+
         this.parseHeaderMap(headers);
         final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests, this.authorizationRequestHeaders);
         final CountDownLatch fetchConfigurationLatch = new CountDownLatch(1);
@@ -564,6 +574,21 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         );
     }
 
+    private void warmChromeCustomTab(Context context, final String issuer) {
+        CustomTabsServiceConnection connection = new CustomTabsServiceConnection() {
+            @Override
+            public void onCustomTabsServiceConnected(ComponentName name, CustomTabsClient client) {
+                client.warmup(0);
+                client.newSession(new CustomTabsCallback()).mayLaunchUrl(Uri.parse(issuer), null, Collections.<Bundle>emptyList());
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+
+            }
+        };
+        CustomTabsClient.bindCustomTabsService(context, CUSTOM_TAB_PACKAGE_NAME, connection);
+    }
 
     @Override
     public void onNewIntent(Intent intent) {
