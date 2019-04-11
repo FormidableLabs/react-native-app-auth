@@ -81,12 +81,13 @@ const result = await authorize(config);
 
 ### `prefetchConfiguration`
 
-This will prefetch the authorization service configuration. Invoking this function is optional
-and will speed up calls to authorize.
+ANDROID This will prefetch the authorization service configuration. Invoking this function is optional
+and will speed up calls to authorize. This is only supported on Android.
 
 ```js
 import { prefetchConfiguration } from 'react-native-app-auth';
 
+const warmAndPrefetchChrome = true
 const config = {
   issuer: '<YOUR_ISSUER_URL>',
   clientId: '<YOUR_CLIENT_ID>',
@@ -94,7 +95,7 @@ const config = {
   scopes: ['<YOUR_SCOPES_ARRAY>'],
 };
 
-prefetchConfiguration(config);
+prefetchConfiguration(warmAndPrefetchChrome, config);
 ```
 
 #### config

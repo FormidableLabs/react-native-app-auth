@@ -72,6 +72,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
     @ReactMethod
     public void prefetchConfiguration(
+        final Boolean warmAndPrefetchChrome,
         final String issuer,
         final String redirectUrl,
         final String clientId,
@@ -81,7 +82,9 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         final ReadableMap headers,
         final Promise promise
     ) {
-        warmChromeCustomTab(reactContext, issuer);
+        if (warmAndPrefetchChrome) {
+            warmChromeCustomTab(reactContext, issuer);
+        }
 
         this.parseHeaderMap(headers);
         final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests, this.authorizationRequestHeaders);
