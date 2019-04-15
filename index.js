@@ -49,14 +49,14 @@ const validateHeaders = headers => {
 };
 
 export const prefetchConfiguration = async ({
-    warmAndPrefetchChrome,
-    issuer,
-    redirectUrl,
-    clientId,
-    scopes,
-    serviceConfiguration,
-    dangerouslyAllowInsecureHttpRequests = false,
-    customHeaders,
+  warmAndPrefetchChrome,
+  issuer,
+  redirectUrl,
+  clientId,
+  scopes,
+  serviceConfiguration,
+  dangerouslyAllowInsecureHttpRequests = false,
+  customHeaders,
 }) => {
   if (Platform.OS === 'android') {
     validateIssuerOrServiceConfigurationEndpoints(issuer, serviceConfiguration);
