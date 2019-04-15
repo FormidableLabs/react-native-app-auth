@@ -5,10 +5,8 @@
 <br><br>
 
 [![npm package version](https://badge.fury.io/js/react-native-app-auth.svg)](https://badge.fury.io/js/react-native-app-auth)
+[![Maintenance Status][maintenance-image]](#maintenance-status)
 
-#### Maintenance Status: Active
-
-Formidable is actively working on this project, and we expect to continue for work for the foreseeable future. Bug reports, feature requests and pull requests are welcome. 
 
 #### This is the API documentation for `react-native-app-auth >= 4.0.`
 
@@ -408,3 +406,12 @@ Some authentication providers, including examples cited below, require you to pr
 
 Having said this, in some cases using client secrets is unavoidable. In these cases, a `clientSecret` parameter can be provided to `authorize`/`refresh` calls when performing a token request.
 g
+
+
+
+#### Maintenance Status
+
+**Active:** Formidable is actively working on this project, and we expect to continue for work for the foreseeable future. Bug reports, feature requests and pull requests are welcome. 
+
+[maintenance-image]: https://img.shields.io/badge/maintenance-active-green.svg
+
