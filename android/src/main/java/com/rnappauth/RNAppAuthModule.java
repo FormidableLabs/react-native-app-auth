@@ -2,10 +2,16 @@ package com.rnappauth;
 
 import android.app.Activity;
 import android.app.PendingIntent;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.customtabs.CustomTabsCallback;
+import android.support.customtabs.CustomTabsClient;
+import android.support.customtabs.CustomTabsServiceConnection;
+import android.util.Log;
 
 import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -37,10 +43,15 @@ import net.openid.appauth.TokenRequest;
 import net.openid.appauth.connectivity.ConnectionBuilder;
 import net.openid.appauth.connectivity.DefaultConnectionBuilder;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.CountDownLatch;
 
 public class RNAppAuthModule extends ReactContextBaseJavaModule implements ActivityEventListener {
+
+    public static final String CUSTOM_TAB_PACKAGE_NAME = "com.android.chrome";
 
     private final ReactApplicationContext reactContext;
     private Promise promise;
@@ -50,11 +61,74 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     private Map<String, String> tokenRequestHeaders = null;
     private Map<String, String> additionalParametersMap;
     private String clientSecret;
+    private final AtomicReference<AuthorizationServiceConfiguration> mServiceConfiguration = new AtomicReference<>();
+    private boolean isPrefetched = false;
 
     public RNAppAuthModule(ReactApplicationContext reactContext) {
         super(reactContext);
         this.reactContext = reactContext;
         reactContext.addActivityEventListener(this);
+    }
+
+    @ReactMethod
+    public void prefetchConfiguration(
+        final Boolean warmAndPrefetchChrome,
+        final String issuer,
+        final String redirectUrl,
+        final String clientId,
+        final ReadableArray scopes,
+        final ReadableMap serviceConfiguration,
+        final Boolean dangerouslyAllowInsecureHttpRequests,
+        final ReadableMap headers,
+        final Promise promise
+    ) {
+        if (warmAndPrefetchChrome) {
+            warmChromeCustomTab(reactContext, issuer);
+        }
+
+        this.parseHeaderMap(headers);
+        final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests, this.authorizationRequestHeaders);
+        final CountDownLatch fetchConfigurationLatch = new CountDownLatch(1);
+
+        if(!isPrefetched) {
+            if (serviceConfiguration != null && mServiceConfiguration.get() == null) {
+                try {
+                    mServiceConfiguration.set(createAuthorizationServiceConfiguration(serviceConfiguration));
+                    isPrefetched = true;
+                    fetchConfigurationLatch.countDown();
+                } catch (Exception e) {
+                    promise.reject("RNAppAuth Error", "Failed to convert serviceConfiguration", e);
+                }
+            } else if (mServiceConfiguration.get() == null) {
+                final Uri issuerUri = Uri.parse(issuer);
+                AuthorizationServiceConfiguration.fetchFromUrl(
+                        buildConfigurationUriFromIssuer(issuerUri),
+                        new AuthorizationServiceConfiguration.RetrieveConfigurationCallback() {
+                            public void onFetchConfigurationCompleted(
+                                    @Nullable AuthorizationServiceConfiguration fetchedConfiguration,
+                                    @Nullable AuthorizationException ex) {
+                                if (ex != null) {
+                                    promise.reject("RNAppAuth Error", "Failed to fetch configuration", ex);
+                                    return;
+                                }
+                                mServiceConfiguration.set(fetchedConfiguration);
+                                isPrefetched = true;
+                                fetchConfigurationLatch.countDown();
+                            }
+                        },
+                        builder
+                );
+            }
+        } else {
+            fetchConfigurationLatch.countDown();
+        }
+
+        try {
+            fetchConfigurationLatch.await();
+            promise.resolve(isPrefetched);
+        } catch (Exception e) {
+            promise.reject("RNAppAuth Error", "Failed to await fetch configuration", e);
+        }
     }
 
     @ReactMethod
@@ -89,10 +163,11 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         this.clientAuthMethod = clientAuthMethod;
 
         // when serviceConfiguration is provided, we don't need to hit up the OpenID well-known id endpoint
-        if (serviceConfiguration != null) {
+        if (serviceConfiguration != null || mServiceConfiguration.get() != null) {
             try {
+                final AuthorizationServiceConfiguration serviceConfig = mServiceConfiguration.get() != null ? mServiceConfiguration.get() : createAuthorizationServiceConfiguration(serviceConfiguration);
                 authorizeWithConfiguration(
-                        createAuthorizationServiceConfiguration(serviceConfiguration),
+                        serviceConfig,
                         appAuthConfiguration,
                         clientId,
                         scopes,
@@ -115,6 +190,8 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                 promise.reject("Failed to fetch configuration", ex.errorDescription);
                                 return;
                             }
+
+                            mServiceConfiguration.set(fetchedConfiguration);
 
                             authorizeWithConfiguration(
                                     fetchedConfiguration,
@@ -165,10 +242,11 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         this.additionalParametersMap = additionalParametersMap;
 
         // when serviceConfiguration is provided, we don't need to hit up the OpenID well-known id endpoint
-        if (serviceConfiguration != null) {
+        if (serviceConfiguration != null || mServiceConfiguration.get() != null) {
             try {
+                final AuthorizationServiceConfiguration serviceConfig = mServiceConfiguration.get() != null ? mServiceConfiguration.get() : createAuthorizationServiceConfiguration(serviceConfiguration);
                 refreshWithConfiguration(
-                        createAuthorizationServiceConfiguration(serviceConfiguration),
+                        serviceConfig,
                         appAuthConfiguration,
                         refreshToken,
                         clientId,
@@ -184,7 +262,6 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             }
         } else {
             final Uri issuerUri = Uri.parse(issuer);
-            // @TODO: Refactor to avoid hitting IDP endpoint on refresh, reuse fetchedConfiguration if possible.
             AuthorizationServiceConfiguration.fetchFromUrl(
                     buildConfigurationUriFromIssuer(issuerUri),
                     new AuthorizationServiceConfiguration.RetrieveConfigurationCallback() {
@@ -195,6 +272,8 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                 promise.reject("Failed to fetch configuration", ex.errorDescription);
                                 return;
                             }
+
+                            mServiceConfiguration.set(fetchedConfiguration);
 
                             refreshWithConfiguration(
                                     fetchedConfiguration,
@@ -498,6 +577,21 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         );
     }
 
+    private void warmChromeCustomTab(Context context, final String issuer) {
+        CustomTabsServiceConnection connection = new CustomTabsServiceConnection() {
+            @Override
+            public void onCustomTabsServiceConnected(ComponentName name, CustomTabsClient client) {
+                client.warmup(0);
+                client.newSession(new CustomTabsCallback()).mayLaunchUrl(Uri.parse(issuer), null, Collections.<Bundle>emptyList());
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+
+            }
+        };
+        CustomTabsClient.bindCustomTabsService(context, CUSTOM_TAB_PACKAGE_NAME, connection);
+    }
 
     @Override
     public void onNewIntent(Intent intent) {
