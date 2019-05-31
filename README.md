@@ -7,7 +7,6 @@
 [![npm package version](https://badge.fury.io/js/react-native-app-auth.svg)](https://badge.fury.io/js/react-native-app-auth)
 [![Maintenance Status][maintenance-image]](#maintenance-status)
 
-
 #### This is the API documentation for `react-native-app-auth >= 4.0.`
 
 Past documentation: [`3.1`](https://github.com/FormidableLabs/react-native-app-auth/tree/v3.1.0) [`3.0`](https://github.com/FormidableLabs/react-native-app-auth/tree/v3.0.0) [`2.x`](https://github.com/FormidableLabs/react-native-app-auth/tree/v2.0.0) [`1.x`](https://github.com/FormidableLabs/react-native-app-auth/tree/v1.0.1).
@@ -41,6 +40,7 @@ These providers implement the OAuth2 spec, but are not OpenID providers, which m
 * [Fitbit](https://dev.fitbit.com/build/reference/web-api/oauth2/) ([Example configuration](./docs/config-examples/fitbit.md))
 * [Dropbox](https://www.dropbox.com/developers/reference/oauth-guide) ([Example configuration](./docs/config-examples/dropbox.md))
 * [Reddit](https://github.com/reddit-archive/reddit/wiki/oauth2) ([Example configuration](./docs/config-examples/reddit.md))
+* [Coinbase](https://developers.coinbase.com/docs/wallet/coinbase-connect/integrating) ([Example configuration](./docs/config-examples/coinbase.md))
 
 ## Why you may want to use this library
 
@@ -426,11 +426,8 @@ Some authentication providers, including examples cited below, require you to pr
 Having said this, in some cases using client secrets is unavoidable. In these cases, a `clientSecret` parameter can be provided to `authorize`/`refresh` calls when performing a token request.
 g
 
-
-
 #### Maintenance Status
 
 **Active:** Formidable is actively working on this project, and we expect to continue for work for the foreseeable future. Bug reports, feature requests and pull requests are welcome.
 
 [maintenance-image]: https://img.shields.io/badge/maintenance-active-green.svg
-
