@@ -3,9 +3,9 @@
 Demo application installing the AppAuth dependency using Pods
 
 ## Versions
-- **React Native** 0.57.2
+- **React Native** 0.59.8
 - **App Auth:** 0.94.0
-- **React Native App Auth:** Latest
+- **React Native App Auth:** 4.4.0
 
 ## Setup
 
