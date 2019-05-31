@@ -10,7 +10,7 @@ type State = {
   hasLoggedInOnce: boolean,
   accessToken: ?string,
   accessTokenExpirationDate: ?string,
-  refreshToken: ?string
+  refreshToken: ?string,
 };
 
 const config = {
@@ -32,7 +32,7 @@ export default class App extends Component<{}, State> {
     hasLoggedInOnce: false,
     accessToken: '',
     accessTokenExpirationDate: '',
-    refreshToken: ''
+    refreshToken: '',
   };
 
   animateState(nextState: $Shape<State>, delay: number = 0) {
@@ -54,7 +54,7 @@ export default class App extends Component<{}, State> {
           accessToken: authState.accessToken,
           accessTokenExpirationDate: authState.accessTokenExpirationDate,
           refreshToken: authState.refreshToken,
-          scopes: authState.scopes
+          scopes: authState.scopes,
         },
         500
       );
@@ -66,14 +66,14 @@ export default class App extends Component<{}, State> {
   refresh = async () => {
     try {
       const authState = await refresh(config, {
-        refreshToken: this.state.refreshToken
+        refreshToken: this.state.refreshToken,
       });
 
       this.animateState({
         accessToken: authState.accessToken || this.state.accessToken,
         accessTokenExpirationDate:
           authState.accessTokenExpirationDate || this.state.accessTokenExpirationDate,
-        refreshToken: authState.refreshToken || this.state.refreshToken
+        refreshToken: authState.refreshToken || this.state.refreshToken,
       });
     } catch (error) {
       Alert.alert('Failed to refresh token', error.message);
@@ -84,12 +84,12 @@ export default class App extends Component<{}, State> {
     try {
       await revoke(config, {
         tokenToRevoke: this.state.accessToken,
-        sendClientId: true
+        sendClientId: true,
       });
       this.animateState({
         accessToken: '',
         accessTokenExpirationDate: '',
-        refreshToken: ''
+        refreshToken: '',
       });
     } catch (error) {
       Alert.alert('Failed to revoke token', error.message);
@@ -108,7 +108,7 @@ export default class App extends Component<{}, State> {
             <Form.Value>{state.accessTokenExpirationDate}</Form.Value>
             <Form.Label>refreshToken</Form.Label>
             <Form.Value>{state.refreshToken}</Form.Value>
-            <Form.Label>Scopes</Form.Label>
+            <Form.Label>scopes</Form.Label>
             <Form.Value>{state.scopes.join(', ')}</Form.Value>
           </Form>
         ) : (

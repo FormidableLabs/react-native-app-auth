@@ -8,7 +8,7 @@ const SafeArea = styled.SafeAreaView`
 `;
 
 const Background = styled.ImageBackground.attrs({
-  source: require('../assets/background.jpg'),
+  source: require('../assets/background.jpg')
 })`
   flex: 1;
   background-color: white;
