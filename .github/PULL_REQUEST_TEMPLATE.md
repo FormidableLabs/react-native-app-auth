@@ -1,6 +1,11 @@
-- [ ] include issue number that will be resolved by this PR (e.g. `Fixes #1234`)
-- [ ] include a summary of the work
-- [ ] include steps to verify
-- [ ] update tests (if applicable)
-- [ ] update readme (if applicable)
-- [ ] update typescript definitions (if applicable)
+Fixes #... <!-- Link the issue that will be fixed by merging this PR, e.g. Fixes #1234 -->
+
+## Description
+
+<!-- Include a summary of the work -->
+
+## Steps to verify
+
+<!-- Describe steps to verify -->
+
+<!-- Please ensure you have have updated the tests, readme, typescript definitions -->
