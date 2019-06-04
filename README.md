@@ -310,16 +310,6 @@ Make `AppDelegate` conform to `RNAppAuthAuthorizationFlowManager` with the follo
 + @property(nonatomic, weak)id<RNAppAuthAuthorizationFlowManagerDelegate>authorizationFlowManagerDelegate;
 ```
 
-The authorization response URL is returned to the app via the iOS openURL app delegate method, so
-you need to pipe this through to the current authorization session (created in the previous
-instruction). Thus, implement the following method from `UIApplicationDelegate` in `AppDelegate.m`:
-
-```swift
-- (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<NSString *, id> *)options {
- return [self.authorizationFlowManagerDelegate resumeExternalUserAgentFlowWithURL:url];
-}
-```
-
 #### Integration of the library with a Swift iOS project
 
 The approach mentioned above should also be possible to employ with Swift. In this case one should have to import `RNAppAuth`
