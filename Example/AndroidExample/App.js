@@ -10,14 +10,16 @@ type State = {
   hasLoggedInOnce: boolean,
   accessToken: ?string,
   accessTokenExpirationDate: ?string,
-  refreshToken: ?string
+  refreshToken: ?string,
 };
 
 const config = {
   issuer: 'https://demo.identityserver.io',
   clientId: 'native.code',
   redirectUrl: 'io.identityserver.demo:/oauthredirect',
-  additionalParameters: {},
+  additionalParameters: {
+    prompt: 'login'
+  },
   scopes: ['openid', 'profile', 'email', 'offline_access']
 
   // serviceConfiguration: {
@@ -32,7 +34,7 @@ export default class App extends Component<{}, State> {
     hasLoggedInOnce: false,
     accessToken: '',
     accessTokenExpirationDate: '',
-    refreshToken: ''
+    refreshToken: '',
   };
 
   animateState(nextState: $Shape<State>, delay: number = 0) {
@@ -54,7 +56,7 @@ export default class App extends Component<{}, State> {
           accessToken: authState.accessToken,
           accessTokenExpirationDate: authState.accessTokenExpirationDate,
           refreshToken: authState.refreshToken,
-          scopes: authState.scopes
+          scopes: authState.scopes,
         },
         500
       );
@@ -66,14 +68,14 @@ export default class App extends Component<{}, State> {
   refresh = async () => {
     try {
       const authState = await refresh(config, {
-        refreshToken: this.state.refreshToken
+        refreshToken: this.state.refreshToken,
       });
 
       this.animateState({
         accessToken: authState.accessToken || this.state.accessToken,
         accessTokenExpirationDate:
           authState.accessTokenExpirationDate || this.state.accessTokenExpirationDate,
-        refreshToken: authState.refreshToken || this.state.refreshToken
+        refreshToken: authState.refreshToken || this.state.refreshToken,
       });
     } catch (error) {
       Alert.alert('Failed to refresh token', error.message);
@@ -84,12 +86,12 @@ export default class App extends Component<{}, State> {
     try {
       await revoke(config, {
         tokenToRevoke: this.state.accessToken,
-        sendClientId: true
+        sendClientId: true,
       });
       this.animateState({
         accessToken: '',
         accessTokenExpirationDate: '',
-        refreshToken: ''
+        refreshToken: '',
       });
     } catch (error) {
       Alert.alert('Failed to revoke token', error.message);
@@ -112,8 +114,8 @@ export default class App extends Component<{}, State> {
             <Form.Value>{state.scopes.join(', ')}</Form.Value>
           </Form>
         ) : (
-            <Heading>{state.hasLoggedInOnce ? 'Goodbye.' : 'Hello, stranger.'}</Heading>
-          )}
+          <Heading>{state.hasLoggedInOnce ? 'Goodbye.' : 'Hello, stranger.'}</Heading>
+        )}
 
         <ButtonContainer>
           {!state.accessToken ? (
