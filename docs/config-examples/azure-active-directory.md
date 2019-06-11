@@ -4,7 +4,7 @@ Azure Active directory has two OAuth endpoints - [v1 and v2](https://docs.micros
 
 ## V1
 
-The main difference between v1 and v2 is that v2 uses _resources_ and v2 uses _scopes_ for access management.
+The main difference between v1 and v2 is that v1 uses _resources_ and v2 uses _scopes_ for access management.
 
 V1 [does not specify a revocation endpoint](https://docs.microsoft.com/en-us/azure/active-directory/active-directory-configurable-token-lifetimes#access-tokens) because the access token are not revokable. Therefore `revoke` functionality doesn't work.
 
