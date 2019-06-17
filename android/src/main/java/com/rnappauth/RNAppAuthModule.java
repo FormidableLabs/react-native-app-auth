@@ -187,7 +187,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                 @Nullable AuthorizationServiceConfiguration fetchedConfiguration,
                                 @Nullable AuthorizationException ex) {
                             if (ex != null) {
-                                promise.reject("Failed to fetch configuration", ex.errorDescription);
+                                promise.reject("Failed to fetch configuration", getErrorMessage(ex));
                                 return;
                             }
 
@@ -269,7 +269,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                 @Nullable AuthorizationServiceConfiguration fetchedConfiguration,
                                 @Nullable AuthorizationException ex) {
                             if (ex != null) {
-                                promise.reject("Failed to fetch configuration", ex.errorDescription);
+                                promise.reject("Failed to fetch configuration", getErrorMessage(ex));
                                 return;
                             }
 
@@ -498,6 +498,15 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         }
 
         return new ClientSecretBasic(clientSecret);
+    }
+
+    /*
+     * Return error information if it is available
+     */
+    private String getErrorMessage(AuthorizationException ex){
+        if(ex.errorDescription == null && ex.error != null)
+            return ex.error;
+        return ex.errorDescription;
     }
 
     /*
