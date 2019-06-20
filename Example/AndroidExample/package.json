@@ -8,9 +8,9 @@
   },
   "dependencies": {
     "react": "16.8.3",
-    "react-native": "0.59.8",
+    "react-native": "0.59.9",
     "react-native-app-auth": "^4.4.0",
-    "styled-components": "^4.2.1"
+    "styled-components": "^4.3.2"
   },
   "devDependencies": {
     "@babel/core": "^7.4.5",
