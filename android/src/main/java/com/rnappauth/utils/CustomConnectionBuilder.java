@@ -16,7 +16,7 @@ package com.rnappauth.utils;
 
 
 import android.net.Uri;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import net.openid.appauth.connectivity.ConnectionBuilder;
 
