@@ -241,9 +241,9 @@ AppAuth supports three options for dependency management.
    With [CocoaPods](https://guides.cocoapods.org/using/getting-started.html), add the following line to
    your `Podfile`:
 
-       pod 'AppAuth', '>= 0.94'
+       pod 'AppAuth', '1.0'
 
-   Then run `pod install`. Note that version 0.94 is the first of the library to support iOS 11.
+   Then run `pod install`.
 
 2. **Carthage**
 
