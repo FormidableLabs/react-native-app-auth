@@ -183,40 +183,7 @@ const result = await revoke(config, {
 
 ```sh
 npm install react-native-app-auth --save
-react-native link react-native-app-auth
 ```
-
-**Then follow the [Setup](#setup) steps to configure the native iOS and Android projects.**
-
-If you are not using `react-native link`, perform the [Manual installation](#manual-installation)
-steps instead.
-
-### Manual installation
-
-#### iOS
-
-1. In XCode, in the project navigator, right click `Libraries` ➜ `Add Files to [your project's name]`
-2. Go to `node_modules` ➜ `react-native-app-auth` and add `RNAppAuth.xcodeproj`
-3. In XCode, in the project navigator, select your project. Add `libRNAppAuth.a` to your project's
-   `Build Phases` ➜ `Link Binary With Libraries`
-4. Run your project (`Cmd+R`)<
-
-#### Android
-
-1. Open up `android/app/src/main/java/[...]/MainApplication.java`
-
-* Add `import com.rnappauth.RNAppAuthPackage;` to the imports at the top of the file
-* Add `new RNAppAuthPackage()` to the list returned by the `getPackages()` method
-
-2. Append the following lines to `android/settings.gradle`:
-   ```
-   include ':react-native-app-auth'
-   project(':react-native-app-auth').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-app-auth/android')
-   ```
-3. Insert the following lines inside the dependencies block in `android/app/build.gradle`:
-   ```
-     compile project(':react-native-app-auth')
-   ```
 
 ## Setup
 
@@ -238,12 +205,28 @@ AppAuth supports three options for dependency management.
 
 1. **CocoaPods**
 
-   With [CocoaPods](https://guides.cocoapods.org/using/getting-started.html), add the following line to
-   your `Podfile`:
+    **RN<0.60**:
 
-       pod 'AppAuth', '1.0'
+    ```sh
+    react-native link react-native-app-auth
+    ```
 
-   Then run `pod install`.
+    With [CocoaPods](https://guides.cocoapods.org/using/getting-started.html), add the following line to
+    your `Podfile`:
+
+    ```sh
+    pod 'AppAuth', '>= 0.94'
+    ```
+
+    Then run `pod install`.
+
+    **RN>=0.60**:
+    With React Native 0.60 and later, linking of pods is done automatically
+
+    ```sh
+    cd ios
+    pod install
+    ```
 
 2. **Carthage**
 
