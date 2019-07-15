@@ -324,42 +324,9 @@ class AppDelegate: UIApplicationDelegate, RNAppAuthAuthorizationFlowManager {
 
 **Note:** for RN >= 0.57, you will get a warning about compile being obsolete. To get rid of this warning, use [patch-package](https://github.com/ds300/patch-package) to replace compile with implementation [as in this PR](https://github.com/FormidableLabs/react-native-app-auth/pull/242) - we're not deploying this right now, because it would break the build for RN < 57.
 
-To setup the Android project, you need to perform two steps:
+To setup the Android project, you need to add redirect scheme manifest placeholder:
 
-1. [Install Android support libraries](#install-android-support-libraries)
-2. [Add redirect scheme manifest placeholder](#add-redirect-scheme-manifest-placeholder)
-
-##### Install Android support libraries
-
-This library depends on the [AppAuth-Android](https://github.com/openid/AppAuth-android) project.
-The native dependencies for Android are automatically installed by Gradle, but you need to add the
-correct Android Support library version to your project:
-
-1. Add the Google Maven repository in your `android/build.gradle`
-   ```
-   repositories {
-     google()
-   }
-   ```
-2. Make sure the appcompat version in `android/app/build.gradle` matches the one expected by
-   AppAuth. If you generated your project using `react-native init`, you may have an older version
-   of the appcompat libraries and need to upgdrade:
-   ```
-   dependencies {
-     implementation "com.android.support:appcompat-v7:${rootProject.ext.supportLibVersion}"
-   }
-   ```
-3. If necessary, update the `compileSdkVersion` to 25:
-   ```
-   android {
-     compileSdkVersion 25
-   }
-   ```
-
-##### Add redirect scheme manifest placeholder
-
-To
-[capture the authorization redirect](https://github.com/openid/AppAuth-android#capturing-the-authorization-redirect),
+To [capture the authorization redirect](https://github.com/openid/AppAuth-android#capturing-the-authorization-redirect),
 add the following property to the defaultConfig in `android/app/build.gradle`:
 
 ```
