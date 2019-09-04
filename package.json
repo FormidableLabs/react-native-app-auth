@@ -27,7 +27,8 @@
     "ios",
     "android",
     "index.js",
-    "index.d.ts"
+    "index.d.ts",
+    "react-native-app-auth.podspec"
   ],
   "repository": {
     "type": "git",
