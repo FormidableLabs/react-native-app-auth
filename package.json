@@ -20,13 +20,8 @@
     ]
   },
   "files": [
-    "package.json",
-    "CODE_OF_CONDUCT.md",
-    "CONTRIBUTING.md",
-    "LICENSE",
-    "ios",
     "android",
-    "index.js",
+    "ios",
     "index.d.ts",
     "react-native-app-auth.podspec"
   ],
