@@ -164,7 +164,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         // when serviceConfiguration is provided, we don't need to hit up the OpenID well-known id endpoint
         if (serviceConfiguration != null || mServiceConfiguration.get() != null) {
             try {
-                final AuthorizationServiceConfiguration serviceConfig = mServiceConfiguration.get() != null ? mServiceConfiguration.get() : createAuthorizationServiceConfiguration(serviceConfiguration);
+                final AuthorizationServiceConfiguration serviceConfig = serviceConfiguration != null ? createAuthorizationServiceConfiguration(serviceConfiguration) : mServiceConfiguration.get() ;
                 authorizeWithConfiguration(
                         serviceConfig,
                         appAuthConfiguration,
