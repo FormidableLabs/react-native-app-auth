@@ -2,7 +2,7 @@ name: CI
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened, closed]
 
 jobs:
   lint:
@@ -15,7 +15,7 @@ jobs:
         node-version: '10.x'
     - run: yarn install --frozen-lockfile
     - run: yarn lint
-  
+
   test:
     name: Test
     runs-on: ubuntu-latest
