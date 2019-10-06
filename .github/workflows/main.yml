@@ -2,7 +2,10 @@ name: CI
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, closed]
+    types: [opened, synchronize, reopened]
+  push:
+    branches:
+      - master
 
 jobs:
   lint:
