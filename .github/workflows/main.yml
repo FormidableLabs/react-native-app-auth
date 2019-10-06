@@ -1,22 +1,28 @@
 name: CI
 
-on: [push]
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
 
 jobs:
-  test:
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v1
-      - uses: docker://node:8
-        with:
-          entrypoint: yarn
-          args: install --pure-lockfile --audit
-      - uses: docker://node:8
-        with:
-          entrypoint: yarn
-          args: lint
-      - uses: docker://node:8
-        with:
-          entrypoint: yarn
-          args: test
+    - uses: actions/checkout@v1
+    - uses: actions/setup-node@v1
+      with:
+        node-version: '10.x'
+    - run: yarn install --frozen-lockfile
+    - run: yarn lint
+  
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/setup-node@v1
+      with:
+        node-version: '10.x'
+    - run: yarn install --frozen-lockfile
+    - run: yarn test
