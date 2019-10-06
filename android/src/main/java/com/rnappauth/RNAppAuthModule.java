@@ -268,7 +268,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                 @Nullable AuthorizationServiceConfiguration fetchedConfiguration,
                                 @Nullable AuthorizationException ex) {
                             if (ex != null) {
-                                promise.reject("token_refresh_failed", getErrorMessage(ex));
+                                promise.reject("service_configuration_fetch_error", getErrorMessage(ex));
                                 return;
                             }
 
