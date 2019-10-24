@@ -72,5 +72,7 @@
     "react": "^16.1.1",
     "react-native": "^0.50.3"
   },
-  "dependencies": {}
+  "dependencies": {
+    "react-native-base64": "^0.0.2"
+  }
 }

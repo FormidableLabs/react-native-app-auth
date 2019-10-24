@@ -1,5 +1,6 @@
 import invariant from 'invariant';
 import { NativeModules, Platform } from 'react-native';
+import base64 from 'react-native-base64';
 
 const { RNAppAuth } = NativeModules;
 
@@ -167,8 +168,8 @@ export const refresh = (
 };
 
 export const revoke = async (
-  { clientId, issuer, serviceConfiguration },
-  { tokenToRevoke, sendClientId = false }
+  { clientId, issuer, serviceConfiguration, clientSecret },
+  { tokenToRevoke, sendClientId = false, includeBasicAuthorization = false }
 ) => {
   invariant(tokenToRevoke, 'Please include the token to revoke');
   validateClientId(clientId);
@@ -188,7 +189,10 @@ export const revoke = async (
 
     revocationEndpoint = openidConfig.revocation_endpoint;
   }
-
+  let basicAuth;
+  if (includeBasicAuthorization) {
+    basicAuth = base64.encode(`${clientId}:${clientSecret}`);
+  }
   /**
     Identity Server insists on client_id being passed in the body,
     but Google does not. According to the spec, Google is right
@@ -199,6 +203,7 @@ export const revoke = async (
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
+      Authorization: `${includeBasicAuthorization ? `basic ${basicAuth}` : ''}`,
     },
     body: `token=${tokenToRevoke}${sendClientId ? `&client_id=${clientId}` : ''}`,
   }).catch(error => {
