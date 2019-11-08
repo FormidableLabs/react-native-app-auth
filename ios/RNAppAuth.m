@@ -24,6 +24,8 @@
     return dispatch_get_main_queue();
 }
 
+UIBackgroundTaskIdentifier taskId;
+
 /*! @brief Number of random bytes generated for the @ state.
  */
 static NSUInteger const kStateSizeBytes = 32;
@@ -205,12 +207,20 @@ RCT_REMAP_METHOD(refresh,
     }
     appDelegate.authorizationFlowManagerDelegate = self;
     __weak typeof(self) weakSelf = self;
+
+    taskId = [UIApplication.sharedApplication beginBackgroundTaskWithExpirationHandler:^{
+        [UIApplication.sharedApplication endBackgroundTask:taskId];
+        taskId = UIBackgroundTaskInvalid;
+    }];
+
     _currentSession = [OIDAuthState authStateByPresentingAuthorizationRequest:request
                                    presentingViewController:appDelegate.window.rootViewController
                                                    callback:^(OIDAuthState *_Nullable authState,
                                                               NSError *_Nullable error) {
                                                        typeof(self) strongSelf = weakSelf;
                                                        strongSelf->_currentSession = nil;
+                                                       [UIApplication.sharedApplication endBackgroundTask:taskId];
+                                                       taskId = UIBackgroundTaskInvalid;
                                                        if (authState) {
                                                            resolve([self formatResponse:authState.lastTokenResponse
                                                                withAuthResponse:authState.lastAuthorizationResponse]);
