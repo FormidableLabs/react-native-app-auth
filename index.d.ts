@@ -5,17 +5,51 @@ export interface ServiceConfiguration {
   registrationEndpoint?: string;
 }
 
-export type BaseAuthConfiguration =
+export type BaseConfiguration =
   | {
-      clientId: string;
       issuer?: string;
       serviceConfiguration: ServiceConfiguration;
     }
   | {
-      clientId: string;
       issuer: string;
       serviceConfiguration?: ServiceConfiguration;
     };
+
+type CustomHeaders = {
+  authorize?: Record<string, string>;
+  token?: Record<string, string>;
+  register?: Record<string, string>;
+};
+
+interface BuiltInRegistrationParameters {
+  client_name?: string;
+  logo_uri?: string;
+  client_uri?: string;
+  policy_uri?: string;
+  tos_uri?: string;
+}
+
+export type RegistrationConfiguration = BaseConfiguration & {
+  redirectUrls: string[];
+  responseTypes?: string[];
+  grantTypes?: string[];
+  subjectType?: string;
+  tokenEndpointAuthMethod?: string;
+  additionalParameters?: BuiltInRegistrationParameters & { [name: string]: string };
+  dangerouslyAllowInsecureHttpRequests?: boolean;
+  customHeaders?: CustomHeaders;
+};
+
+export interface RegistrationResponse {
+  clientId: string;
+  additionalParameters?: { [name: string]: string };
+  clientIdIssuedAt?: string;
+  clientSecret?: string;
+  clientSecretExpiresAt?: string;
+  registrationAccessToken?: string;
+  registrationClientUri?: string;
+  tokenEndpointAuthMethod?: string;
+}
 
 interface BuiltInParameters {
   display?: 'page' | 'popup' | 'touch' | 'wap';
@@ -23,9 +57,8 @@ interface BuiltInParameters {
   prompt?: 'consent' | 'login' | 'none' | 'select_account';
 }
 
-type CustomHeaders = {
-  authorize?: Record<string, string>;
-  token?: Record<string, string>;
+export type BaseAuthConfiguration = BaseConfiguration & {
+  clientId: string;
 };
 
 export type AuthConfiguration = BaseAuthConfiguration & {
@@ -71,6 +104,8 @@ export interface RefreshConfiguration {
 }
 
 export function prefetchConfiguration(config: AuthConfiguration): Promise<void>;
+
+export function register(config: RegistrationConfiguration): Promise<RegistrationResponse>;
 
 export function authorize(config: AuthConfiguration): Promise<AuthorizeResult>;
 
