@@ -27,3 +27,5 @@ rules:
   eqeqeq:
     - error
     - smart
+  max-statements:
+    - off
