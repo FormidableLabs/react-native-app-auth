@@ -20,10 +20,6 @@ install:
 
 jobs:
   include:
-    - stage: Build
-      script:
-        - yarn run build
-
     - stage: Lint
       script:
         - yarn run lint
