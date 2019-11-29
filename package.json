@@ -49,7 +49,6 @@
   "author": "kadi.kraman@formidable.com",
   "license": "MIT",
   "peerDependencies": {
-    "invariant": "^2.2.2",
     "react-native": ">=0.60.0"
   },
   "devDependencies": {
@@ -72,5 +71,7 @@
     "react": "^16.1.1",
     "react-native": "^0.50.3"
   },
-  "dependencies": {}
+  "dependencies": {
+    "invariant": "^2.2.2"
+  }
 }
