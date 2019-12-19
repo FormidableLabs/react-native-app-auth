@@ -300,14 +300,18 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
         if (requestCode == 0) {
             if (data == null) {
-                promise.reject("Failed to authenticate", "Data intent is null" );
+                if (promise != null) {
+                    promise.reject("Failed to authenticate", "Data intent is null" );
+                }
                 return;
             }
-            
+
             final AuthorizationResponse response = AuthorizationResponse.fromIntent(data);
             AuthorizationException exception = AuthorizationException.fromIntent(data);
             if (exception != null) {
-                promise.reject("Failed to authenticate", getErrorMessage(exception));
+                if (promise != null) {
+                    promise.reject("Failed to authenticate", getErrorMessage(exception));
+                }
                 return;
             }
 
@@ -327,9 +331,13 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                         TokenResponse resp, AuthorizationException ex) {
                     if (resp != null) {
                         WritableMap map = TokenResponseFactory.tokenResponseToMap(resp, response);
-                        authorizePromise.resolve(map);
+                        if (authorizePromise != null) {
+                            authorizePromise.resolve(map);
+                        }
                     } else {
-                        promise.reject("Failed exchange token", getErrorMessage(ex));
+                        if (promise != null) {
+                            promise.reject("Failed exchange token", getErrorMessage(ex));
+                        }
                     }
                 }
             };
