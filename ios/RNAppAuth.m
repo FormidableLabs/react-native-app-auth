@@ -64,7 +64,7 @@ RCT_REMAP_METHOD(authorize,
         [OIDAuthorizationService discoverServiceConfigurationForIssuer:[NSURL URLWithString:issuer]
                                                             completion:^(OIDServiceConfiguration *_Nullable configuration, NSError *_Nullable error) {
                                                                 if (!configuration) {
-                                                                    reject(@"RNAppAuth Error", [error localizedDescription], error);
+                                                                    reject(@"service_configuration_fetch_error", [error localizedDescription], error);
                                                                     return;
                                                                 }
                                                                 [self authorizeWithConfiguration: configuration
@@ -110,7 +110,7 @@ RCT_REMAP_METHOD(refresh,
         [OIDAuthorizationService discoverServiceConfigurationForIssuer:[NSURL URLWithString:issuer]
                                                             completion:^(OIDServiceConfiguration *_Nullable configuration, NSError *_Nullable error) {
                                                                 if (!configuration) {
-                                                                    reject(@"RNAppAuth Error", [error localizedDescription], error);
+                                                                    reject(@"service_configuration_fetch_error", [error localizedDescription], error);
                                                                     return;
                                                                 }
                                                                 [self refreshWithConfiguration: configuration
@@ -215,7 +215,7 @@ RCT_REMAP_METHOD(refresh,
                                                            resolve([self formatResponse:authState.lastTokenResponse
                                                                withAuthResponse:authState.lastAuthorizationResponse]);
                                                        } else {
-                                                           reject(@"RNAppAuth Error", [error localizedDescription], error);
+                                                           reject(@"authentication_failed", [error localizedDescription], error);
                                                        }
                                                    }]; // end [OIDAuthState authStateByPresentingAuthorizationRequest:request
 }
@@ -252,7 +252,7 @@ RCT_REMAP_METHOD(refresh,
                                             if (response) {
                                                 resolve([self formatResponse:response]);
                                             } else {
-                                                reject(@"RNAppAuth Error", [error localizedDescription], error);
+                                                reject(@"token_refresh_failed", [error localizedDescription], error);
                                             }
                                         }];
 }
