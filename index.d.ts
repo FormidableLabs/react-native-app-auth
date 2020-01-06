@@ -57,7 +57,7 @@ export interface RefreshResult {
   accessTokenExpirationDate: string;
   additionalParameters?: { [name: string]: string };
   idToken: string;
-  refreshToken: string;
+  refreshToken: string | null;
   tokenType: string;
 }
 
