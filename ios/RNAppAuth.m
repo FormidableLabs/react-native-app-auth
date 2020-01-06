@@ -62,7 +62,7 @@ RCT_REMAP_METHOD(register,
         [OIDAuthorizationService discoverServiceConfigurationForIssuer:[NSURL URLWithString:issuer]
                                                             completion:^(OIDServiceConfiguration *_Nullable configuration, NSError *_Nullable error) {
                                                                 if (!configuration) {
-                                                                    reject(@"RNAppAuth Error", [error localizedDescription], error);
+                                                                    reject(@"service_configuration_fetch_error", [error localizedDescription], error);
                                                                     return;
                                                                 }
                                                                 [self registerWithConfiguration: configuration
@@ -241,7 +241,7 @@ RCT_REMAP_METHOD(refresh,
                                                  if (response) {
                                                      resolve([self formatRegistrationResponse:response]);
                                                  } else {
-                                                     reject(@"RNAppAuth Error", [error localizedDescription], error);
+                                                     reject(@"registration_failed", [error localizedDescription], error);
                                                  }
                                             }];
 }
