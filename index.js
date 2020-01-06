@@ -189,9 +189,12 @@ export const revoke = async (
 
     revocationEndpoint = openidConfig.revocation_endpoint;
   }
-  let basicAuth;
+
+  const headers = {
+    'Content-Type': 'application/x-www-form-urlencoded',
+  };
   if (includeBasicAuthorization) {
-    basicAuth = base64.encode(`${clientId}:${clientSecret}`);
+    headers.Authorization = `basic ${base64.encode(`${clientId}:${clientSecret}`)}`;
   }
   /**
     Identity Server insists on client_id being passed in the body,
@@ -201,10 +204,7 @@ export const revoke = async (
   **/
   return await fetch(revocationEndpoint, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      Authorization: `${includeBasicAuthorization ? `basic ${basicAuth}` : ''}`,
-    },
+    headers,
     body: `token=${tokenToRevoke}${sendClientId ? `&client_id=${clientId}` : ''}`,
   }).catch(error => {
     throw new Error('Failed to revoke token', error);
