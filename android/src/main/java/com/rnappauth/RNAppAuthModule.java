@@ -96,7 +96,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                     isPrefetched = true;
                     fetchConfigurationLatch.countDown();
                 } catch (Exception e) {
-                    promise.reject("RNAppAuth Error", "Failed to convert serviceConfiguration", e);
+                    promise.reject("configuration_error", "Failed to convert serviceConfiguration", e);
                 }
             } else if (mServiceConfiguration.get() == null) {
                 final Uri issuerUri = Uri.parse(issuer);
@@ -107,7 +107,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                     @Nullable AuthorizationServiceConfiguration fetchedConfiguration,
                                     @Nullable AuthorizationException ex) {
                                 if (ex != null) {
-                                    promise.reject("RNAppAuth Error", "Failed to fetch configuration", ex);
+                                    promise.reject("service_configuration_fetch_error", "Failed to fetch configuration", ex);
                                     return;
                                 }
                                 mServiceConfiguration.set(fetchedConfiguration);
@@ -126,7 +126,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             fetchConfigurationLatch.await();
             promise.resolve(isPrefetched);
         } catch (Exception e) {
-            promise.reject("RNAppAuth Error", "Failed to await fetch configuration", e);
+            promise.reject("service_configuration_fetch_error", "Failed to await fetch configuration", e);
         }
     }
 
@@ -175,7 +175,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                         additionalParametersMap
                 );
             } catch (Exception e) {
-                promise.reject("Failed to authenticate", e.getMessage());
+                promise.reject("authentication_failed", e.getMessage());
             }
         } else {
             final Uri issuerUri = Uri.parse(issuer);
@@ -186,7 +186,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                 @Nullable AuthorizationServiceConfiguration fetchedConfiguration,
                                 @Nullable AuthorizationException ex) {
                             if (ex != null) {
-                                promise.reject("Failed to fetch configuration", getErrorMessage(ex));
+                                promise.reject("service_configuration_fetch_error", getErrorMessage(ex));
                                 return;
                             }
 
@@ -257,7 +257,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                         promise
                 );
             } catch (Exception e) {
-                promise.reject("Failed to refresh token", e.getMessage());
+                promise.reject("token_refresh_failed", e.getMessage());
             }
         } else {
             final Uri issuerUri = Uri.parse(issuer);
@@ -268,7 +268,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                 @Nullable AuthorizationServiceConfiguration fetchedConfiguration,
                                 @Nullable AuthorizationException ex) {
                             if (ex != null) {
-                                promise.reject("Failed to fetch configuration", getErrorMessage(ex));
+                                promise.reject("service_configuration_fetch_error", getErrorMessage(ex));
                                 return;
                             }
 
@@ -301,7 +301,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         if (requestCode == 0) {
             if (data == null) {
                 if (promise != null) {
-                    promise.reject("Failed to authenticate", "Data intent is null" );
+                    promise.reject("authentication_error", "Data intent is null" );
                 }
                 return;
             }
@@ -310,7 +310,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             AuthorizationException exception = AuthorizationException.fromIntent(data);
             if (exception != null) {
                 if (promise != null) {
-                    promise.reject("Failed to authenticate", getErrorMessage(exception));
+                    promise.reject("authentication_error", getErrorMessage(exception));
                 }
                 return;
             }
@@ -336,7 +336,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                         }
                     } else {
                         if (promise != null) {
-                            promise.reject("Failed exchange token", getErrorMessage(ex));
+                            promise.reject("token_exchange_failed", getErrorMessage(ex));
                         }
                     }
                 }
@@ -476,7 +476,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                     WritableMap map = TokenResponseFactory.tokenResponseToMap(response);
                     promise.resolve(map);
                 } else {
-                    promise.reject("Failed to refresh token", getErrorMessage(ex));
+                    promise.reject("token_refresh_failed", getErrorMessage(ex));
                 }
             }
         };
