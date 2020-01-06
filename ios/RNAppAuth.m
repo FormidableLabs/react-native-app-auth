@@ -35,6 +35,50 @@ static NSUInteger const kStateSizeBytes = 32;
 static NSUInteger const kCodeVerifierBytes = 32;
 
 RCT_EXPORT_MODULE()
+    
+RCT_REMAP_METHOD(register,
+                 issuer: (NSString *) issuer
+                 redirectUrls: (NSArray *) redirectUrls
+                 responseTypes: (NSArray *) responseTypes
+                 grantTypes: (NSArray *) grantTypes
+                 subjectType: (NSString *) subjectType
+                 tokenEndpointAuthMethod: (NSString *) tokenEndpointAuthMethod
+                 additionalParameters: (NSDictionary *_Nullable) additionalParameters
+                 serviceConfiguration: (NSDictionary *_Nullable) serviceConfiguration
+                 resolve: (RCTPromiseResolveBlock) resolve
+                 reject: (RCTPromiseRejectBlock)  reject)
+{
+    // if we have manually provided configuration, we can use it and skip the OIDC well-known discovery endpoint call
+    if (serviceConfiguration) {
+        OIDServiceConfiguration *configuration = [self createServiceConfiguration:serviceConfiguration];
+        [self registerWithConfiguration: configuration
+                           redirectUrls: redirectUrls
+                          responseTypes: responseTypes
+                             grantTypes: grantTypes
+                            subjectType: subjectType
+                tokenEndpointAuthMethod: tokenEndpointAuthMethod
+                   additionalParameters: additionalParameters
+                                resolve: resolve
+                                 reject: reject];
+    } else {
+        [OIDAuthorizationService discoverServiceConfigurationForIssuer:[NSURL URLWithString:issuer]
+                                                            completion:^(OIDServiceConfiguration *_Nullable configuration, NSError *_Nullable error) {
+                                                                if (!configuration) {
+                                                                    reject(@"service_configuration_fetch_error", [error localizedDescription], error);
+                                                                    return;
+                                                                }
+                                                                [self registerWithConfiguration: configuration
+                                                                                   redirectUrls: redirectUrls
+                                                                                  responseTypes: responseTypes
+                                                                                     grantTypes: grantTypes
+                                                                                    subjectType: subjectType
+                                                                        tokenEndpointAuthMethod: tokenEndpointAuthMethod
+                                                                           additionalParameters: additionalParameters
+                                                                                        resolve: resolve
+                                                                                         reject: reject];
+                                                            }];
+    }
+} // end RCT_REMAP_METHOD(register,
 
 RCT_REMAP_METHOD(authorize,
                  issuer: (NSString *) issuer
@@ -165,6 +209,45 @@ RCT_REMAP_METHOD(refresh,
   return [OIDTokenUtilities encodeBase64urlNoPadding:sha256Verifier];
 }
 
+    
+/*
+ * Perform dynamic client registration with provided OIDServiceConfiguration
+ */
+- (void)registerWithConfiguration: (OIDServiceConfiguration *) configuration
+                     redirectUrls: (NSArray *) redirectUrlStrings
+                    responseTypes: (NSArray *) responseTypes
+                       grantTypes: (NSArray *) grantTypes
+                      subjectType: (NSString *) subjectType
+          tokenEndpointAuthMethod: (NSString *) tokenEndpointAuthMethod
+             additionalParameters: (NSDictionary *_Nullable) additionalParameters
+                          resolve: (RCTPromiseResolveBlock) resolve
+                           reject: (RCTPromiseRejectBlock)  reject
+{
+    NSMutableArray<NSURL *> *redirectUrls = [NSMutableArray arrayWithCapacity:[redirectUrlStrings count]];
+    for (NSString *urlString in redirectUrlStrings) {
+        [redirectUrls addObject:[NSURL URLWithString:urlString]];
+    }
+    
+    OIDRegistrationRequest *request =
+    [[OIDRegistrationRequest alloc] initWithConfiguration:configuration
+                                             redirectURIs:redirectUrls
+                                            responseTypes:responseTypes
+                                               grantTypes:grantTypes
+                                              subjectType:subjectType
+                                  tokenEndpointAuthMethod:tokenEndpointAuthMethod
+                                     additionalParameters:additionalParameters];
+    
+    [OIDAuthorizationService performRegistrationRequest:request
+                                             completion:^(OIDRegistrationResponse *_Nullable response,
+                                                          NSError *_Nullable error) {
+                                                 if (response) {
+                                                     resolve([self formatRegistrationResponse:response]);
+                                                 } else {
+                                                     reject(@"registration_failed", [error localizedDescription], error);
+                                                 }
+                                            }];
+}
+    
 /*
  * Authorize a user in exchange for a token with provided OIDServiceConfiguration
  */
@@ -305,6 +388,23 @@ RCT_REMAP_METHOD(refresh,
              @"refreshToken": response.refreshToken ? response.refreshToken : @"",
              @"tokenType": response.tokenType ? response.tokenType : @"",
              @"scopes": authResponse.scope ? [authResponse.scope componentsSeparatedByString:@" "] : [NSArray new],
+             };
+}
+    
+- (NSDictionary*)formatRegistrationResponse: (OIDRegistrationResponse*) response {
+    NSDateFormatter *dateFormat = [[NSDateFormatter alloc] init];
+    dateFormat.timeZone = [NSTimeZone timeZoneWithAbbreviation: @"UTC"];
+    [dateFormat setLocale:[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"]];
+    [dateFormat setDateFormat:@"yyyy-MM-dd'T'HH:mm:ss'Z'"];
+    
+    return @{@"clientId": response.clientID,
+             @"additionalParameters": response.additionalParameters,
+             @"clientIdIssuedAt": response.clientIDIssuedAt ? [dateFormat stringFromDate:response.clientIDIssuedAt] : @"",
+             @"clientSecret": response.clientSecret ? response.clientSecret : @"",
+             @"clientSecretExpiresAt": response.clientSecretExpiresAt ? [dateFormat stringFromDate:response.clientSecretExpiresAt] : @"",
+             @"registrationAccessToken": response.registrationAccessToken ? response.registrationAccessToken : @"",
+             @"registrationClientUri": response.registrationClientURI ? response.registrationClientURI : @"",
+             @"tokenEndpointAuthMethod": response.tokenEndpointAuthenticationMethod ? response.tokenEndpointAuthenticationMethod : @"",
              };
 }
 

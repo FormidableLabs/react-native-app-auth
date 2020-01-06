@@ -9,25 +9,7 @@ import com.facebook.react.bridge.WritableMap;
 import net.openid.appauth.AuthorizationResponse;
 import net.openid.appauth.TokenResponse;
 
-import java.util.Iterator;
-import java.util.Map;
-
 public final class TokenResponseFactory {
-    private static final WritableMap createAdditionalParametersMap(Map<String, String> additionalParameters) {
-        WritableMap additionalParametersMap = Arguments.createMap();
-
-        if (!additionalParameters.isEmpty()) {
-
-            Iterator<String> iterator = additionalParameters.keySet().iterator();
-
-            while(iterator.hasNext()) {
-                String key = iterator.next();
-                additionalParametersMap.putString(key, additionalParameters.get(key));
-            }
-        }
-
-        return additionalParametersMap;
-    }
 
     private static final WritableArray createScopeArray(String scope) {
         WritableArray scopeArray = Arguments.createArray();
@@ -51,7 +33,7 @@ public final class TokenResponseFactory {
         WritableMap map = Arguments.createMap();
 
         map.putString("accessToken", response.accessToken);
-        map.putMap("additionalParameters", createAdditionalParametersMap(response.additionalParameters));
+        map.putMap("additionalParameters", MapUtil.createAdditionalParametersMap(response.additionalParameters));
         map.putString("idToken", response.idToken);
         map.putString("refreshToken", response.refreshToken);
         map.putString("tokenType", response.tokenType);
@@ -70,9 +52,9 @@ public final class TokenResponseFactory {
         WritableMap map = Arguments.createMap();
 
         map.putString("accessToken", response.accessToken);
-        map.putMap("authorizeAdditionalParameters", createAdditionalParametersMap(authResponse.additionalParameters));
-        map.putMap("tokenAdditionalParameters", createAdditionalParametersMap(response.additionalParameters));
-        map.putMap("additionalParameters", createAdditionalParametersMap(response.additionalParameters)); // DEPRECATED
+        map.putMap("authorizeAdditionalParameters", MapUtil.createAdditionalParametersMap(authResponse.additionalParameters));
+        map.putMap("tokenAdditionalParameters", MapUtil.createAdditionalParametersMap(response.additionalParameters));
+        map.putMap("additionalParameters", MapUtil.createAdditionalParametersMap(response.additionalParameters)); // DEPRECATED
         map.putString("idToken", response.idToken);
         map.putString("refreshToken", response.refreshToken);
         map.putString("tokenType", response.tokenType);

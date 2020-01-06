@@ -11,6 +11,12 @@ const validateIssuerOrServiceConfigurationEndpoints = (issuer, serviceConfigurat
         typeof serviceConfiguration.tokenEndpoint === 'string'),
     'Config error: you must provide either an issuer or a service endpoints'
   );
+const validateIssuerOrServiceConfigurationRegistrationEndpoint = (issuer, serviceConfiguration) =>
+  invariant(
+    typeof issuer === 'string' ||
+      (serviceConfiguration && typeof serviceConfiguration.registrationEndpoint === 'string'),
+    'Config error: you must provide either an issuer or a registration endpoint'
+  );
 const validateIssuerOrServiceConfigurationRevocationEndpoint = (issuer, serviceConfiguration) =>
   invariant(
     typeof issuer === 'string' ||
@@ -27,9 +33,9 @@ const validateHeaders = headers => {
     return;
   }
   const customHeaderTypeErrorMessage =
-    'Config error: customHeaders type must be { token?: { [key: string]: string }, authorize?: { [key: string]: string }}';
+    'Config error: customHeaders type must be { token?: { [key: string]: string }, authorize?: { [key: string]: string }, register: { [key: string]: string }}';
 
-  const authorizedKeys = ['token', 'authorize'];
+  const authorizedKeys = ['token', 'authorize', 'register'];
   const keys = Object.keys(headers);
   const correctKeys = keys.filter(key => authorizedKeys.includes(key));
   invariant(
@@ -77,6 +83,62 @@ export const prefetchConfiguration = async ({
 
     RNAppAuth.prefetchConfiguration(...nativeMethodArguments);
   }
+};
+
+export const register = ({
+  issuer,
+  redirectUrls,
+  responseTypes,
+  grantTypes,
+  subjectType,
+  tokenEndpointAuthMethod,
+  additionalParameters,
+  serviceConfiguration,
+  dangerouslyAllowInsecureHttpRequests = false,
+  customHeaders,
+}) => {
+  validateIssuerOrServiceConfigurationRegistrationEndpoint(issuer, serviceConfiguration);
+  validateHeaders(customHeaders);
+  invariant(
+    Array.isArray(redirectUrls) && redirectUrls.every(url => typeof url === 'string'),
+    'Config error: redirectUrls must be an Array of strings'
+  );
+  invariant(
+    responseTypes == null ||
+      (Array.isArray(responseTypes) && responseTypes.every(rt => typeof rt === 'string')),
+    'Config error: if provided, responseTypes must be an Array of strings'
+  );
+  invariant(
+    grantTypes == null ||
+      (Array.isArray(grantTypes) && grantTypes.every(gt => typeof gt === 'string')),
+    'Config error: if provided, grantTypes must be an Array of strings'
+  );
+  invariant(
+    subjectType == null || typeof subjectType === 'string',
+    'Config error: if provided, subjectType must be a string'
+  );
+  invariant(
+    tokenEndpointAuthMethod == null || typeof tokenEndpointAuthMethod === 'string',
+    'Config error: if provided, tokenEndpointAuthMethod must be a string'
+  );
+
+  const nativeMethodArguments = [
+    issuer,
+    redirectUrls,
+    responseTypes,
+    grantTypes,
+    subjectType,
+    tokenEndpointAuthMethod,
+    additionalParameters,
+    serviceConfiguration,
+  ];
+
+  if (Platform.OS === 'android') {
+    nativeMethodArguments.push(dangerouslyAllowInsecureHttpRequests);
+    nativeMethodArguments.push(customHeaders);
+  }
+
+  return RNAppAuth.register(...nativeMethodArguments);
 };
 
 export const authorize = ({

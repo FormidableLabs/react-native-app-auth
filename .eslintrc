@@ -24,3 +24,8 @@ rules:
   prettier/prettier:
     - error
     - trailingComma: es5
+  eqeqeq:
+    - error
+    - smart
+  max-statements:
+    - off
