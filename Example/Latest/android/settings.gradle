@@ -1,5 +1,0 @@
-rootProject.name = 'AppAuthExample'
-include ':react-native-app-auth'
-project(':react-native-app-auth').projectDir = new File(rootProject.projectDir, '../../../android')
-
-include ':app'

@@ -1,9 +1,0 @@
-GCC_PREPROCESSOR_DEFINITIONS = $(inherited) COCOAPODS=1
-HEADER_SEARCH_PATHS = $(inherited) "${PODS_ROOT}/Headers/Public" "${PODS_ROOT}/Headers/Public/AppAuth" "${PODS_ROOT}/Headers/Public/DoubleConversion" "${PODS_ROOT}/Headers/Public/RNAppAuth" "${PODS_ROOT}/Headers/Public/React" "${PODS_ROOT}/Headers/Public/glog" "${PODS_ROOT}/Headers/Public/yoga"
-LIBRARY_SEARCH_PATHS = $(inherited) "${PODS_CONFIGURATION_BUILD_DIR}/AppAuth" "${PODS_CONFIGURATION_BUILD_DIR}/DoubleConversion" "${PODS_CONFIGURATION_BUILD_DIR}/RNAppAuth" "${PODS_CONFIGURATION_BUILD_DIR}/React" "${PODS_CONFIGURATION_BUILD_DIR}/glog" "${PODS_CONFIGURATION_BUILD_DIR}/yoga"
-OTHER_CFLAGS = $(inherited) -isystem "${PODS_ROOT}/Headers/Public" -isystem "${PODS_ROOT}/Headers/Public/AppAuth" -isystem "${PODS_ROOT}/Headers/Public/DoubleConversion" -isystem "${PODS_ROOT}/Headers/Public/RNAppAuth" -isystem "${PODS_ROOT}/Headers/Public/React" -isystem "${PODS_ROOT}/Headers/Public/glog" -isystem "${PODS_ROOT}/Headers/Public/yoga"
-OTHER_LDFLAGS = $(inherited) -ObjC -l"AppAuth" -l"DoubleConversion" -l"RNAppAuth" -l"React" -l"glog" -l"stdc++" -l"yoga" -framework "JavaScriptCore" -framework "SafariServices"
-PODS_BUILD_DIR = ${BUILD_DIR}
-PODS_CONFIGURATION_BUILD_DIR = ${PODS_BUILD_DIR}/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)
-PODS_PODFILE_DIR_PATH = ${SRCROOT}/.
-PODS_ROOT = ${SRCROOT}/Pods
