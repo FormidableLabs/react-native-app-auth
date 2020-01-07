@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState, useCallback } from 'react';
 import { UIManager, LayoutAnimation, Alert } from 'react-native';
 import { authorize, refresh, revoke } from 'react-native-app-auth';
 import { Page, Button, ButtonContainer, Form, FormLabel, FormValue, Heading } from './components';
@@ -27,66 +27,54 @@ const config = {
   // }
 };
 
-export default class App extends Component<{}, State> {
-  state = {
-    hasLoggedInOnce: false,
-    accessToken: '',
-    accessTokenExpirationDate: '',
-    refreshToken: ''
-  };
+const defaultAuthState = {
+  hasLoggedInOnce: false,
+  accessToken: '',
+  accessTokenExpirationDate: '',
+  refreshToken: ''
+};
 
-  animateState(nextState: $Shape<State>, delay: number = 0) {
-    setTimeout(() => {
-      this.setState(() => {
-        LayoutAnimation.easeInEaseOut();
-        return nextState;
-      });
-    }, delay);
-  }
+export default () => {
+  const [authState, setAuthState] = useState(defaultAuthState);
 
-  authorize = async () => {
+  const handleAuthorize = useCallback(async () => {
     try {
-      const authState = await authorize(config);
+      const newAuthState = await authorize(config);
 
-      this.animateState(
-        {
-          hasLoggedInOnce: true,
-          accessToken: authState.accessToken,
-          accessTokenExpirationDate: authState.accessTokenExpirationDate,
-          refreshToken: authState.refreshToken,
-          scopes: authState.scopes
-        },
-        500
-      );
+      setAuthState({
+        hasLoggedInOnce: true,
+        ...newAuthState
+      });
+
     } catch (error) {
       Alert.alert('Failed to log in', error.message);
     }
-  };
+  }, [authState]);
 
-  refresh = async () => {
+  const handleRefresh = useCallback(async () => {
     try {
-      const authState = await refresh(config, {
-        refreshToken: this.state.refreshToken
+      const newAuthState = await refresh(config, {
+        refreshToken: authState.refreshToken
       });
 
-      this.animateState({
-        accessToken: authState.accessToken || this.state.accessToken,
-        accessTokenExpirationDate:
-          authState.accessTokenExpirationDate || this.state.accessTokenExpirationDate,
-        refreshToken: authState.refreshToken || this.state.refreshToken
-      });
+      setAuthState(current => ({
+        ...current,
+        ...newAuthState
+      }))
+
     } catch (error) {
       Alert.alert('Failed to refresh token', error.message);
     }
-  };
+  }, [authState]);
 
-  revoke = async () => {
+  const handleRevoke = useCallback(async () => {
     try {
       await revoke(config, {
-        tokenToRevoke: this.state.accessToken,
+        tokenToRevoke: authState.accessToken,
         sendClientId: true
       });
-      this.animateState({
+
+      setAuthState({
         accessToken: '',
         accessTokenExpirationDate: '',
         refreshToken: ''
@@ -94,39 +82,36 @@ export default class App extends Component<{}, State> {
     } catch (error) {
       Alert.alert('Failed to revoke token', error.message);
     }
-  };
+  }, [authState]);
 
-  render() {
-    const { state } = this;
-    return (
-      <Page>
-        {!!state.accessToken ? (
-          <Form>
-            <FormLabel>accessToken</FormLabel>
-            <FormValue>{state.accessToken}</FormValue>
-            <FormLabel>accessTokenExpirationDate</FormLabel>
-            <FormValue>{state.accessTokenExpirationDate}</FormValue>
-            <FormLabel>refreshToken</FormLabel>
-            <FormValue>{state.refreshToken}</FormValue>
-            <FormLabel>scopes</FormLabel>
-            <FormValue>{state.scopes.join(', ')}</FormValue>
-          </Form>
-        ) : (
-          <Heading>{state.hasLoggedInOnce ? 'Goodbye.' : 'Hello, stranger.'}</Heading>
-        )}
+  return (
+    <Page>
+      {!!authState.accessToken ? (
+        <Form>
+          <FormLabel>accessToken</FormLabel>
+          <FormValue>{authState.accessToken}</FormValue>
+          <FormLabel>accessTokenExpirationDate</FormLabel>
+          <FormValue>{authState.accessTokenExpirationDate}</FormValue>
+          <FormLabel>refreshToken</FormLabel>
+          <FormValue>{authState.refreshToken}</FormValue>
+          <FormLabel>scopes</FormLabel>
+          <FormValue>{authState.scopes.join(', ')}</FormValue>
+        </Form>
+      ) : (
+        <Heading>{authState.hasLoggedInOnce ? 'Goodbye.' : 'Hello, stranger.'}</Heading>
+      )}
 
-        <ButtonContainer>
-          {!state.accessToken ? (
-            <Button onPress={this.authorize} text="Authorize" color="#DA2536" />
-          ) : null}
-          {!!state.refreshToken ? (
-            <Button onPress={this.refresh} text="Refresh" color="#24C2CB" />
-          ) : null}
-          {!!state.accessToken ? (
-            <Button onPress={this.revoke} text="Revoke" color="#EF525B" />
-          ) : null}
-        </ButtonContainer>
-      </Page>
-    );
-  }
+      <ButtonContainer>
+        {!authState.accessToken ? (
+          <Button onPress={handleAuthorize} text="Authorize" color="#DA2536" />
+        ) : null}
+        {!!authState.refreshToken ? (
+          <Button onPress={handleRefresh} text="Refresh" color="#24C2CB" />
+        ) : null}
+        {!!authState.accessToken ? (
+          <Button onPress={handleRevoke} text="Revoke" color="#EF525B" />
+        ) : null}
+      </ButtonContainer>
+    </Page>
+  );
 }
