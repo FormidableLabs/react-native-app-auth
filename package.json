@@ -74,5 +74,10 @@
   "dependencies": {
     "invariant": "^2.2.2",
     "react-native-base64": "^0.0.2"
+  },
+  "jest": {
+    "transformIgnorePatterns": [
+      "node_modules/?!(react-native-base64)"
+    ]
   }
 }
