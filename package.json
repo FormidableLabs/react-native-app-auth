@@ -6,8 +6,7 @@
   "types": "index.d.ts",
   "scripts": {
     "test": "jest",
-    "lint": "eslint .",
-    "precommit": "lint-staged"
+    "lint": "eslint ."
   },
   "lint-staged": {
     "*.js": [
@@ -39,6 +38,7 @@
     "auth",
     "authentication",
     "oauth",
+    "oauth2",
     "appauth"
   ],
   "author": "kadi.kraman@formidable.com",
@@ -47,32 +47,32 @@
     "react-native": ">=0.60.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.7.7",
-    "@babel/runtime": "^7.7.7",
-    "all-contributors-cli": "^4.9.1",
-    "babel-eslint": "^8.0.2",
-    "babel-jest": "^24.9.0",
-    "babel-preset-env": "^1.6.1",
-    "eslint": "4.18.2",
-    "eslint-config-formidable": "^3.0.0",
-    "eslint-config-prettier": "^2.9.0",
-    "eslint-plugin-filenames": "^1.2.0",
-    "eslint-plugin-import": "^2.8.0",
-    "eslint-plugin-jest": "^21.3.2",
-    "eslint-plugin-prettier": "^2.6.0",
-    "husky": "^0.14.3",
-    "jest": "^24.9.0",
-    "lint-staged": "^6.1.0",
-    "metro-react-native-babel-preset": "^0.57.0",
-    "prettier": "1.10.2",
+    "babel-eslint": "10.0.3",
+    "eslint": "6.8.0",
+    "eslint-config-formidable": "4.0.0",
+    "eslint-config-prettier": "6.9.0",
+    "eslint-plugin-filenames": "1.3.2",
+    "eslint-plugin-import": "2.19.1",
+    "eslint-plugin-jest": "23.3.0",
+    "eslint-plugin-prettier": "3.1.2",
+    "eslint-plugin-promise": "4.2.1",
+    "husky": "4.0.1",
+    "jest": "24.9.0",
+    "lint-staged": "9.5.0",
+    "prettier": "1.19.1",
     "react": "16.9.0",
     "react-native": "0.61.5"
   },
   "dependencies": {
-    "invariant": "^2.2.4",
-    "react-native-base64": "^0.0.2"
+    "invariant": "2.2.4",
+    "react-native-base64": "0.0.2"
   },
   "jest": {
     "preset": "react-native"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
   }
 }
