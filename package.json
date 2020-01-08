@@ -6,8 +6,7 @@
   "types": "index.d.ts",
   "scripts": {
     "test": "jest",
-    "lint": "eslint .",
-    "precommit": "lint-staged"
+    "lint": "eslint ."
   },
   "lint-staged": {
     "*.js": [
@@ -69,5 +68,10 @@
   },
   "jest": {
     "preset": "react-native"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
   }
 }
