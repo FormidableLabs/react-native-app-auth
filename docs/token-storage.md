@@ -8,7 +8,7 @@ Async Storage is the simplest method of persisting data across application launc
 
 ✅ __DO use Secure Storage__
 
-React Native does not come bundled with any way of storing sensitive data, however there are pre-existing solutions for both platforms.
+React Native does not come bundled with any way of storing sensitive data, so it is necessary to rely on the underlying platform-specific solutions.
 
 ### iOS - Keychain Services
 Keychain Services allows you to securely store small chunks of sensitive info for the user. This is an ideal place to store certificates, tokens, passwords, and any other sensitive information that doesn’t belong in Async Storage.
@@ -16,7 +16,7 @@ Keychain Services allows you to securely store small chunks of sensitive info fo
 ### Android - Secure Shared Preferences
 Shared Preferences is the Android equivalent for a persistent key-value data store. Data in Shared Preferences is not encrypted by default. Encrypted Shared Preferences wraps the Shared Preferences class for Android, and automatically encrypts keys and values.
 
-In order to use iOS Keychain services or Android Secure Shared Preferences, you can either write a bridge yourself or use a library which wraps them for you and provides a unified API (at your own risk).
+In order to use iOS's Keychain services or Android's Secure Shared Preferences, you either can write a JS<->native interface yourself or use a library which wraps them for you. Some even provide a unified API.
 
 ## Related OSS libraries
 
