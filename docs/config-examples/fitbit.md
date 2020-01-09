@@ -30,6 +30,7 @@ const refreshedState = await refresh(config, {
 
 // Revoke token
 await revoke(config, {
-  tokenToRevoke: refreshedState.refreshToken
+  tokenToRevoke: refreshedState.refreshToken,
+  includeBasicAuth: true
 });
 ```

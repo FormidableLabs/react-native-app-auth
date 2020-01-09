@@ -231,7 +231,7 @@ export const refresh = (
 
 export const revoke = async (
   { clientId, issuer, serviceConfiguration, clientSecret },
-  { tokenToRevoke, sendClientId = false, includeBasicAuthorization = false }
+  { tokenToRevoke, sendClientId = false, includeBasicAuth = false }
 ) => {
   invariant(tokenToRevoke, 'Please include the token to revoke');
   validateClientId(clientId);
@@ -255,8 +255,8 @@ export const revoke = async (
   const headers = {
     'Content-Type': 'application/x-www-form-urlencoded',
   };
-  if (includeBasicAuthorization) {
-    headers.Authorization = `basic ${base64.encode(`${clientId}:${clientSecret}`)}`;
+  if (includeBasicAuth) {
+    headers.Authorization = `Basic ${base64.encode(`${clientId}:${clientSecret}`)}`;
   }
   /**
     Identity Server insists on client_id being passed in the body,

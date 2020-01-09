@@ -177,7 +177,9 @@ const config = {
 };
 
 const result = await revoke(config, {
-  tokenToRevoke: `<TOKEN_TO_REVOKE>`
+  tokenToRevoke: `<TOKEN_TO_REVOKE>`,
+  includeBasicAuth: true,
+  sendClientId: true
 });
 ```
 
