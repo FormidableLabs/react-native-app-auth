@@ -12,7 +12,6 @@ See the [Azure docs on requesting an access token](https://docs.microsoft.com/en
 
 Please Note:
 
-* The [Azure docs](https://docs.microsoft.com/en-us/azure/active-directory/develop/active-directory-protocols-oauth-code#request-an-authorization-code) recommend `'urn:ietf:wg:oauth:2.0:oob'` as the `redirectUrl`.
 * `Scopes` is ignored.
 * `additionalParameters.resource` may be required based on the tenant settings.
 
@@ -20,7 +19,7 @@ Please Note:
 const config = {
   issuer: 'https://login.microsoftonline.com/your-tenant-id',
   clientId: 'your-client-id',
-  redirectUrl: 'urn:ietf:wg:oauth:2.0:oob',
+  redirectUrl: 'com.myapp://oauth/redirect',
   additionalParameters: {
     resource: 'your-resource'
   }
@@ -43,7 +42,7 @@ The V2 endpoint follows the standard OAuth protocol with scopes. Detailed docume
 const config = {
   issuer: 'https://login.microsoftonline.com/your-tenant-id/v2.0',
   clientId: 'your-client-id',
-  redirectUrl: 'urn:ietf:wg:oauth:2.0:oob',
+  redirectUrl: 'com.myapp://oauth/redirect',
   scopes: ['openid', 'profile', 'email', 'offline_access']
 };
 
