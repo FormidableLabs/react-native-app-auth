@@ -256,7 +256,7 @@ export const revoke = async (
     'Content-Type': 'application/x-www-form-urlencoded',
   };
   if (includeBasicAuthorization) {
-    headers.Authorization = `basic ${base64.encode(`${clientId}:${clientSecret}`)}`;
+    headers.Authorization = `Basic ${base64.encode(`${clientId}:${clientSecret}`)}`;
   }
   /**
     Identity Server insists on client_id being passed in the body,
