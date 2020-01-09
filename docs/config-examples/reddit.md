@@ -1,7 +1,5 @@
 # Reddit
 
-** This is Android Only **
-
 Log in and go to [apps](https://www.reddit.com/prefs/apps) to create your app.
 
 Choose "installed app" and give it a name, description and about url of your choosing.
@@ -13,7 +11,9 @@ Reddit requires for you to add a [basic auth header](https://github.com/reddit-a
 ```js
 const config = {
   redirectUrl: 'com.myapp://oauth2redirect/reddit',
-  scopes: ['identity'], // include the scopes you need
+  clientId: '<client-id>',
+  clientSecret: '', // empty string - needed for iOS
+  scopes: ['identity'],
   serviceConfiguration: {
     authorizationEndpoint: 'https://www.reddit.com/api/v1/authorize.compact',
     tokenEndpoint: 'https://www.reddit.com/api/v1/access_token',
