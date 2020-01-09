@@ -54,7 +54,6 @@ public final class TokenResponseFactory {
         map.putString("accessToken", response.accessToken);
         map.putMap("authorizeAdditionalParameters", MapUtil.createAdditionalParametersMap(authResponse.additionalParameters));
         map.putMap("tokenAdditionalParameters", MapUtil.createAdditionalParametersMap(response.additionalParameters));
-        map.putMap("additionalParameters", MapUtil.createAdditionalParametersMap(response.additionalParameters)); // DEPRECATED
         map.putString("idToken", response.idToken);
         map.putString("refreshToken", response.refreshToken);
         map.putString("tokenType", response.tokenType);

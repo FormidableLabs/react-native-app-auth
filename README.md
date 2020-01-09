@@ -136,7 +136,6 @@ This is the result from the auth server
 * **accessTokenExpirationDate** - (`string`) the token expiration date
 * **authorizeAdditionalParameters** - (`Object`) additional url parameters from the authorizationEndpoint response.
 * **tokenAdditionalParameters** - (`Object`) additional url parameters from the tokenEndpoint response.
-* **additionalParameters** - (`Object`) :warning: _DEPRECATED_ legacy implementation. Will be removed in a future release. Returns just `tokenAdditionalParameters` for Android and `authorizeAdditionalParameters` on iOS
 * **idToken** - (`string`) the id token
 * **refreshToken** - (`string`) the refresh token
 * **tokenType** - (`string`) the token type, e.g. Bearer

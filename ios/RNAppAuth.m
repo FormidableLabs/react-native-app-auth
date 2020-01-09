@@ -383,7 +383,6 @@ RCT_REMAP_METHOD(refresh,
              @"accessTokenExpirationDate": response.accessTokenExpirationDate ? [dateFormat stringFromDate:response.accessTokenExpirationDate] : @"",
              @"authorizeAdditionalParameters": authResponse.additionalParameters,
              @"tokenAdditionalParameters": response.additionalParameters,
-             @"additionalParameters": authResponse.additionalParameters, /* DEPRECATED */
              @"idToken": response.idToken ? response.idToken : @"",
              @"refreshToken": response.refreshToken ? response.refreshToken : @"",
              @"tokenType": response.tokenType ? response.tokenType : @"",
