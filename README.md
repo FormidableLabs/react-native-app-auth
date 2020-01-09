@@ -341,7 +341,7 @@ Make `AppDelegate` conform to `RNAppAuthAuthorizationFlowManager` with the follo
 Add the following code to `AppDelegate.m` (to support iOS 10 and below)
 
 ```diff
-+ (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<NSString *, id> *) options {
++ - (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<NSString *, id> *) options {
 +  return [self.authorizationFlowManagerDelegate resumeExternalUserAgentFlowWithURL:url];
 + }
 ```
