@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.content.ActivityNotFoundException;
 import androidx.annotation.Nullable;
 import androidx.browser.customtabs.CustomTabsCallback;
 import androidx.browser.customtabs.CustomTabsClient;
@@ -245,6 +246,8 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                         usePKCE,
                         additionalParametersMap
                 );
+            } catch (ActivityNotFoundException e) {
+                promise.reject("browser_not_found", e.getMessage());
             } catch (Exception e) {
                 promise.reject("authentication_failed", e.getMessage());
             }
@@ -327,6 +330,8 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                         clientSecret,
                         promise
                 );
+            } catch (ActivityNotFoundException e) {
+                promise.reject("browser_not_found", e.getMessage());
             } catch (Exception e) {
                 promise.reject("token_refresh_failed", e.getMessage());
             }

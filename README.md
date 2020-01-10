@@ -390,7 +390,13 @@ try {
 }
 ```
 
-See example configurations for different providers below.
+## Error messages
+
+- `service_configuration_fetch_error` - could not fetch the service configuration
+- `authentication_failed` - user authentication failed
+- `token_refresh_failed` - could not exchange the refresh token for a new JWT
+- `registration_failed` - could not register
+- `browser_not_found` (Android only) - no suitable browser installed
 
 #### Note about client secrets
 
