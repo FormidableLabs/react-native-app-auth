@@ -7,9 +7,7 @@
 [![npm package version](https://badge.fury.io/js/react-native-app-auth.svg)](https://badge.fury.io/js/react-native-app-auth)
 [![Maintenance Status][maintenance-image]](#maintenance-status)
 
-#### This is the API documentation for `react-native-app-auth >= 4.0.`
-
-Past documentation: [`3.1`](https://github.com/FormidableLabs/react-native-app-auth/tree/v3.1.0) [`3.0`](https://github.com/FormidableLabs/react-native-app-auth/tree/v3.0.0) [`2.x`](https://github.com/FormidableLabs/react-native-app-auth/tree/v2.0.0) [`1.x`](https://github.com/FormidableLabs/react-native-app-auth/tree/v1.0.1).
+This versions supports `react-native@0.60+`. The last pre-0.60 compatible version is [`v4.4.0`](https://github.com/FormidableLabs/react-native-app-auth/tree/v4.4.0).
 
 React Native bridge for [AppAuth-iOS](https://github.com/openid/AppAuth-iOS) and
 [AppAuth-Android](https://github.com/openid/AppAuth-Android) SDKS for communicating with
@@ -23,25 +21,25 @@ This library _should_ support any OAuth provider that implements the
 
 These providers are OpenID compliant, which means you can use [autodiscovery](https://openid.net/specs/openid-connect-discovery-1_0.html).
 
-* [Identity Server4](https://demo.identityserver.io/) ([Example configuration](./docs/config-examples/identity-server-4.md))
-* [Identity Server3](https://github.com/IdentityServer/IdentityServer3.md) ([Example configuration](./docs/config-examples/identity-server-3.md))
-* [Google](https://developers.google.com/identity/protocols/OAuth2)
+- [Identity Server4](https://demo.identityserver.io/) ([Example configuration](./docs/config-examples/identity-server-4.md))
+- [Identity Server3](https://github.com/IdentityServer/IdentityServer3.md) ([Example configuration](./docs/config-examples/identity-server-3.md))
+- [Google](https://developers.google.com/identity/protocols/OAuth2)
   ([Example configuration](./docs/config-examples/google.md))
-* [Okta](https://developer.okta.com) ([Example configuration](./docs/config-examples/okta.md))
-* [Keycloak](http://www.keycloak.org/) ([Example configuration](./docs/config-examples/keycloak.md))
-* [Azure Active Directory](https://docs.microsoft.com/en-us/azure/active-directory) ([Example configuration](./docs/config-examples/azure-active-directory.md))
-* [AWS Cognito](https://eu-west-1.console.aws.amazon.com/cognito) ([Example configuration](./docs/config-examples/aws-cognito.md))
+- [Okta](https://developer.okta.com) ([Example configuration](./docs/config-examples/okta.md))
+- [Keycloak](http://www.keycloak.org/) ([Example configuration](./docs/config-examples/keycloak.md))
+- [Azure Active Directory](https://docs.microsoft.com/en-us/azure/active-directory) ([Example configuration](./docs/config-examples/azure-active-directory.md))
+- [AWS Cognito](https://eu-west-1.console.aws.amazon.com/cognito) ([Example configuration](./docs/config-examples/aws-cognito.md))
 
 ### Tested OAuth2 providers:
 
 These providers implement the OAuth2 spec, but are not OpenID providers, which means you must configure the authorization and token endpoints yourself.
 
-* [Uber](https://developer.uber.com/docs/deliveries/guides/three-legged-oauth.md) ([Example configuration](./docs/config-examples/uber))
-* [Fitbit](https://dev.fitbit.com/build/reference/web-api/oauth2/) ([Example configuration](./docs/config-examples/fitbit.md))
-* [Dropbox](https://www.dropbox.com/developers/reference/oauth-guide) ([Example configuration](./docs/config-examples/dropbox.md))
-* [Reddit](https://github.com/reddit-archive/reddit/wiki/oauth2) ([Example configuration](./docs/config-examples/reddit.md))
-* [Coinbase](https://developers.coinbase.com/docs/wallet/coinbase-connect/integrating) ([Example configuration](./docs/config-examples/coinbase.md))
-* [GitHub](https://developer.github.com/apps/building-oauth-apps/authorizing-oauth-apps/) ([Example configuration](./docs/config-examples/github.md))
+- [Uber](https://developer.uber.com/docs/deliveries/guides/three-legged-oauth.md) ([Example configuration](./docs/config-examples/uber))
+- [Fitbit](https://dev.fitbit.com/build/reference/web-api/oauth2/) ([Example configuration](./docs/config-examples/fitbit.md))
+- [Dropbox](https://www.dropbox.com/developers/reference/oauth-guide) ([Example configuration](./docs/config-examples/dropbox.md))
+- [Reddit](https://github.com/reddit-archive/reddit/wiki/oauth2) ([Example configuration](./docs/config-examples/reddit.md))
+- [Coinbase](https://developers.coinbase.com/docs/wallet/coinbase-connect/integrating) ([Example configuration](./docs/config-examples/coinbase.md))
+- [GitHub](https://developer.github.com/apps/building-oauth-apps/authorizing-oauth-apps/) ([Example configuration](./docs/config-examples/github.md))
 
 ## Why you may want to use this library
 
@@ -106,40 +104,40 @@ prefetchConfiguration(config);
 This is your configuration object for the client. The config is passed into each of the methods
 with optional overrides.
 
-* **issuer** - (`string`) base URI of the authentication server. If no `serviceConfiguration` (below) is provided, issuer is a mandatory field, so that the configuration can be fetched from the issuer's [OIDC discovery endpoint](https://openid.net/specs/openid-connect-discovery-1_0.html).
-* **serviceConfiguration** - (`object`) you may manually configure token exchange endpoints in cases where the issuer does not support the OIDC discovery protocol, or simply to avoid an additional round trip to fetch the configuration. If no `issuer` (above) is provided, the service configuration is mandatory.
-  * **authorizationEndpoint** - (`string`) _REQUIRED_ fully formed url to the OAuth authorization endpoint
-  * **tokenEndpoint** - (`string`) _REQUIRED_ fully formed url to the OAuth token exchange endpoint
-  * **revocationEndpoint** - (`string`) fully formed url to the OAuth token revocation endpoint. If you want to be able to revoke a token and no `issuer` is specified, this field is mandatory.
-  * **registrationEndpoint** - (`string`) fully formed url to your OAuth/OpenID Connect registration endpoint. Only necessary for servers that require client registration.
-* **clientId** - (`string`) _REQUIRED_ your client id on the auth server
-* **clientSecret** - (`string`) client secret to pass to token exchange requests. :warning: Read more about [client secrets](#note-about-client-secrets)
-* **redirectUrl** - (`string`) _REQUIRED_ the url that links back to your app with the auth code
-* **scopes** - (`array<string>`) the scopes for your token, e.g. `['email', 'offline_access']`.
-* **additionalParameters** - (`object`) additional parameters that will be passed in the authorization request.
+- **issuer** - (`string`) base URI of the authentication server. If no `serviceConfiguration` (below) is provided, issuer is a mandatory field, so that the configuration can be fetched from the issuer's [OIDC discovery endpoint](https://openid.net/specs/openid-connect-discovery-1_0.html).
+- **serviceConfiguration** - (`object`) you may manually configure token exchange endpoints in cases where the issuer does not support the OIDC discovery protocol, or simply to avoid an additional round trip to fetch the configuration. If no `issuer` (above) is provided, the service configuration is mandatory.
+  - **authorizationEndpoint** - (`string`) _REQUIRED_ fully formed url to the OAuth authorization endpoint
+  - **tokenEndpoint** - (`string`) _REQUIRED_ fully formed url to the OAuth token exchange endpoint
+  - **revocationEndpoint** - (`string`) fully formed url to the OAuth token revocation endpoint. If you want to be able to revoke a token and no `issuer` is specified, this field is mandatory.
+  - **registrationEndpoint** - (`string`) fully formed url to your OAuth/OpenID Connect registration endpoint. Only necessary for servers that require client registration.
+- **clientId** - (`string`) _REQUIRED_ your client id on the auth server
+- **clientSecret** - (`string`) client secret to pass to token exchange requests. :warning: Read more about [client secrets](#note-about-client-secrets)
+- **redirectUrl** - (`string`) _REQUIRED_ the url that links back to your app with the auth code
+- **scopes** - (`array<string>`) the scopes for your token, e.g. `['email', 'offline_access']`.
+- **additionalParameters** - (`object`) additional parameters that will be passed in the authorization request.
   Must be string values! E.g. setting `additionalParameters: { hello: 'world', foo: 'bar' }` would add
   `hello=world&foo=bar` to the authorization request.
-* **clientAuthMethod** - (`string`) _ANDROID_ Client Authentication Method. Can be either `basic` (default) for [Basic Authentication](https://github.com/openid/AppAuth-Android/blob/master/library/java/net/openid/appauth/ClientSecretBasic.java) or `post` for [HTTP POST body Authentication](https://github.com/openid/AppAuth-Android/blob/master/library/java/net/openid/appauth/ClientSecretPost.java)
-* **dangerouslyAllowInsecureHttpRequests** - (`boolean`) _ANDROID_ whether to allow requests over plain HTTP or with self-signed SSL certificates. :warning: Can be useful for testing against local server, _should not be used in production._ This setting has no effect on iOS; to enable insecure HTTP requests, add a [NSExceptionAllowsInsecureHTTPLoads exception](https://cocoacasts.com/how-to-add-app-transport-security-exception-domains) to your App Transport Security settings.
-* **customHeaders** - (`object`) _ANDROID_ you can specify custom headers to pass during authorize request and/or token request.
-  * **authorize** - (`{ [key: string]: value }`) headers to be passed during authorization request.
-  * **token** - (`{ [key: string]: value }`) headers to be passed during token retrieval request.
-  * **register** - (`{ [key: string]: value }`) headers to be passed during registration request.
-* **useNonce** - (`boolean`) _IOS_ (default: true) optionally allows not sending the nonce parameter, to support non-compliant providers
-* **usePKCE** - (`boolean`) (default: true) optionally allows not sending the code_challenge parameter and skipping PKCE code verification, to support non-compliant providers.
+- **clientAuthMethod** - (`string`) _ANDROID_ Client Authentication Method. Can be either `basic` (default) for [Basic Authentication](https://github.com/openid/AppAuth-Android/blob/master/library/java/net/openid/appauth/ClientSecretBasic.java) or `post` for [HTTP POST body Authentication](https://github.com/openid/AppAuth-Android/blob/master/library/java/net/openid/appauth/ClientSecretPost.java)
+- **dangerouslyAllowInsecureHttpRequests** - (`boolean`) _ANDROID_ whether to allow requests over plain HTTP or with self-signed SSL certificates. :warning: Can be useful for testing against local server, _should not be used in production._ This setting has no effect on iOS; to enable insecure HTTP requests, add a [NSExceptionAllowsInsecureHTTPLoads exception](https://cocoacasts.com/how-to-add-app-transport-security-exception-domains) to your App Transport Security settings.
+- **customHeaders** - (`object`) _ANDROID_ you can specify custom headers to pass during authorize request and/or token request.
+  - **authorize** - (`{ [key: string]: value }`) headers to be passed during authorization request.
+  - **token** - (`{ [key: string]: value }`) headers to be passed during token retrieval request.
+  - **register** - (`{ [key: string]: value }`) headers to be passed during registration request.
+- **useNonce** - (`boolean`) _IOS_ (default: true) optionally allows not sending the nonce parameter, to support non-compliant providers
+- **usePKCE** - (`boolean`) (default: true) optionally allows not sending the code_challenge parameter and skipping PKCE code verification, to support non-compliant providers.
 
 #### result
 
 This is the result from the auth server
 
-* **accessToken** - (`string`) the access token
-* **accessTokenExpirationDate** - (`string`) the token expiration date
-* **authorizeAdditionalParameters** - (`Object`) additional url parameters from the authorizationEndpoint response.
-* **tokenAdditionalParameters** - (`Object`) additional url parameters from the tokenEndpoint response.
-* **idToken** - (`string`) the id token
-* **refreshToken** - (`string`) the refresh token
-* **tokenType** - (`string`) the token type, e.g. Bearer
-* **scopes** - ([`string`]) the scopes the user has agreed to be granted
+- **accessToken** - (`string`) the access token
+- **accessTokenExpirationDate** - (`string`) the token expiration date
+- **authorizeAdditionalParameters** - (`Object`) additional url parameters from the authorizationEndpoint response.
+- **tokenAdditionalParameters** - (`Object`) additional url parameters from the tokenEndpoint response.
+- **idToken** - (`string`) the id token
+- **refreshToken** - (`string`) the refresh token
+- **tokenType** - (`string`) the token type, e.g. Bearer
+- **scopes** - ([`string`]) the scopes the user has agreed to be granted
 
 ### `refresh`
 
@@ -157,7 +155,7 @@ const config = {
 };
 
 const result = await refresh(config, {
-  refreshToken: `<REFRESH_TOKEN>`
+  refreshToken: `<REFRESH_TOKEN>`,
 });
 ```
 
@@ -178,10 +176,9 @@ const config = {
 const result = await revoke(config, {
   tokenToRevoke: `<TOKEN_TO_REVOKE>`,
   includeBasicAuth: true,
-  sendClientId: true
+  sendClientId: true,
 });
 ```
-
 
 ### `register`
 
@@ -201,29 +198,29 @@ const registerResult = await register(registerConfig);
 
 #### registerConfig
 
-* **issuer** - (`string`) same as in authorization config
-* **serviceConfiguration** - (`object`) same as in authorization config
-* **redirectUrls** - (`array<string>`) _REQUIRED_ specifies all of the redirect urls that your client will use for authentication
-* **responseTypes** - (`array<string>`) an array that specifies which [OAuth 2.0 response types](https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html) your client will use. The default value is `['code']`
-* **grantTypes** - (`array<string>`) an array that specifies which [OAuth 2.0 grant types](https://oauth.net/2/grant-types/) your client will use. The default value is `['authorization_code']`
-* **subjectType** - (`string`) requests a specific [subject type](https://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes) for your client
-* **tokenEndpointAuthMethod** (`string`) specifies which `clientAuthMethod` your client will use for authentication. The default value is `'client_secret_basic'`
-* **additionalParameters** - (`object`) additional parameters that will be passed in the registration request.
+- **issuer** - (`string`) same as in authorization config
+- **serviceConfiguration** - (`object`) same as in authorization config
+- **redirectUrls** - (`array<string>`) _REQUIRED_ specifies all of the redirect urls that your client will use for authentication
+- **responseTypes** - (`array<string>`) an array that specifies which [OAuth 2.0 response types](https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html) your client will use. The default value is `['code']`
+- **grantTypes** - (`array<string>`) an array that specifies which [OAuth 2.0 grant types](https://oauth.net/2/grant-types/) your client will use. The default value is `['authorization_code']`
+- **subjectType** - (`string`) requests a specific [subject type](https://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes) for your client
+- **tokenEndpointAuthMethod** (`string`) specifies which `clientAuthMethod` your client will use for authentication. The default value is `'client_secret_basic'`
+- **additionalParameters** - (`object`) additional parameters that will be passed in the registration request.
   Must be string values! E.g. setting `additionalParameters: { hello: 'world', foo: 'bar' }` would add
   `hello=world&foo=bar` to the authorization request.
-* **dangerouslyAllowInsecureHttpRequests** - (`boolean`) _ANDROID_ same as in authorization config
-* **customHeaders** - (`object`) _ANDROID_ same as in authorization config
+- **dangerouslyAllowInsecureHttpRequests** - (`boolean`) _ANDROID_ same as in authorization config
+- **customHeaders** - (`object`) _ANDROID_ same as in authorization config
 
 #### registerResult
 
 This is the result from the auth server
 
-* **clientId** - (`string`) the assigned client id
-* **clientIdIssuedAt** - (`string`) _OPTIONAL_ date string of when the client id was issued
-* **clientSecret** - (`string`) _OPTIONAL_ the assigned client secret
-* **clientSecretExpiresAt** - (`string`) date string of when the client secret expires, which will be provided if `clientSecret` is provided. If `new Date(clientSecretExpiresAt).getTime() === 0`, then the secret never expires
-* **registrationClientUri** - (`string`) _OPTIONAL_ uri that can be used to perform subsequent operations on the registration
-* **registrationAccessToken** - (`string`) token that can be used at the endpoint given by `registrationClientUri` to perform subsequent operations on the registration. Will be provided if `registrationClientUri` is provided
+- **clientId** - (`string`) the assigned client id
+- **clientIdIssuedAt** - (`string`) _OPTIONAL_ date string of when the client id was issued
+- **clientSecret** - (`string`) _OPTIONAL_ the assigned client secret
+- **clientSecretExpiresAt** - (`string`) date string of when the client secret expires, which will be provided if `clientSecret` is provided. If `new Date(clientSecretExpiresAt).getTime() === 0`, then the secret never expires
+- **registrationClientUri** - (`string`) _OPTIONAL_ uri that can be used to perform subsequent operations on the registration
+- **registrationAccessToken** - (`string`) token that can be used at the endpoint given by `registrationClientUri` to perform subsequent operations on the registration. Will be provided if `registrationClientUri` is provided
 
 ## Getting started
 
@@ -249,54 +246,36 @@ are not distributed as part of the bridge.
 
 AppAuth supports three options for dependency management.
 
-1. **CocoaPods**
-
-    **RN<0.60**:
-
-    ```sh
-    react-native link react-native-app-auth
-    ```
-
-    With [CocoaPods](https://guides.cocoapods.org/using/getting-started.html), add the following line to
-    your `Podfile`:
-
-    ```sh
-    pod 'AppAuth', '>= 0.94'
-    ```
-
-    Then run `pod install`.
-
-    **RN>=0.60**:
-    With React Native 0.60 and later, linking of pods is done automatically
+1.  **CocoaPods**
 
     ```sh
     cd ios
     pod install
     ```
 
-2. **Carthage**
+2.  **Carthage**
 
-   With [Carthage](https://github.com/Carthage/Carthage), add the following line to your `Cartfile`:
+    With [Carthage](https://github.com/Carthage/Carthage), add the following line to your `Cartfile`:
 
-       github "openid/AppAuth-iOS" "master"
+        github "openid/AppAuth-iOS" "master"
 
-   Then run `carthage update --platform iOS`.
+    Then run `carthage update --platform iOS`.
 
-   Drag and drop `AppAuth.framework` from `ios/Carthage/Build/iOS` under `Frameworks` in `Xcode`.
+    Drag and drop `AppAuth.framework` from `ios/Carthage/Build/iOS` under `Frameworks` in `Xcode`.
 
-   Add a copy files build step for `AppAuth.framework`: open Build Phases on Xcode, add a new "Copy Files" phase, choose "Frameworks" as destination, add `AppAuth.framework` and ensure "Code Sign on Copy" is checked.
+    Add a copy files build step for `AppAuth.framework`: open Build Phases on Xcode, add a new "Copy Files" phase, choose "Frameworks" as destination, add `AppAuth.framework` and ensure "Code Sign on Copy" is checked.
 
-3. **Static Library**
+3.  **Static Library**
 
-   You can also use [AppAuth-iOS](https://github.com/openid/AppAuth-iOS) as a static library. This
-   requires linking the library and your project and including the headers. Suggested configuration:
+    You can also use [AppAuth-iOS](https://github.com/openid/AppAuth-iOS) as a static library. This
+    requires linking the library and your project and including the headers. Suggested configuration:
 
-   1. Create an XCode Workspace.
-   2. Add `AppAuth.xcodeproj` to your Workspace.
-   3. Include libAppAuth as a linked library for your target (in the "General -> Linked Framework and
-      Libraries" section of your target).
-   4. Add `AppAuth-iOS/Source` to your search paths of your target ("Build Settings -> "Header Search
-      Paths").
+    1. Create an XCode Workspace.
+    2. Add `AppAuth.xcodeproj` to your Workspace.
+    3. Include libAppAuth as a linked library for your target (in the "General -> Linked Framework and
+       Libraries" section of your target).
+    4. Add `AppAuth-iOS/Source` to your search paths of your target ("Build Settings -> "Header Search
+       Paths").
 
 ##### Register redirect URL scheme
 
@@ -317,9 +296,10 @@ your `Info.plist` as follows:
 </array>
 ```
 
-* `CFBundleURLName` is any globally unique string. A common practice is to use your app identifier.
-* `CFBundleURLSchemes` is an array of URL schemes your app needs to handle. The scheme is the
-  beginning of your OAuth Redirect URL, up to the scheme separator (`:`) character.
+- `CFBundleURLName` is any globally unique string. A common practice is to use your app identifier.
+- `CFBundleURLSchemes` is an array of URL schemes your app needs to handle. The scheme is the
+  beginning of your OAuth Redirect URL, up to the scheme separator (`:`) character. E.g. if your redirect uri
+  is `com.myapp://oauth`, then the url scheme will is `com.myapp`.
 
 ##### Define openURL callback in AppDelegate
 
@@ -385,7 +365,8 @@ android {
 }
 ```
 
-The scheme is the beginning of your OAuth Redirect URL, up to the scheme separator (`:`) character.
+The scheme is the beginning of your OAuth Redirect URL, up to the scheme separator (`:`) character. E.g. if your redirect uri
+is `com.myapp://oauth`, then the url scheme will is `com.myapp`.
 
 ## Usage
 
@@ -397,7 +378,7 @@ const config = {
   issuer: '<YOUR_ISSUER_URL>',
   clientId: '<YOUR_CLIENT_ID>',
   redirectUrl: '<YOUR_REDIRECT_URL>',
-  scopes: ['<YOUR_SCOPES_ARRAY>'],
+  scopes: ['<YOUR_SCOPE_ARRAY>'],
 };
 
 // use the client to make the auth request and receive the authState
