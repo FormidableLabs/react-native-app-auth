@@ -41,6 +41,7 @@ These providers implement the OAuth2 spec, but are not OpenID providers, which m
 - [Coinbase](https://developers.coinbase.com/docs/wallet/coinbase-connect/integrating) ([Example configuration](./docs/config-examples/coinbase.md))
 - [GitHub](https://developer.github.com/apps/building-oauth-apps/authorizing-oauth-apps/) ([Example configuration](./docs/config-examples/github.md))
 - [Slack](https://api.slack.com/authentication/oauth-v2) ([Example configuration](./docs/config-examples/slack.md))
+- [Strava](https://developers.strava.com/docs/authentication) ([Example configuration](./docs/config-examples/strava.md))
 
 ## Why you may want to use this library
 
