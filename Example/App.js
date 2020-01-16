@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { UIManager, LayoutAnimation, Alert } from 'react-native';
 import { authorize, refresh, revoke } from 'react-native-app-auth';
 import { Page, Button, ButtonContainer, Form, FormLabel, FormValue, Heading } from './components';
@@ -59,7 +59,8 @@ export default () => {
 
       setAuthState(current => ({
         ...current,
-        ...newAuthState
+        ...newAuthState,
+        refreshToken: newAuthState.refreshToken || current.refreshToken
       }))
 
     } catch (error) {
@@ -82,6 +83,15 @@ export default () => {
     } catch (error) {
       Alert.alert('Failed to revoke token', error.message);
     }
+  }, [authState]);
+
+  const showRevoke = useMemo(() => {
+    if (authState.accessToken) {
+      if (config.issuer || config.serviceConfiguration.revocationEndpoint) {
+        return true;
+      }
+    }
+    return false;
   }, [authState]);
 
   return (
@@ -108,7 +118,7 @@ export default () => {
         {!!authState.refreshToken ? (
           <Button onPress={handleRefresh} text="Refresh" color="#24C2CB" />
         ) : null}
-        {!!authState.accessToken ? (
+        {showRevoke ? (
           <Button onPress={handleRevoke} text="Revoke" color="#EF525B" />
         ) : null}
       </ButtonContainer>
