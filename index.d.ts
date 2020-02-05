@@ -71,6 +71,7 @@ export type AuthConfiguration = BaseAuthConfiguration & {
   customHeaders?: CustomHeaders;
   useNonce?: boolean;
   usePKCE?: boolean;
+  warmAndPrefetchChrome?: boolean;
 };
 
 export interface AuthorizeResult {
