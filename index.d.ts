@@ -82,7 +82,7 @@ export interface AuthorizeResult {
   idToken: string;
   refreshToken: string;
   tokenType: string;
-  scopes: [string];
+  scopes: string[];
 }
 
 export interface RefreshResult {
