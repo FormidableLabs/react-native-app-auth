@@ -66,4 +66,24 @@ public final class TokenResponseFactory {
 
         return map;
     }
+
+
+    /*
+     * Read raw authorization into a React Native map to be passed down the bridge
+     */
+    public static final WritableMap authorizationResponseToMap(AuthorizationResponse authResponse) {
+        WritableMap map = Arguments.createMap();
+        map.putString("authorizationCode", authResponse.authorizationCode);
+        map.putString("accessToken", authResponse.accessToken);
+        map.putMap("additionalParameters", MapUtil.createAdditionalParametersMap(authResponse.additionalParameters));
+        map.putString("idToken", authResponse.idToken);
+        map.putString("tokenType", authResponse.tokenType);
+        map.putArray("scopes", createScopeArray(authResponse.scope));
+
+        if (authResponse.accessTokenExpirationTime != null) {
+            map.putString("accessTokenExpirationTime", DateUtil.formatTimestamp(authResponse.accessTokenExpirationTime));
+        }
+
+        return map;
+    }
 }
