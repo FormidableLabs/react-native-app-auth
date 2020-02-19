@@ -71,6 +71,7 @@ export type AuthConfiguration = BaseAuthConfiguration & {
   customHeaders?: CustomHeaders;
   useNonce?: boolean;
   usePKCE?: boolean;
+  warmAndPrefetchChrome?: boolean;
 };
 
 export interface AuthorizeResult {
@@ -81,7 +82,7 @@ export interface AuthorizeResult {
   idToken: string;
   refreshToken: string;
   tokenType: string;
-  scopes: [string];
+  scopes: string[];
 }
 
 export interface RefreshResult {
