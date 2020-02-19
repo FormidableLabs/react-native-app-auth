@@ -97,7 +97,7 @@ export interface RefreshResult {
 export interface RevokeConfiguration {
   tokenToRevoke: string;
   sendClientId?: boolean;
-  includeBasicAuthorization?: boolean;
+  includeBasicAuth?: boolean;
 }
 
 export interface RefreshConfiguration {
