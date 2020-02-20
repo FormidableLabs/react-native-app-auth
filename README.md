@@ -128,6 +128,7 @@ with optional overrides.
   - **register** - (`{ [key: string]: value }`) headers to be passed during registration request.
 - **useNonce** - (`boolean`) _IOS_ (default: true) optionally allows not sending the nonce parameter, to support non-compliant providers
 - **usePKCE** - (`boolean`) (default: true) optionally allows not sending the code_challenge parameter and skipping PKCE code verification, to support non-compliant providers.
+- **skipCodeExchange** - (`boolean`) (default: false) just return the authorization response, instead of automatically exchanging the authorization code. This is useful if this exchange needs to be done manually (not client-side)
 
 #### result
 
@@ -327,6 +328,19 @@ Add the following code to `AppDelegate.m` (to support iOS 10 and below)
 ```diff
 + - (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<NSString *, id> *) options {
 +  return [self.authorizationFlowManagerDelegate resumeExternalUserAgentFlowWithURL:url];
++ }
+```
+
+If you want to support universal links, add the following to `AppDelegate.m` under `continueUserActivity`
+
+```diff
++ if ([userActivity.activityType isEqualToString:NSUserActivityTypeBrowsingWeb]) {
++   if (self.authorizationFlowManagerDelegate) {
++     BOOL resumableAuth = [self.authorizationFlowManagerDelegate resumeExternalUserAgentFlowWithURL:userActivity.webpageURL];
++     if (resumableAuth) {
++       return YES;
++     }
++   }
 + }
 ```
 
