@@ -12,7 +12,7 @@ For the Authorization callback URL, choose something like `com.myapp://oauthredi
 const config = {
   redirectUrl: 'com.my.auth.app://oauthredirect',
   clientId: '<client-id>',
-  clientSecret: '<client-seret',
+  clientSecret: '<client-secret',
   scopes: ['identity'],
   serviceConfiguration: {
     authorizationEndpoint: 'https://github.com/login/oauth/authorize',
