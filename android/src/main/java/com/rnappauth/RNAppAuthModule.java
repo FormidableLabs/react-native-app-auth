@@ -51,7 +51,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 
 public class RNAppAuthModule extends ReactContextBaseJavaModule implements ActivityEventListener {
@@ -67,7 +67,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     private Map<String, String> tokenRequestHeaders = null;
     private Map<String, String> additionalParametersMap;
     private String clientSecret;
-    private final AtomicReference<AuthorizationServiceConfiguration> mServiceConfiguration = new AtomicReference<>();
+    private final ConcurrentHashMap<String, AuthorizationServiceConfiguration> mServiceConfigurations = new ConcurrentHashMap<>();
     private boolean isPrefetched = false;
 
     public RNAppAuthModule(ReactApplicationContext reactContext) {
@@ -97,15 +97,15 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         final CountDownLatch fetchConfigurationLatch = new CountDownLatch(1);
 
         if(!isPrefetched) {
-            if (serviceConfiguration != null && mServiceConfiguration.get() == null) {
+            if (serviceConfiguration != null && !mServiceConfigurations.containsKey(issuer)) {
                 try {
-                    mServiceConfiguration.set(createAuthorizationServiceConfiguration(serviceConfiguration));
+                    mServiceConfigurations.put(issuer, createAuthorizationServiceConfiguration(serviceConfiguration));
                     isPrefetched = true;
                     fetchConfigurationLatch.countDown();
                 } catch (Exception e) {
                     promise.reject("configuration_error", "Failed to convert serviceConfiguration", e);
                 }
-            } else if (mServiceConfiguration.get() == null) {
+            } else if (!mServiceConfigurations.containsKey(issuer)) {
                 final Uri issuerUri = Uri.parse(issuer);
                 AuthorizationServiceConfiguration.fetchFromUrl(
                         buildConfigurationUriFromIssuer(issuerUri),
@@ -117,7 +117,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                     promise.reject("service_configuration_fetch_error", "Failed to fetch configuration", ex);
                                     return;
                                 }
-                                mServiceConfiguration.set(fetchedConfiguration);
+                                mServiceConfigurations.put(issuer, fetchedConfiguration);
                                 isPrefetched = true;
                                 fetchConfigurationLatch.countDown();
                             }
@@ -157,9 +157,9 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         final HashMap<String, String> additionalParametersMap = MapUtil.readableMapToHashMap(additionalParameters);
 
         // when serviceConfiguration is provided, we don't need to hit up the OpenID well-known id endpoint
-        if (serviceConfiguration != null || mServiceConfiguration.get() != null) {
+        if (serviceConfiguration != null || mServiceConfigurations.containsKey(issuer)) {
             try {
-                final AuthorizationServiceConfiguration serviceConfig = mServiceConfiguration.get() != null ? mServiceConfiguration.get() : createAuthorizationServiceConfiguration(serviceConfiguration);
+                final AuthorizationServiceConfiguration serviceConfig = mServiceConfigurations.containsKey(issuer)? mServiceConfigurations.get(issuer) : createAuthorizationServiceConfiguration(serviceConfiguration);
                 registerWithConfiguration(
                         serviceConfig,
                         appAuthConfiguration,
@@ -187,7 +187,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                 return;
                             }
 
-                            mServiceConfiguration.set(fetchedConfiguration);
+                            mServiceConfigurations.put(issuer, fetchedConfiguration);
 
                             registerWithConfiguration(
                                     fetchedConfiguration,
@@ -234,9 +234,9 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         this.clientAuthMethod = clientAuthMethod;
 
         // when serviceConfiguration is provided, we don't need to hit up the OpenID well-known id endpoint
-        if (serviceConfiguration != null || mServiceConfiguration.get() != null) {
+        if (serviceConfiguration != null || mServiceConfigurations.containsKey(issuer)) {
             try {
-                final AuthorizationServiceConfiguration serviceConfig = mServiceConfiguration.get() != null ? mServiceConfiguration.get() : createAuthorizationServiceConfiguration(serviceConfiguration);
+                final AuthorizationServiceConfiguration serviceConfig = mServiceConfigurations.containsKey(issuer)? mServiceConfigurations.get(issuer) : createAuthorizationServiceConfiguration(serviceConfiguration);
                 authorizeWithConfiguration(
                         serviceConfig,
                         appAuthConfiguration,
@@ -264,7 +264,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                 return;
                             }
 
-                            mServiceConfiguration.set(fetchedConfiguration);
+                            mServiceConfigurations.put(issuer, fetchedConfiguration);
 
                             authorizeWithConfiguration(
                                     fetchedConfiguration,
@@ -315,9 +315,9 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         this.additionalParametersMap = additionalParametersMap;
 
         // when serviceConfiguration is provided, we don't need to hit up the OpenID well-known id endpoint
-        if (serviceConfiguration != null || mServiceConfiguration.get() != null) {
+        if (serviceConfiguration != null || mServiceConfigurations.containsKey(issuer)) {
             try {
-                final AuthorizationServiceConfiguration serviceConfig = mServiceConfiguration.get() != null ? mServiceConfiguration.get() : createAuthorizationServiceConfiguration(serviceConfiguration);
+                final AuthorizationServiceConfiguration serviceConfig = mServiceConfigurations.containsKey(issuer) ? mServiceConfigurations.get(issuer) : createAuthorizationServiceConfiguration(serviceConfiguration);
                 refreshWithConfiguration(
                         serviceConfig,
                         appAuthConfiguration,
@@ -348,7 +348,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                 return;
                             }
 
-                            mServiceConfiguration.set(fetchedConfiguration);
+                            mServiceConfigurations.put(issuer, fetchedConfiguration);
 
                             refreshWithConfiguration(
                                     fetchedConfiguration,
