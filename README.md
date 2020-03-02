@@ -132,7 +132,7 @@ with optional overrides.
 
 #### result
 
-This is the result from the auth server
+This is the result from the auth server:
 
 - **accessToken** - (`string`) the access token
 - **accessTokenExpirationDate** - (`string`) the token expiration date
@@ -142,6 +142,7 @@ This is the result from the auth server
 - **refreshToken** - (`string`) the refresh token
 - **tokenType** - (`string`) the token type, e.g. Bearer
 - **scopes** - ([`string`]) the scopes the user has agreed to be granted
+- **authorizationCode** - (`string`) the authorization code (only if `skipCodeExchange=true`)
 
 ### `refresh`
 
