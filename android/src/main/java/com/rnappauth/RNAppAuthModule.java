@@ -60,7 +60,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
     private final ReactApplicationContext reactContext;
     private Promise promise;
-    private Boolean dangerouslyAllowInsecureHttpRequests;
+    private boolean dangerouslyAllowInsecureHttpRequests;
     private String clientAuthMethod = "basic";
     private Map<String, String> registrationRequestHeaders = null;
     private Map<String, String> authorizationRequestHeaders = null;
@@ -84,7 +84,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         final String clientId,
         final ReadableArray scopes,
         final ReadableMap serviceConfiguration,
-        final Boolean dangerouslyAllowInsecureHttpRequests,
+        final boolean dangerouslyAllowInsecureHttpRequests,
         final ReadableMap headers,
         final Promise promise
     ) {
@@ -147,7 +147,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         final String tokenEndpointAuthMethod,
         final ReadableMap additionalParameters,
         final ReadableMap serviceConfiguration,
-        final Boolean dangerouslyAllowInsecureHttpRequests,
+        final boolean dangerouslyAllowInsecureHttpRequests,
         final ReadableMap headers,
         final Promise promise
     ) {
@@ -217,7 +217,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final ReadableMap serviceConfiguration,
             final Boolean usePKCE,
             final String clientAuthMethod,
-            final Boolean dangerouslyAllowInsecureHttpRequests,
+            final boolean dangerouslyAllowInsecureHttpRequests,
             final ReadableMap headers,
             final Promise promise
     ) {
@@ -297,7 +297,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final ReadableMap additionalParameters,
             final ReadableMap serviceConfiguration,
             final String clientAuthMethod,
-            final Boolean dangerouslyAllowInsecureHttpRequests,
+            final boolean dangerouslyAllowInsecureHttpRequests,
             final ReadableMap headers,
             final Promise promise
     ) {
@@ -707,10 +707,10 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     /*
      *  Create appropriate connection builder based on provided settings
      */
-    private ConnectionBuilder createConnectionBuilder(Boolean allowInsecureConnections, Map<String, String> headers) {
+    private ConnectionBuilder createConnectionBuilder(boolean allowInsecureConnections, Map<String, String> headers) {
         ConnectionBuilder proxiedBuilder;
 
-        if (allowInsecureConnections.equals(true)) {
+        if (allowInsecureConnections) {
             proxiedBuilder =UnsafeConnectionBuilder.INSTANCE;
         } else {
             proxiedBuilder = DefaultConnectionBuilder.INSTANCE;
