@@ -386,7 +386,7 @@ RCT_REMAP_METHOD(refresh,
              @"idToken": response.idToken ? response.idToken : @"",
              @"refreshToken": response.refreshToken ? response.refreshToken : @"",
              @"tokenType": response.tokenType ? response.tokenType : @"",
-             @"scopes": authResponse.scope ? [authResponse.scope componentsSeparatedByString:@" "] : [NSArray new],
+             @"scopes": authResponse.scope ? authResponse.scope : @""
              };
 }
     
