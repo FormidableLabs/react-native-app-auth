@@ -57,7 +57,7 @@ public final class TokenResponseFactory {
         map.putString("idToken", response.idToken);
         map.putString("refreshToken", response.refreshToken);
         map.putString("tokenType", response.tokenType);
-        map.putArray("scopes", createScopeArray(authResponse.scope));
+        map.putString("scopes", authResponse.scope);
 
         if (response.accessTokenExpirationTime != null) {
             map.putString("accessTokenExpirationDate", DateUtil.formatTimestamp(response.accessTokenExpirationTime));
