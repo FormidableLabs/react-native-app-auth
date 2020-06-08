@@ -332,14 +332,30 @@ Add the following code to `AppDelegate.m` (to support iOS 10 and below)
 
 #### Integration of the library with a Swift iOS project
 
-The approach mentioned above should also be possible to employ with Swift. In this case one should have to import `RNAppAuth`
-and make `AppDelegate` conform to `RNAppAuthAuthorizationFlowManager`. Note that this has not been tested.
-`AppDelegate.swift` should look something like this:
+The approach mentioned should work with Swift. In this case one should make `AppDelegate` conform to `RNAppAuthAuthorizationFlowManager`. Note that this is not tested/guaranteed by the maintainers.
+
+Steps:
+
+1. `swift-Bridging-Header.h` should include a reference to `#import "RNAppAuthAuthorizationFlowManager.h`, like so:
+
+```h
+#import <React/RCTBundleURLProvider.h>
+#import <React/RCTRootView.h>
+#import <React/RCTBridgeDelegate.h>
+#import <React/RCTBridge.h>
+#import "RNAppAuthAuthorizationFlowManager.h" // <-- Add this header
+#if DEBUG
+#import <FlipperKit/FlipperClient.h>
+// etc...
+```
+
+2. `AppDelegate.swift` should implement the `RNAppAuthorizationFlowManager` protocol and have a handler for url deep linking. The result should look something like this:
 
 ```swift
-@import RNAppAuth
-class AppDelegate: UIApplicationDelegate, RNAppAuthAuthorizationFlowManager {
-  public weak var authorizationFlowManagerDelegate: RNAppAuthAuthorizationFlowManagerDelegate?
+@UIApplicationMain
+class AppDelegate: UIApplicationDelegate, RNAppAuthAuthorizationFlowManager { //<-- note the additional RNAppAuthAuthorizationFlowManager protocol
+  public weak var authorizationFlowManagerDelegate: RNAppAuthAuthorizationFlowManagerDelegate? // <-- this property is required by the protocol
+  //"open url" delegate function for managing deep linking needs to call the resumeExternalUserAgentFlowWithURL method
   func application(
       _ app: UIApplication,
       open url: URL,
