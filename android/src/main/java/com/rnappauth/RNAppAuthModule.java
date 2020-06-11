@@ -12,6 +12,7 @@ import androidx.annotation.Nullable;
 import androidx.browser.customtabs.CustomTabsCallback;
 import androidx.browser.customtabs.CustomTabsClient;
 import androidx.browser.customtabs.CustomTabsServiceConnection;
+import androidx.browser.customtabs.CustomTabsSession;
 
 import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -762,7 +763,11 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             @Override
             public void onCustomTabsServiceConnected(ComponentName name, CustomTabsClient client) {
                 client.warmup(0);
-                client.newSession(new CustomTabsCallback()).mayLaunchUrl(Uri.parse(issuer), null, Collections.<Bundle>emptyList());
+                CustomTabsSession session = client.newSession(new CustomTabsCallback());
+                if (session == null) {
+                    return;
+                }
+                session.mayLaunchUrl(Uri.parse(issuer), null, Collections.<Bundle>emptyList());
             }
 
             @Override
