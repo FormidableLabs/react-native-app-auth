@@ -55,6 +55,12 @@ interface BuiltInParameters {
   display?: 'page' | 'popup' | 'touch' | 'wap';
   login_prompt?: string;
   prompt?: 'consent' | 'login' | 'none' | 'select_account';
+  /** [Android only] Default use web view for authentication. 
+   * If you'd like to use third party app. Pass its package name here.
+   * 
+   * ex. use_app: "com.strava"
+   */
+  use_app?: string;
 }
 
 export type BaseAuthConfiguration = BaseConfiguration & {
