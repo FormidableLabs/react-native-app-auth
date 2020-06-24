@@ -120,6 +120,7 @@ with optional overrides.
 - **additionalParameters** - (`object`) additional parameters that will be passed in the authorization request.
   Must be string values! E.g. setting `additionalParameters: { hello: 'world', foo: 'bar' }` would add
   `hello=world&foo=bar` to the authorization request.
+  - `use_app`: [Android only] specific the application package name that you'd like to use for authenticating. Otherwise, use webview as default.
 - **clientAuthMethod** - (`string`) _ANDROID_ Client Authentication Method. Can be either `basic` (default) for [Basic Authentication](https://github.com/openid/AppAuth-Android/blob/master/library/java/net/openid/appauth/ClientSecretBasic.java) or `post` for [HTTP POST body Authentication](https://github.com/openid/AppAuth-Android/blob/master/library/java/net/openid/appauth/ClientSecretPost.java)
 - **dangerouslyAllowInsecureHttpRequests** - (`boolean`) _ANDROID_ whether to allow requests over plain HTTP or with self-signed SSL certificates. :warning: Can be useful for testing against local server, _should not be used in production._ This setting has no effect on iOS; to enable insecure HTTP requests, add a [NSExceptionAllowsInsecureHTTPLoads exception](https://cocoacasts.com/how-to-add-app-transport-security-exception-domains) to your App Transport Security settings.
 - **customHeaders** - (`object`) _ANDROID_ you can specify custom headers to pass during authorize request and/or token request.

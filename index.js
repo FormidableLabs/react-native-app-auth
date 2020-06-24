@@ -55,6 +55,12 @@ const validateHeaders = headers => {
   });
 };
 
+const validateAdditionalParameters = params => {
+  if (Platform.OS !== 'android') {
+    delete params["use_app"];
+  }
+}
+
 export const prefetchConfiguration = async ({
   warmAndPrefetchChrome,
   issuer,
@@ -160,7 +166,7 @@ export const authorize = ({
   validateClientId(clientId);
   validateRedirectUrl(redirectUrl);
   validateHeaders(customHeaders);
-  // TODO: validateAdditionalParameters
+  validateAdditionalParameters(additionalParameters)
 
   const nativeMethodArguments = [
     issuer,
