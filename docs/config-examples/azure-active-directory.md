@@ -19,7 +19,7 @@ Please Note:
 const config = {
   issuer: 'https://login.microsoftonline.com/your-tenant-id',
   clientId: 'your-client-id',
-  redirectUrl: 'com.myapp://oauth/redirect',
+  redirectUrl: 'com.myapp://oauth/redirect/',
   additionalParameters: {
     resource: 'your-resource'
   }
@@ -42,7 +42,7 @@ The V2 endpoint follows the standard OAuth protocol with scopes. Detailed docume
 const config = {
   issuer: 'https://login.microsoftonline.com/your-tenant-id/v2.0',
   clientId: 'your-client-id',
-  redirectUrl: 'com.myapp://oauth/redirect',
+  redirectUrl: 'com.myapp://oauth/redirect/',
   scopes: ['openid', 'profile', 'email', 'offline_access']
 };
 

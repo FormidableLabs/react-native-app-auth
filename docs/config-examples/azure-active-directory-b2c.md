@@ -6,7 +6,7 @@ Detailed documentation [here](https://docs.microsoft.com/en-us/azure/active-dire
 const config = {
   issuer: 'https://<TENANT_NAME>.b2clogin.com/<TENANT_NAME>.onmicrosoft.com/<USER_FLOW_NAME>/v2.0',
   clientId: '<APPLICATION_ID>',
-  redirectUrl: 'com.myapp://redirect/url',
+  redirectUrl: 'com.myapp://redirect/url/',
   scopes: ['openid', 'offline_access']
 };
 
