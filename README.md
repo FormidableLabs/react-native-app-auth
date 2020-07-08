@@ -17,7 +17,9 @@ React Native bridge for [AppAuth-iOS](https://github.com/openid/AppAuth-iOS) and
 This library _should_ support any OAuth provider that implements the
 [OAuth2 spec](https://tools.ietf.org/html/rfc6749#section-2.2).
 
-### Tested OpenID providers:
+We only support the [Authorization Code Flow](https://oauth.net/2/grant-types/authorization-code/).
+
+### Tested OpenID providers
 
 These providers are OpenID compliant, which means you can use [autodiscovery](https://openid.net/specs/openid-connect-discovery-1_0.html).
 
@@ -30,7 +32,7 @@ These providers are OpenID compliant, which means you can use [autodiscovery](ht
 - [Azure Active Directory](https://docs.microsoft.com/en-us/azure/active-directory) ([Example configuration](./docs/config-examples/azure-active-directory.md))
 - [AWS Cognito](https://eu-west-1.console.aws.amazon.com/cognito) ([Example configuration](./docs/config-examples/aws-cognito.md))
 
-### Tested OAuth2 providers:
+### Tested OAuth2 providers
 
 These providers implement the OAuth2 spec, but are not OpenID providers, which means you must configure the authorization and token endpoints yourself.
 
@@ -249,14 +251,14 @@ are not distributed as part of the bridge.
 
 AppAuth supports three options for dependency management.
 
-1.  **CocoaPods**
+1. **CocoaPods**
 
     ```sh
     cd ios
     pod install
     ```
 
-2.  **Carthage**
+2. **Carthage**
 
     With [Carthage](https://github.com/Carthage/Carthage), add the following line to your `Cartfile`:
 
@@ -268,7 +270,7 @@ AppAuth supports three options for dependency management.
 
     Add a copy files build step for `AppAuth.framework`: open Build Phases on Xcode, add a new "Copy Files" phase, choose "Frameworks" as destination, add `AppAuth.framework` and ensure "Code Sign on Copy" is checked.
 
-3.  **Static Library**
+3. **Static Library**
 
     You can also use [AppAuth-iOS](https://github.com/openid/AppAuth-iOS) as a static library. This
     requires linking the library and your project and including the headers. Suggested configuration:
