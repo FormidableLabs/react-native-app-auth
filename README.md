@@ -17,7 +17,7 @@ React Native bridge for [AppAuth-iOS](https://github.com/openid/AppAuth-iOS) and
 This library _should_ support any OAuth provider that implements the
 [OAuth2 spec](https://tools.ietf.org/html/rfc6749#section-2.2).
 
-We only support the [Authoriation Code Flow](https://oauth.net/2/grant-types/authorization-code/).
+We only support the [Authorization Code Flow](https://oauth.net/2/grant-types/authorization-code/).
 
 ### Tested OpenID providers
 
