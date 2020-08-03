@@ -72,6 +72,7 @@ export type AuthConfiguration = BaseAuthConfiguration & {
   useNonce?: boolean;
   usePKCE?: boolean;
   warmAndPrefetchChrome?: boolean;
+  skipCodeExchange?: boolean;
 };
 
 export interface AuthorizeResult {
@@ -83,6 +84,7 @@ export interface AuthorizeResult {
   refreshToken: string;
   tokenType: string;
   scopes: string[];
+  authorizationCode: string;
 }
 
 export interface RefreshResult {

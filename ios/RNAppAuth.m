@@ -88,6 +88,7 @@ RCT_REMAP_METHOD(authorize,
                  scopes: (NSArray *) scopes
                  additionalParameters: (NSDictionary *_Nullable) additionalParameters
                  serviceConfiguration: (NSDictionary *_Nullable) serviceConfiguration
+                 skipCodeExchange: (BOOL) skipCodeExchange
                  useNonce: (BOOL *) useNonce
                  usePKCE: (BOOL *) usePKCE
                  resolve: (RCTPromiseResolveBlock) resolve
@@ -104,6 +105,7 @@ RCT_REMAP_METHOD(authorize,
                                 useNonce: useNonce
                                  usePKCE: usePKCE
                     additionalParameters: additionalParameters
+                    skipCodeExchange: skipCodeExchange
                                  resolve: resolve
                                   reject: reject];
     } else {
@@ -121,6 +123,7 @@ RCT_REMAP_METHOD(authorize,
                                                                                         useNonce: useNonce
                                                                                          usePKCE: usePKCE
                                                                             additionalParameters: additionalParameters
+                                                                                skipCodeExchange: skipCodeExchange
                                                                                          resolve: resolve
                                                                                           reject: reject];
                                                             }];
@@ -259,6 +262,7 @@ RCT_REMAP_METHOD(refresh,
                           useNonce: (BOOL *) useNonce
                            usePKCE: (BOOL *) usePKCE
               additionalParameters: (NSDictionary *_Nullable) additionalParameters
+              skipCodeExchange: (BOOL) skipCodeExchange
                            resolve: (RCTPromiseResolveBlock) resolve
                             reject: (RCTPromiseRejectBlock)  reject
 {
@@ -296,23 +300,38 @@ RCT_REMAP_METHOD(refresh,
         taskId = UIBackgroundTaskInvalid;
     }];
 
-    _currentSession = [OIDAuthState authStateByPresentingAuthorizationRequest:request
+    if (skipCodeExchange) {
+        _currentSession = [OIDAuthorizationService presentAuthorizationRequest:request
                                    presentingViewController:appDelegate.window.rootViewController
-                                                   callback:^(OIDAuthState *_Nullable authState,
-                                                              NSError *_Nullable error) {
+                                                    callback:^(OIDAuthorizationResponse *_Nullable authorizationResponse, NSError *_Nullable error) {
                                                        typeof(self) strongSelf = weakSelf;
                                                        strongSelf->_currentSession = nil;
                                                        [UIApplication.sharedApplication endBackgroundTask:taskId];
                                                        taskId = UIBackgroundTaskInvalid;
-                                                       if (authState) {
-                                                           resolve([self formatResponse:authState.lastTokenResponse
-                                                               withAuthResponse:authState.lastAuthorizationResponse]);
+                                                       if (authorizationResponse) {
+                                                           resolve([self formatAuthorizationResponse:authorizationResponse]);
                                                        } else {
                                                            reject(@"authentication_failed", [error localizedDescription], error);
                                                        }
-                                                   }]; // end [OIDAuthState authStateByPresentingAuthorizationRequest:request
+                                                   }]; // end [OIDAuthState presentAuthorizationRequest:request
+    } else {
+        _currentSession = [OIDAuthState authStateByPresentingAuthorizationRequest:request
+                                presentingViewController:appDelegate.window.rootViewController
+                                                callback:^(OIDAuthState *_Nullable authState,
+                                                            NSError *_Nullable error) {
+                                                    typeof(self) strongSelf = weakSelf;
+                                                    strongSelf->_currentSession = nil;
+                                                    [UIApplication.sharedApplication endBackgroundTask:taskId];
+                                                    taskId = UIBackgroundTaskInvalid;
+                                                    if (authState) {
+                                                        resolve([self formatResponse:authState.lastTokenResponse
+                                                            withAuthResponse:authState.lastAuthorizationResponse]);
+                                                    } else {
+                                                        reject(@"authentication_failed", [error localizedDescription], error);
+                                                    }
+                                                }]; // end [OIDAuthState authStateByPresentingAuthorizationRequest:request
+    }
 }
-
 
 /*
  * Refresh a token with provided OIDServiceConfiguration
@@ -348,6 +367,27 @@ RCT_REMAP_METHOD(refresh,
                                                 reject(@"token_refresh_failed", [error localizedDescription], error);
                                             }
                                         }];
+}
+
+
+/*
+ * Take raw OIDAuthorizationResponse and turn it to response format to pass to JavaScript caller
+ */
+- (NSDictionary*)formatAuthorizationResponse: (OIDAuthorizationResponse*) response {
+    NSDateFormatter *dateFormat = [[NSDateFormatter alloc] init];
+    dateFormat.timeZone = [NSTimeZone timeZoneWithAbbreviation: @"UTC"];
+    [dateFormat setLocale:[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"]];
+    [dateFormat setDateFormat:@"yyyy-MM-dd'T'HH:mm:ss'Z'"];
+
+    return @{@"authorizationCode": response.authorizationCode ? response.authorizationCode : @"",
+            @"state": response.state ? response.state : @"",
+            @"accessToken": response.accessToken ? response.accessToken : @"",
+            @"accessTokenExpirationDate": response.accessTokenExpirationDate ? [dateFormat stringFromDate:response.accessTokenExpirationDate] : @"",
+            @"tokenType": response.tokenType ? response.tokenType : @"",
+            @"idToken": response.idToken ? response.idToken : @"",
+            @"scopes": response.scope ? [response.scope componentsSeparatedByString:@" "] : [NSArray new],
+            @"additionalParameters": response.additionalParameters,
+            };
 }
 
 /*
