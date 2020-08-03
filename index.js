@@ -155,6 +155,7 @@ export const authorize = ({
   clientAuthMethod = 'basic',
   dangerouslyAllowInsecureHttpRequests = false,
   customHeaders,
+  skipCodeExchange = false,
 }) => {
   validateIssuerOrServiceConfigurationEndpoints(issuer, serviceConfiguration);
   validateClientId(clientId);
@@ -170,6 +171,7 @@ export const authorize = ({
     scopes,
     additionalParameters,
     serviceConfiguration,
+    skipCodeExchange,
   ];
 
   if (Platform.OS === 'android') {

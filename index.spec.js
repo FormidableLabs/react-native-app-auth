@@ -41,6 +41,7 @@ describe('AppAuth', () => {
     useNonce: true,
     usePKCE: true,
     customHeaders: null,
+    skipCodeExchange: false,
   };
 
   const registerConfig = {
@@ -380,8 +381,34 @@ describe('AppAuth', () => {
         config.scopes,
         config.additionalParameters,
         config.serviceConfiguration,
+        config.skipCodeExchange,
         config.useNonce,
         config.usePKCE
+      );
+    });
+
+    it('calls the native wrapper with the default value `false`, `true`, `true`', () => {
+      authorize({
+        issuer: 'test-issuer',
+        redirectUrl: 'test-redirectUrl',
+        clientId: 'test-clientId',
+        clientSecret: 'test-clientSecret',
+        customHeaders: null,
+        additionalParameters: null,
+        serviceConfiguration: null,
+        scopes: ['openid'],
+      });
+      expect(mockAuthorize).toHaveBeenCalledWith(
+        'test-issuer',
+        'test-redirectUrl',
+        'test-clientId',
+        'test-clientSecret',
+        ['openid'],
+        null,
+        null,
+        false,
+        true,
+        true
       );
     });
 
@@ -404,6 +431,7 @@ describe('AppAuth', () => {
             config.scopes,
             config.additionalParameters,
             config.serviceConfiguration,
+            config.skipCodeExchange,
             config.usePKCE,
             config.clientAuthMethod,
             false,
@@ -421,6 +449,7 @@ describe('AppAuth', () => {
             config.scopes,
             config.additionalParameters,
             config.serviceConfiguration,
+            false,
             config.usePKCE,
             config.clientAuthMethod,
             false,
@@ -438,6 +467,7 @@ describe('AppAuth', () => {
             config.scopes,
             config.additionalParameters,
             config.serviceConfiguration,
+            false,
             config.usePKCE,
             config.clientAuthMethod,
             true,
@@ -464,6 +494,7 @@ describe('AppAuth', () => {
             config.scopes,
             config.additionalParameters,
             config.serviceConfiguration,
+            false,
             config.usePKCE,
             config.clientAuthMethod,
             false,
@@ -619,6 +650,7 @@ describe('AppAuth', () => {
             config.scopes,
             config.additionalParameters,
             config.serviceConfiguration,
+            false,
             config.usePKCE,
             config.clientAuthMethod,
             false,
@@ -643,6 +675,7 @@ describe('AppAuth', () => {
           config.scopes,
           config.additionalParameters,
           config.serviceConfiguration,
+          false,
           true,
           true
         );
@@ -658,6 +691,7 @@ describe('AppAuth', () => {
           config.scopes,
           config.additionalParameters,
           config.serviceConfiguration,
+          false,
           false,
           true
         );
@@ -679,6 +713,7 @@ describe('AppAuth', () => {
           config.scopes,
           config.additionalParameters,
           config.serviceConfiguration,
+          config.skipCodeExchange,
           config.useNonce,
           true
         );
@@ -694,6 +729,7 @@ describe('AppAuth', () => {
           config.scopes,
           config.additionalParameters,
           config.serviceConfiguration,
+          config.skipCodeExchange,
           config.useNonce,
           false
         );

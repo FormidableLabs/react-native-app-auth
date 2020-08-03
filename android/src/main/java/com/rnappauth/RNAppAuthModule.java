@@ -62,6 +62,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     private final ReactApplicationContext reactContext;
     private Promise promise;
     private boolean dangerouslyAllowInsecureHttpRequests;
+    private Boolean skipCodeExchange;
     private String clientAuthMethod = "basic";
     private Map<String, String> registrationRequestHeaders = null;
     private Map<String, String> authorizationRequestHeaders = null;
@@ -216,6 +217,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final ReadableArray scopes,
             final ReadableMap additionalParameters,
             final ReadableMap serviceConfiguration,
+            final Boolean skipCodeExchange,
             final Boolean usePKCE,
             final String clientAuthMethod,
             final boolean dangerouslyAllowInsecureHttpRequests,
@@ -233,6 +235,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         this.additionalParametersMap = additionalParametersMap;
         this.clientSecret = clientSecret;
         this.clientAuthMethod = clientAuthMethod;
+        this.skipCodeExchange = skipCodeExchange;
 
         // when serviceConfiguration is provided, we don't need to hit up the OpenID well-known id endpoint
         if (serviceConfiguration != null || hasServiceConfiguration(issuer)) {
@@ -391,6 +394,13 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                 }
                 return;
             }
+
+            if (this.skipCodeExchange) {
+                WritableMap map = TokenResponseFactory.authorizationResponseToMap(response);
+                promise.resolve(map);
+                return;
+            }
+
 
             final Promise authorizePromise = this.promise;
             final AppAuthConfiguration configuration = createAppAuthConfiguration(
