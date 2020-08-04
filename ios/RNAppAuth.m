@@ -301,9 +301,11 @@ RCT_REMAP_METHOD(refresh,
         taskId = UIBackgroundTaskInvalid;
     }];
 
+    UIViewController *presentingViewController = appDelegate.window.rootViewController.view.window ? appDelegate.window.rootViewController : appDelegate.window.rootViewController.presentedViewController;
+
     if (skipCodeExchange) {
         _currentSession = [OIDAuthorizationService presentAuthorizationRequest:request
-                                   presentingViewController:appDelegate.window.rootViewController
+                                   presentingViewController:presentingViewController
                                                     callback:^(OIDAuthorizationResponse *_Nullable authorizationResponse, NSError *_Nullable error) {
                                                        typeof(self) strongSelf = weakSelf;
                                                        strongSelf->_currentSession = nil;
@@ -318,7 +320,7 @@ RCT_REMAP_METHOD(refresh,
                                                    }]; // end [OIDAuthState presentAuthorizationRequest:request
     } else {
         _currentSession = [OIDAuthState authStateByPresentingAuthorizationRequest:request
-                                presentingViewController:appDelegate.window.rootViewController
+                                presentingViewController:presentingViewController
                                                 callback:^(OIDAuthState *_Nullable authState,
                                                             NSError *_Nullable error) {
                                                     typeof(self) strongSelf = weakSelf;
