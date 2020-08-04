@@ -185,7 +185,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                 @Nullable AuthorizationServiceConfiguration fetchedConfiguration,
                                 @Nullable AuthorizationException ex) {
                             if (ex != null) {
-                                promise.reject("service_configuration_fetch_error", getErrorMessage(ex));
+                                promise.reject("service_configuration_fetch_error", ex.getLocalizedMessage(), ex);
                                 return;
                             }
 
@@ -264,7 +264,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                 @Nullable AuthorizationServiceConfiguration fetchedConfiguration,
                                 @Nullable AuthorizationException ex) {
                             if (ex != null) {
-                                promise.reject("service_configuration_fetch_error", getErrorMessage(ex));
+                                promise.reject("service_configuration_fetch_error", ex.getLocalizedMessage(), ex);
                                 return;
                             }
 
@@ -348,7 +348,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                 @Nullable AuthorizationServiceConfiguration fetchedConfiguration,
                                 @Nullable AuthorizationException ex) {
                             if (ex != null) {
-                                promise.reject("service_configuration_fetch_error", getErrorMessage(ex));
+                                promise.reject("service_configuration_fetch_error", ex.getLocalizedMessage(), ex);
                                 return;
                             }
 
@@ -390,7 +390,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             AuthorizationException exception = AuthorizationException.fromIntent(data);
             if (exception != null) {
                 if (promise != null) {
-                    promise.reject("authentication_error", getErrorMessage(exception));
+                    promise.reject(exception.error != null ? exception.error: "authentication_error", exception.getLocalizedMessage(), exception);
                 }
                 return;
             }
@@ -423,7 +423,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                         }
                     } else {
                         if (promise != null) {
-                            promise.reject("token_exchange_failed", getErrorMessage(ex));
+                            promise.reject(ex.error != null ? ex.error: "token_exchange_failed", ex.getLocalizedMessage(), ex);
                         }
                     }
                 }
@@ -490,7 +490,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                     WritableMap map = RegistrationResponseFactory.registrationResponseToMap(response);
                     promise.resolve(map);
                 } else {
-                    promise.reject("registration_failed", getErrorMessage(ex));
+                    promise.reject(ex.error != null ? ex.error: "registration_failed", ex.getLocalizedMessage(), ex);
                 }
             }
         };
@@ -621,7 +621,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                     WritableMap map = TokenResponseFactory.tokenResponseToMap(response);
                     promise.resolve(map);
                 } else {
-                    promise.reject("token_refresh_failed", getErrorMessage(ex));
+                    promise.reject(ex.error != null ? ex.error: "token_refresh_failed", ex.getLocalizedMessage(), ex);
                 }
             }
         };
@@ -658,15 +658,6 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         }
 
         return new ClientSecretBasic(clientSecret);
-    }
-
-    /*
-     * Return error information if it is available
-     */
-    private String getErrorMessage(AuthorizationException ex){
-        if(ex.errorDescription == null && ex.error != null)
-            return ex.error;
-        return ex.errorDescription;
     }
 
     /*

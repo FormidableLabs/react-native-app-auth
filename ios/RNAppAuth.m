@@ -246,7 +246,8 @@ RCT_REMAP_METHOD(refresh,
                                                  if (response) {
                                                      resolve([self formatRegistrationResponse:response]);
                                                  } else {
-                                                     reject(@"registration_failed", [error localizedDescription], error);
+                                                     reject([self getErrorCode: error defaultCode:@"registration_failed"],
+                                                            [error localizedDescription], error);
                                                  }
                                             }];
 }
@@ -311,7 +312,8 @@ RCT_REMAP_METHOD(refresh,
                                                        if (authorizationResponse) {
                                                            resolve([self formatAuthorizationResponse:authorizationResponse]);
                                                        } else {
-                                                           reject(@"authentication_failed", [error localizedDescription], error);
+                                                           reject([self getErrorCode: error defaultCode:@"authentication_failed"],
+                                                                  [error localizedDescription], error);
                                                        }
                                                    }]; // end [OIDAuthState presentAuthorizationRequest:request
     } else {
@@ -364,7 +366,8 @@ RCT_REMAP_METHOD(refresh,
                                             if (response) {
                                                 resolve([self formatResponse:response]);
                                             } else {
-                                                reject(@"token_refresh_failed", [error localizedDescription], error);
+                                                reject([self getErrorCode: error defaultCode:@"token_refresh_failed"],
+                                                       [error localizedDescription], error);
                                             }
                                         }];
 }
@@ -445,6 +448,53 @@ RCT_REMAP_METHOD(refresh,
              @"registrationClientUri": response.registrationClientURI ? response.registrationClientURI : @"",
              @"tokenEndpointAuthMethod": response.tokenEndpointAuthenticationMethod ? response.tokenEndpointAuthenticationMethod : @"",
              };
+}
+
+- (NSString*)getErrorCode: (NSError*) error defaultCode: (NSString *) defaultCode {
+    if ([[error domain] isEqualToString:OIDOAuthAuthorizationErrorDomain]) {
+        switch ([error code]) {
+            case OIDErrorCodeOAuthAuthorizationInvalidRequest:
+              return @"invalid_request";
+            case OIDErrorCodeOAuthAuthorizationUnauthorizedClient:
+              return @"unauthorized_client";
+            case OIDErrorCodeOAuthAuthorizationAccessDenied:
+              return @"access_denied";
+            case OIDErrorCodeOAuthAuthorizationUnsupportedResponseType:
+              return @"unsupported_response_type";
+            case OIDErrorCodeOAuthAuthorizationAuthorizationInvalidScope:
+              return @"invalid_scope";
+            case OIDErrorCodeOAuthAuthorizationServerError:
+              return @"server_error";
+            case OIDErrorCodeOAuthAuthorizationTemporarilyUnavailable:
+              return @"temporarily_unavailable";
+        }
+    } else if ([[error domain] isEqualToString:OIDOAuthTokenErrorDomain]) {
+        switch ([error code]) {
+            case OIDErrorCodeOAuthTokenInvalidRequest:
+              return @"invalid_request";
+            case OIDErrorCodeOAuthTokenInvalidClient:
+              return @"invalid_client";
+            case OIDErrorCodeOAuthTokenInvalidGrant:
+              return @"invalid_grant";
+            case OIDErrorCodeOAuthTokenUnauthorizedClient:
+              return @"unauthorized_client";
+            case OIDErrorCodeOAuthTokenUnsupportedGrantType:
+              return @"unsupported_grant_type";
+            case OIDErrorCodeOAuthTokenInvalidScope:
+              return @"invalid_scope";
+        }
+    } else if ([[error domain] isEqualToString:OIDOAuthRegistrationErrorDomain]) {
+        switch ([error code]) {
+            case OIDErrorCodeOAuthRegistrationInvalidRequest:
+              return @"invalid_request";
+            case OIDErrorCodeOAuthRegistrationInvalidRedirectURI:
+              return @"invalid_redirect_uri";
+            case OIDErrorCodeOAuthRegistrationInvalidClientMetadata:
+              return @"invalid_client_metadata";
+        }
+    }
+
+    return defaultCode;
 }
 
 @end
