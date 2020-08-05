@@ -54,6 +54,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public class RNAppAuthModule extends ReactContextBaseJavaModule implements ActivityEventListener {
 
@@ -88,6 +89,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         final ReadableMap serviceConfiguration,
         final boolean dangerouslyAllowInsecureHttpRequests,
         final ReadableMap headers,
+        final Float timeout,
         final Promise promise
     ) {
         if (warmAndPrefetchChrome) {
@@ -132,7 +134,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         }
 
         try {
-            fetchConfigurationLatch.await();
+            fetchConfigurationLatch.await(timeout.longValue(), TimeUnit.SECONDS);
             promise.resolve(isPrefetched);
         } catch (Exception e) {
             promise.reject("service_configuration_fetch_error", "Failed to await fetch configuration", e);

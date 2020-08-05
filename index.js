@@ -64,6 +64,7 @@ export const prefetchConfiguration = async ({
   serviceConfiguration,
   dangerouslyAllowInsecureHttpRequests = false,
   customHeaders,
+  timeout = 5, // seconds
 }) => {
   if (Platform.OS === 'android') {
     validateIssuerOrServiceConfigurationEndpoints(issuer, serviceConfiguration);
@@ -80,6 +81,7 @@ export const prefetchConfiguration = async ({
       serviceConfiguration,
       dangerouslyAllowInsecureHttpRequests,
       customHeaders,
+      timeout,
     ];
 
     RNAppAuth.prefetchConfiguration(...nativeMethodArguments);

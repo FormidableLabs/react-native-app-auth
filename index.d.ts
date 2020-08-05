@@ -72,6 +72,7 @@ export type AuthConfiguration = BaseAuthConfiguration & {
   useNonce?: boolean;
   usePKCE?: boolean;
   warmAndPrefetchChrome?: boolean;
+  timeout?: number;
   skipCodeExchange?: boolean;
 };
 

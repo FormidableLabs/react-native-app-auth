@@ -95,6 +95,7 @@ import { prefetchConfiguration } from 'react-native-app-auth';
 
 const config = {
   warmAndPrefetchChrome: true,
+  timeout: 5,
   issuer: '<YOUR_ISSUER_URL>',
   clientId: '<YOUR_CLIENT_ID>',
   redirectUrl: '<YOUR_REDIRECT_URL>',

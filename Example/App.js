@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { UIManager, Alert } from 'react-native';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import { Alert } from 'react-native';
 import { authorize, refresh, revoke, prefetchConfiguration } from 'react-native-app-auth';
 import { Page, Button, ButtonContainer, Form, FormLabel, FormValue, Heading } from './components';
 
@@ -44,9 +44,10 @@ const defaultAuthState = {
 
 const App = () => {
   const [authState, setAuthState] = useState(defaultAuthState);
-  React.useEffect(() => {
+  useEffect(() => {
     prefetchConfiguration({
       warmAndPrefetchChrome: true,
+      timeout: 2,
       ...configs.identityserver
     });
   }, []);
