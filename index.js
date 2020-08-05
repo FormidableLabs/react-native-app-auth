@@ -55,6 +55,12 @@ const validateHeaders = headers => {
   });
 };
 
+const validateTimeout = timeout => {
+  invariant(typeof timeout === 'number', 'Config error: timeout should be a number');
+};
+
+const DEFAULT_TIMEOUT = 5; // seconds
+
 export const prefetchConfiguration = async ({
   warmAndPrefetchChrome,
   issuer,
@@ -64,13 +70,14 @@ export const prefetchConfiguration = async ({
   serviceConfiguration,
   dangerouslyAllowInsecureHttpRequests = false,
   customHeaders,
-  timeout = 5, // seconds
+  timeout = DEFAULT_TIMEOUT,
 }) => {
   if (Platform.OS === 'android') {
     validateIssuerOrServiceConfigurationEndpoints(issuer, serviceConfiguration);
     validateClientId(clientId);
     validateRedirectUrl(redirectUrl);
     validateHeaders(customHeaders);
+    validateTimeout(timeout);
 
     const nativeMethodArguments = [
       warmAndPrefetchChrome,
