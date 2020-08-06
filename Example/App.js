@@ -38,6 +38,7 @@ const defaultAuthState = {
   hasLoggedInOnce: false,
   provider: '',
   accessToken: '',
+  accessTokenExpirationTimestamp: 0,
   accessTokenExpirationDate: '',
   refreshToken: ''
 };
@@ -98,6 +99,7 @@ const App = () => {
       setAuthState({
         provider: '',
         accessToken: '',
+        accessTokenExpirationTimestamp: 0,
         accessTokenExpirationDate: '',
         refreshToken: ''
       });
@@ -122,6 +124,8 @@ const App = () => {
         <Form>
           <FormLabel>accessToken</FormLabel>
           <FormValue>{authState.accessToken}</FormValue>
+          <FormLabel>accessTokenExpirationTimestamp</FormLabel>
+          <FormValue>{authState.accessTokenExpirationTimestamp}</FormValue>
           <FormLabel>accessTokenExpirationDate</FormLabel>
           <FormValue>{authState.accessTokenExpirationDate}</FormValue>
           <FormLabel>refreshToken</FormLabel>

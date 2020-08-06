@@ -137,6 +137,7 @@ with optional overrides.
 This is the result from the auth server:
 
 - **accessToken** - (`string`) the access token
+- **accessTokenExpirationTimestamp** - (`number`) the token expiration timestamp
 - **accessTokenExpirationDate** - (`string`) the token expiration date
 - **authorizeAdditionalParameters** - (`Object`) additional url parameters from the authorizationEndpoint response.
 - **tokenAdditionalParameters** - (`Object`) additional url parameters from the tokenEndpoint response.
@@ -420,7 +421,7 @@ const config = {
 // use the client to make the auth request and receive the authState
 try {
   const result = await authorize(config);
-  // result includes accessToken, accessTokenExpirationDate and refreshToken
+  // result includes accessToken, accessTokenExpirationTimestamp, accessTokenExpirationDate and refreshToken
 } catch (error) {
   console.log(error);
 }

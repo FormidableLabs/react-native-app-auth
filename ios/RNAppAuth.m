@@ -387,6 +387,7 @@ RCT_REMAP_METHOD(refresh,
     return @{@"authorizationCode": response.authorizationCode ? response.authorizationCode : @"",
             @"state": response.state ? response.state : @"",
             @"accessToken": response.accessToken ? response.accessToken : @"",
+            @"accessTokenExpirationTimestamp": response.accessTokenExpirationDate ? response.accessTokenExpirationDate : 0,
             @"accessTokenExpirationDate": response.accessTokenExpirationDate ? [dateFormat stringFromDate:response.accessTokenExpirationDate] : @"",
             @"tokenType": response.tokenType ? response.tokenType : @"",
             @"idToken": response.idToken ? response.idToken : @"",
@@ -405,6 +406,7 @@ RCT_REMAP_METHOD(refresh,
     [dateFormat setDateFormat:@"yyyy-MM-dd'T'HH:mm:ss'Z'"];
 
     return @{@"accessToken": response.accessToken ? response.accessToken : @"",
+             @"accessTokenExpirationTimestamp": response.accessTokenExpirationDate ? response.accessTokenExpirationDate : 0,
              @"accessTokenExpirationDate": response.accessTokenExpirationDate ? [dateFormat stringFromDate:response.accessTokenExpirationDate] : @"",
              @"additionalParameters": response.additionalParameters,
              @"idToken": response.idToken ? response.idToken : @"",
@@ -425,6 +427,7 @@ RCT_REMAP_METHOD(refresh,
     [dateFormat setDateFormat:@"yyyy-MM-dd'T'HH:mm:ss'Z'"];
 
     return @{@"accessToken": response.accessToken ? response.accessToken : @"",
+             @"accessTokenExpirationTimestamp": response.accessTokenExpirationDate ? response.accessTokenExpirationDate : 0,
              @"accessTokenExpirationDate": response.accessTokenExpirationDate ? [dateFormat stringFromDate:response.accessTokenExpirationDate] : @"",
              @"authorizeAdditionalParameters": authResponse.additionalParameters,
              @"tokenAdditionalParameters": response.additionalParameters,
