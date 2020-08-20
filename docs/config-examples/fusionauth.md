@@ -25,4 +25,4 @@ const refreshedState = await refresh(config, {
 });
 ```
 
-
+Check out a full tutorial here: https://fusionauth.io/blog/2020/08/19/securing-react-native-with-oauth
