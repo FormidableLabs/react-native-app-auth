@@ -25,6 +25,7 @@ These providers are OpenID compliant, which means you can use [autodiscovery](ht
 
 - [Identity Server4](https://demo.identityserver.io/) ([Example configuration](./docs/config-examples/identity-server-4.md))
 - [Identity Server3](https://github.com/IdentityServer/IdentityServer3.md) ([Example configuration](./docs/config-examples/identity-server-3.md))
+- [FusionAuth](https://fusionauth.io) ([Example configuration](./docs/config-examples/fusionauth.md))
 - [Google](https://developers.google.com/identity/protocols/OAuth2)
   ([Example configuration](./docs/config-examples/google.md))
 - [Okta](https://developer.okta.com) ([Example configuration](./docs/config-examples/okta.md))
