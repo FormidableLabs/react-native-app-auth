@@ -12,8 +12,8 @@ Use the following configuration (replacing the `clientId` with your application 
 const config = {
   issuer: 'http://localhost:9011',
   clientId: '253eb7aa-687a-4bf3-b12b-26baa40eecbf',
-  redirectUrl: 'fusionauth.demo:/callback'
-  scopes: ['offline_access', 'openid']
+  redirectUrl: 'fusionauth.demo:/callback',
+  scopes: ['offline_access', 'openid'],
 };
 
 // Log in to get an authentication token
