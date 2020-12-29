@@ -397,7 +397,9 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
             if (this.skipCodeExchange) {
                 WritableMap map = TokenResponseFactory.authorizationResponseToMap(response);
-                promise.resolve(map);
+                if (promise != null) {
+                    promise.resolve(map);
+                }
                 return;
             }
 
