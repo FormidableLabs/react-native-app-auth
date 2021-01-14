@@ -54,3 +54,5 @@ const refreshedState = await refresh(config, {
   refreshToken: authState.refreshToken,
 });
 ```
+
+**Important** When you add your app in the azure portal and are given a `redirectUrl` to use, make sure you add a trailing slash when you add it to your config - e.g. `msauth.BUNDLEID://auth/` - failure to add that causes it to fail in IOS.
