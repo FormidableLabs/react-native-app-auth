@@ -16,7 +16,7 @@ public final class TokenResponseFactory {
         if (!TextUtils.isEmpty(scope)) {
             String[] scopesArray = scope.split(" ");
 
-            for( int i = 0; i < scopesArray.length - 1; i++)
+            for( int i = 0; i < scopesArray.length; i++)
             {
                 scopeArray.pushString(scopesArray[i]);
             }
