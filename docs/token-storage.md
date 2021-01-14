@@ -24,3 +24,4 @@ In order to use iOS's Keychain services or Android's Secure Shared Preferences, 
 - [react-native-sensitive-info](https://github.com/mCodex/react-native-sensitive-info) - secure for iOS, but uses Android Shared Preferences for Android (which is not secure). There is however a fork that uses [Android Keystore](https://github.com/mCodex/react-native-sensitive-info/tree/keystore) which is secure
 - [redux-persist-sensitive-storage](https://github.com/CodingZeal/redux-persist-sensitive-storage) - wraps `react-native-sensitive-info`, see comments above
 - [rn-secure-storage](https://github.com/talut/rn-secure-storage)
+- [expo-secure-store](https://github.com/expo/expo/tree/master/packages/expo-secure-store) - secure for iOS by using keychain services, secure for Android by using values in SharedPreferences encrypted with Android's Keystore system. This Expo library can be used in "Managed" and "Bare" workflow apps.
