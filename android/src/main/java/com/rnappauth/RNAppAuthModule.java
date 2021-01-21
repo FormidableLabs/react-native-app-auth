@@ -270,15 +270,21 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
                             setServiceConfiguration(issuer, fetchedConfiguration);
 
-                            authorizeWithConfiguration(
-                                    fetchedConfiguration,
-                                    appAuthConfiguration,
-                                    clientId,
-                                    scopes,
-                                    redirectUrl,
-                                    usePKCE,
-                                    additionalParametersMap
-                            );
+                            try {
+                                authorizeWithConfiguration(
+                                        fetchedConfiguration,
+                                        appAuthConfiguration,
+                                        clientId,
+                                        scopes,
+                                        redirectUrl,
+                                        usePKCE,
+                                        additionalParametersMap
+                                );
+                            } catch (ActivityNotFoundException e) {
+                                promise.reject("browser_not_found", e.getMessage());
+                            } catch (Exception e) {
+                                promise.reject("authentication_failed", e.getMessage());
+                            }
                         }
                     },
                     builder
@@ -354,18 +360,24 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
                             setServiceConfiguration(issuer, fetchedConfiguration);
 
-                            refreshWithConfiguration(
-                                    fetchedConfiguration,
-                                    appAuthConfiguration,
-                                    refreshToken,
-                                    clientId,
-                                    scopes,
-                                    redirectUrl,
-                                    additionalParametersMap,
-                                    clientAuthMethod,
-                                    clientSecret,
-                                    promise
-                            );
+                            try {
+                                refreshWithConfiguration(
+                                        fetchedConfiguration,
+                                        appAuthConfiguration,
+                                        refreshToken,
+                                        clientId,
+                                        scopes,
+                                        redirectUrl,
+                                        additionalParametersMap,
+                                        clientAuthMethod,
+                                        clientSecret,
+                                        promise
+                                );
+                            } catch (ActivityNotFoundException e) {
+                                promise.reject("browser_not_found", e.getMessage());
+                            } catch (Exception e) {
+                                promise.reject("token_refresh_failed", e.getMessage());
+                            }
                         }
                     },
                     builder);
