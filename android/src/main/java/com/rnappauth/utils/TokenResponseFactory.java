@@ -86,4 +86,27 @@ public final class TokenResponseFactory {
 
         return map;
     }
+
+    /*
+     * Read raw authorization into a React Native map with codeVerifier value added if present to be passed down the bridge
+     */
+    public static final WritableMap authorizationCodeResponseToMap(AuthorizationResponse authResponse, String codeVerifier) {
+        WritableMap map = Arguments.createMap();
+        map.putString("authorizationCode", authResponse.authorizationCode);
+        map.putString("accessToken", authResponse.accessToken);
+        map.putMap("additionalParameters", MapUtil.createAdditionalParametersMap(authResponse.additionalParameters));
+        map.putString("idToken", authResponse.idToken);
+        map.putString("tokenType", authResponse.tokenType);
+        map.putArray("scopes", createScopeArray(authResponse.scope));
+
+        if (authResponse.accessTokenExpirationTime != null) {
+            map.putString("accessTokenExpirationTime", DateUtil.formatTimestamp(authResponse.accessTokenExpirationTime));
+        }
+
+        if (!TextUtils.isEmpty(codeVerifier)) {
+            map.putString("codeVerifier", codeVerifier);
+        }
+
+        return map;
+    }
 }
