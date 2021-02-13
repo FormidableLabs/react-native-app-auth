@@ -85,6 +85,7 @@ export interface AuthorizeResult {
   tokenType: string;
   scopes: string[];
   authorizationCode: string;
+  codeVerifier?: string;
 }
 
 export interface RefreshResult {

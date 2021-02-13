@@ -39,6 +39,7 @@ import net.openid.appauth.AuthorizationServiceConfiguration;
 import net.openid.appauth.ClientAuthentication;
 import net.openid.appauth.ClientSecretBasic;
 import net.openid.appauth.ClientSecretPost;
+import net.openid.appauth.CodeVerifierUtil;
 import net.openid.appauth.RegistrationRequest;
 import net.openid.appauth.RegistrationResponse;
 import net.openid.appauth.ResponseTypeValues;
@@ -63,6 +64,8 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     private Promise promise;
     private boolean dangerouslyAllowInsecureHttpRequests;
     private Boolean skipCodeExchange;
+    private Boolean usePKCE;
+    private String codeVerifier;
     private String clientAuthMethod = "basic";
     private Map<String, String> registrationRequestHeaders = null;
     private Map<String, String> authorizationRequestHeaders = null;
@@ -236,6 +239,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         this.clientSecret = clientSecret;
         this.clientAuthMethod = clientAuthMethod;
         this.skipCodeExchange = skipCodeExchange;
+        this.usePKCE = usePKCE;
 
         // when serviceConfiguration is provided, we don't need to hit up the OpenID well-known id endpoint
         if (serviceConfiguration != null || hasServiceConfiguration(issuer)) {
@@ -408,7 +412,13 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             }
 
             if (this.skipCodeExchange) {
-                WritableMap map = TokenResponseFactory.authorizationResponseToMap(response);
+                WritableMap map;
+                if (this.usePKCE && this.codeVerifier != null) {
+                    map = TokenResponseFactory.authorizationCodeResponseToMap(response, this.codeVerifier);
+                } else {
+                    map = TokenResponseFactory.authorizationResponseToMap(response);
+                }
+
                 if (promise != null) {
                     promise.resolve(map);
                 }
@@ -571,6 +581,9 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
         if (!usePKCE) {
             authRequestBuilder.setCodeVerifier(null);
+        } else {
+            this.codeVerifier = CodeVerifierUtil.generateRandomCodeVerifier();
+            authRequestBuilder.setCodeVerifier(this.codeVerifier);
         }
 
         AuthorizationRequest authRequest = authRequestBuilder.build();

@@ -312,7 +312,7 @@ RCT_REMAP_METHOD(refresh,
                                                        [UIApplication.sharedApplication endBackgroundTask:taskId];
                                                        taskId = UIBackgroundTaskInvalid;
                                                        if (authorizationResponse) {
-                                                           resolve([self formatAuthorizationResponse:authorizationResponse]);
+                                                           resolve([self formatAuthorizationResponse:authorizationResponse withCodeVerifier:codeVerifier]);
                                                        } else {
                                                            reject([self getErrorCode: error defaultCode:@"authentication_failed"],
                                                                   [error localizedDescription], error);
@@ -378,13 +378,24 @@ RCT_REMAP_METHOD(refresh,
 /*
  * Take raw OIDAuthorizationResponse and turn it to response format to pass to JavaScript caller
  */
-- (NSDictionary*)formatAuthorizationResponse: (OIDAuthorizationResponse*) response {
+- (NSDictionary *)formatAuthorizationResponse: (OIDAuthorizationResponse *) response withCodeVerifier: (NSString *) codeVerifier {
     NSDateFormatter *dateFormat = [[NSDateFormatter alloc] init];
     dateFormat.timeZone = [NSTimeZone timeZoneWithAbbreviation: @"UTC"];
     [dateFormat setLocale:[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"]];
     [dateFormat setDateFormat:@"yyyy-MM-dd'T'HH:mm:ss'Z'"];
 
-    return @{@"authorizationCode": response.authorizationCode ? response.authorizationCode : @"",
+    if (codeVerifier == nil) {
+      return @{@"authorizationCode": response.authorizationCode ? response.authorizationCode : @"",
+              @"state": response.state ? response.state : @"",
+              @"accessToken": response.accessToken ? response.accessToken : @"",
+              @"accessTokenExpirationDate": response.accessTokenExpirationDate ? [dateFormat stringFromDate:response.accessTokenExpirationDate] : @"",
+              @"tokenType": response.tokenType ? response.tokenType : @"",
+              @"idToken": response.idToken ? response.idToken : @"",
+              @"scopes": response.scope ? [response.scope componentsSeparatedByString:@" "] : [NSArray new],
+              @"additionalParameters": response.additionalParameters,
+              };
+    } else {
+      return @{@"authorizationCode": response.authorizationCode ? response.authorizationCode : @"",
             @"state": response.state ? response.state : @"",
             @"accessToken": response.accessToken ? response.accessToken : @"",
             @"accessTokenExpirationDate": response.accessTokenExpirationDate ? [dateFormat stringFromDate:response.accessTokenExpirationDate] : @"",
@@ -392,7 +403,9 @@ RCT_REMAP_METHOD(refresh,
             @"idToken": response.idToken ? response.idToken : @"",
             @"scopes": response.scope ? [response.scope componentsSeparatedByString:@" "] : [NSArray new],
             @"additionalParameters": response.additionalParameters,
+            @"codeVerifier": codeVerifier
             };
+    }
 }
 
 /*
