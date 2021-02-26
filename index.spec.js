@@ -214,6 +214,17 @@ describe('AppAuth', () => {
             additionalHeaders
           );
         });
+
+        it('it throws an error when values are not Record<string,string>', () => {
+          expect(() => {
+            register({
+              ...registerConfig,
+              additionalHeaders: {
+                notString: {},
+              },
+            });
+          }).toThrow();
+        });
       });
     })
 
@@ -464,7 +475,18 @@ describe('AppAuth', () => {
             config.useNonce,
             config.usePKCE,
           );
-        });  
+        });
+
+        it('throws an error when values are not Record<string,string>', () => {
+          expect(() => {
+            authorize({
+              ...config,
+              additionalHeaders: {
+                notString: {},
+              },
+            });
+          }).toThrow();
+        });
       })
 
       describe('useNonce parameter', () => {
@@ -720,6 +742,15 @@ describe('AppAuth', () => {
             config.serviceConfiguration,
             additionalHeaders
           );
+        });
+
+        it('throws an error when values are not Record<string,string>', () => {
+          expect(() => {
+            refresh(
+              { ...config, additionalHeaders: { notString: {} } },
+              { refreshToken: 'such-token' }
+            );
+          }).toThrow();
         });
       })
     })
