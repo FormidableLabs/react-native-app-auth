@@ -1,4 +1,4 @@
-import { register, authorize, refresh } from './';
+import { authorize, refresh, register } from "./"
 
 jest.mock('react-native', () => ({
   NativeModules: {
@@ -41,6 +41,7 @@ describe('AppAuth', () => {
     useNonce: true,
     usePKCE: true,
     customHeaders: null,
+    additionalHeaders: { header: "value"},
     skipCodeExchange: false,
   };
 
@@ -52,6 +53,7 @@ describe('AppAuth', () => {
     subjectType: 'public',
     tokenEndpointAuthMethod: 'client_secret_post',
     additionalParameters: {},
+    additionalHeaders: { header: "value"},
     serviceConfiguration: null,
   };
 
@@ -186,7 +188,8 @@ describe('AppAuth', () => {
         registerConfig.subjectType,
         registerConfig.tokenEndpointAuthMethod,
         registerConfig.additionalParameters,
-        registerConfig.serviceConfiguration
+        registerConfig.serviceConfiguration,
+        registerConfig.additionalHeaders
       );
     });
 
@@ -382,6 +385,7 @@ describe('AppAuth', () => {
         config.additionalParameters,
         config.serviceConfiguration,
         config.skipCodeExchange,
+        config.additionalHeaders,
         config.useNonce,
         config.usePKCE
       );
@@ -396,6 +400,7 @@ describe('AppAuth', () => {
         customHeaders: null,
         additionalParameters: null,
         serviceConfiguration: null,
+        additionalHeaders: null,
         scopes: ['openid'],
       });
       expect(mockAuthorize).toHaveBeenCalledWith(
@@ -407,6 +412,7 @@ describe('AppAuth', () => {
         null,
         null,
         false,
+        null,
         true,
         true
       );
@@ -566,7 +572,8 @@ describe('AppAuth', () => {
         'such-token',
         config.scopes,
         config.additionalParameters,
-        config.serviceConfiguration
+        config.serviceConfiguration,
+        config.additionalHeaders
       );
     });
 
@@ -676,8 +683,9 @@ describe('AppAuth', () => {
           config.additionalParameters,
           config.serviceConfiguration,
           false,
+          config.additionalHeaders,
           true,
-          true
+          true,
         );
       });
 
@@ -692,6 +700,7 @@ describe('AppAuth', () => {
           config.additionalParameters,
           config.serviceConfiguration,
           false,
+          config.additionalHeaders,
           false,
           true
         );
@@ -714,6 +723,7 @@ describe('AppAuth', () => {
           config.additionalParameters,
           config.serviceConfiguration,
           config.skipCodeExchange,
+          config.additionalHeaders,
           config.useNonce,
           true
         );
@@ -730,6 +740,7 @@ describe('AppAuth', () => {
           config.additionalParameters,
           config.serviceConfiguration,
           config.skipCodeExchange,
+          config.additionalHeaders,
           config.useNonce,
           false
         );

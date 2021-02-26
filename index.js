@@ -1,6 +1,6 @@
-import invariant from 'invariant';
-import { NativeModules, Platform } from 'react-native';
-import base64 from 'react-native-base64';
+import invariant from "invariant"
+import { NativeModules, Platform } from "react-native"
+import base64 from "react-native-base64"
 
 const { RNAppAuth } = NativeModules;
 
@@ -188,9 +188,9 @@ export const authorize = ({
   }
 
   if (Platform.OS === 'ios') {
+    nativeMethodArguments.push(additionalHeaders);
     nativeMethodArguments.push(useNonce);
     nativeMethodArguments.push(usePKCE);
-    nativeMethodArguments.push(additionalHeaders);
   }
 
   return RNAppAuth.authorize(...nativeMethodArguments);

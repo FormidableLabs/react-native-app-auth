@@ -44,8 +44,8 @@ RCT_REMAP_METHOD(register,
                  subjectType: (NSString *) subjectType
                  tokenEndpointAuthMethod: (NSString *) tokenEndpointAuthMethod
                  additionalParameters: (NSDictionary *_Nullable) additionalParameters
-                 additionalHeaders: (NSDictionary *_Nullable) additionalHeaders
                  serviceConfiguration: (NSDictionary *_Nullable) serviceConfiguration
+                 additionalHeaders: (NSDictionary *_Nullable) additionalHeaders
                  resolve: (RCTPromiseResolveBlock) resolve
                  reject: (RCTPromiseRejectBlock)  reject)
 {
@@ -90,9 +90,9 @@ RCT_REMAP_METHOD(authorize,
                  clientSecret: (NSString *) clientSecret
                  scopes: (NSArray *) scopes
                  additionalParameters: (NSDictionary *_Nullable) additionalParameters
-                 additionalHeaders: (NSDictionary *_Nullable) additionalHeaders
                  serviceConfiguration: (NSDictionary *_Nullable) serviceConfiguration
                  skipCodeExchange: (BOOL) skipCodeExchange
+                 additionalHeaders: (NSDictionary *_Nullable) additionalHeaders
                  useNonce: (BOOL *) useNonce
                  usePKCE: (BOOL *) usePKCE
                  resolve: (RCTPromiseResolveBlock) resolve
@@ -144,8 +144,8 @@ RCT_REMAP_METHOD(refresh,
                  refreshToken: (NSString *) refreshToken
                  scopes: (NSArray *) scopes
                  additionalParameters: (NSDictionary *_Nullable) additionalParameters
-                 additionalHeaders: (NSDictionary *_Nullable) additionalHeaders
                  serviceConfiguration: (NSDictionary *_Nullable) serviceConfiguration
+                 additionalHeaders: (NSDictionary *_Nullable) additionalHeaders
                  resolve:(RCTPromiseResolveBlock) resolve
                  reject: (RCTPromiseRejectBlock)  reject)
 {
