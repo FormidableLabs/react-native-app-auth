@@ -21,6 +21,8 @@ type CustomHeaders = {
   register?: Record<string, string>;
 };
 
+type AdditionalHeaders = Record<string, string>;
+
 interface BuiltInRegistrationParameters {
   client_name?: string;
   logo_uri?: string;
@@ -38,6 +40,7 @@ export type RegistrationConfiguration = BaseConfiguration & {
   additionalParameters?: BuiltInRegistrationParameters & { [name: string]: string };
   dangerouslyAllowInsecureHttpRequests?: boolean;
   customHeaders?: CustomHeaders;
+  additionalHeaders?: AdditionalHeaders;
 };
 
 export interface RegistrationResponse {
@@ -69,6 +72,7 @@ export type AuthConfiguration = BaseAuthConfiguration & {
   clientAuthMethod?: 'basic' | 'post';
   dangerouslyAllowInsecureHttpRequests?: boolean;
   customHeaders?: CustomHeaders;
+  additionalHeaders?: AdditionalHeaders;
   useNonce?: boolean;
   usePKCE?: boolean;
   warmAndPrefetchChrome?: boolean;

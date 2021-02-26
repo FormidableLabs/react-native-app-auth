@@ -97,6 +97,7 @@ export const register = ({
   serviceConfiguration,
   dangerouslyAllowInsecureHttpRequests = false,
   customHeaders,
+  additionalHeaders,
 }) => {
   validateIssuerOrServiceConfigurationRegistrationEndpoint(issuer, serviceConfiguration);
   validateHeaders(customHeaders);
@@ -139,6 +140,10 @@ export const register = ({
     nativeMethodArguments.push(customHeaders);
   }
 
+  if (Platform.OS === 'ios') {
+    nativeMethodArguments.push(additionalHeaders);
+  }
+
   return RNAppAuth.register(...nativeMethodArguments);
 };
 
@@ -155,6 +160,7 @@ export const authorize = ({
   clientAuthMethod = 'basic',
   dangerouslyAllowInsecureHttpRequests = false,
   customHeaders,
+  additionalHeaders,
   skipCodeExchange = false,
 }) => {
   validateIssuerOrServiceConfigurationEndpoints(issuer, serviceConfiguration);
@@ -184,6 +190,7 @@ export const authorize = ({
   if (Platform.OS === 'ios') {
     nativeMethodArguments.push(useNonce);
     nativeMethodArguments.push(usePKCE);
+    nativeMethodArguments.push(additionalHeaders);
   }
 
   return RNAppAuth.authorize(...nativeMethodArguments);
@@ -201,6 +208,7 @@ export const refresh = (
     clientAuthMethod = 'basic',
     dangerouslyAllowInsecureHttpRequests = false,
     customHeaders,
+    additionalHeaders,
   },
   { refreshToken }
 ) => {
@@ -226,6 +234,10 @@ export const refresh = (
     nativeMethodArguments.push(clientAuthMethod);
     nativeMethodArguments.push(dangerouslyAllowInsecureHttpRequests);
     nativeMethodArguments.push(customHeaders);
+  }
+
+  if (Platform.OS === 'ios') {
+    nativeMethodArguments.push(additionalHeaders);
   }
 
   return RNAppAuth.refresh(...nativeMethodArguments);
