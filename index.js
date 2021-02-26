@@ -55,6 +55,20 @@ const validateHeaders = headers => {
   });
 };
 
+const validateAdditionalHeaders = headers => {
+  if (!headers) {
+    return;
+  }
+
+  const errorMessage = 'Config error: additionalHeaders must be { [key: string]: string }';
+
+  invariant(typeof headers === 'object', errorMessage);
+  invariant(
+    Object.values(headers).filter(key => typeof key !== 'string').length === 0,
+    errorMessage
+  );
+};
+
 export const prefetchConfiguration = async ({
   warmAndPrefetchChrome,
   issuer,
@@ -101,6 +115,8 @@ export const register = ({
 }) => {
   validateIssuerOrServiceConfigurationRegistrationEndpoint(issuer, serviceConfiguration);
   validateHeaders(customHeaders);
+  validateAdditionalHeaders(additionalHeaders);
+
   invariant(
     Array.isArray(redirectUrls) && redirectUrls.every(url => typeof url === 'string'),
     'Config error: redirectUrls must be an Array of strings'
@@ -167,6 +183,7 @@ export const authorize = ({
   validateClientId(clientId);
   validateRedirectUrl(redirectUrl);
   validateHeaders(customHeaders);
+  validateAdditionalHeaders(additionalHeaders);
   // TODO: validateAdditionalParameters
 
   const nativeMethodArguments = [
@@ -216,6 +233,7 @@ export const refresh = (
   validateClientId(clientId);
   validateRedirectUrl(redirectUrl);
   validateHeaders(customHeaders);
+  validateAdditionalHeaders(additionalHeaders);
   invariant(refreshToken, 'Please pass in a refresh token');
   // TODO: validateAdditionalParameters
 
