@@ -1,6 +1,6 @@
-import invariant from "invariant"
-import { NativeModules, Platform } from "react-native"
-import base64 from "react-native-base64"
+import invariant from 'invariant';
+import { NativeModules, Platform } from 'react-native';
+import base64 from 'react-native-base64';
 
 const { RNAppAuth } = NativeModules;
 

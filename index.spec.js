@@ -1,4 +1,4 @@
-import { authorize, refresh, register } from "./"
+import { authorize, refresh, register } from './';
 
 jest.mock('react-native', () => ({
   NativeModules: {
@@ -41,7 +41,7 @@ describe('AppAuth', () => {
     useNonce: true,
     usePKCE: true,
     customHeaders: null,
-    additionalHeaders: { header: 'value'},
+    additionalHeaders: { header: 'value' },
     skipCodeExchange: false,
   };
 
@@ -53,7 +53,7 @@ describe('AppAuth', () => {
     subjectType: 'public',
     tokenEndpointAuthMethod: 'client_secret_post',
     additionalParameters: {},
-    additionalHeaders: { header: 'value'},
+    additionalHeaders: { header: 'value' },
     serviceConfiguration: null,
   };
 
@@ -226,7 +226,7 @@ describe('AppAuth', () => {
           }).toThrow();
         });
       });
-    })
+    });
 
     describe('Android-specific', () => {
       beforeEach(() => {
@@ -473,7 +473,7 @@ describe('AppAuth', () => {
             config.skipCodeExchange,
             additionalHeaders,
             config.useNonce,
-            config.usePKCE,
+            config.usePKCE
           );
         });
 
@@ -487,7 +487,7 @@ describe('AppAuth', () => {
             });
           }).toThrow();
         });
-      })
+      });
 
       describe('useNonce parameter', () => {
         it('calls the native wrapper with default value `true`', () => {
@@ -503,10 +503,10 @@ describe('AppAuth', () => {
             false,
             config.additionalHeaders,
             true,
-            true,
+            true
           );
         });
-  
+
         it('calls the native wrapper with passed value `false`', () => {
           authorize({ ...config, useNonce: false }, { refreshToken: 'such-token' });
           expect(mockAuthorize).toHaveBeenCalledWith(
@@ -524,7 +524,7 @@ describe('AppAuth', () => {
           );
         });
       });
-  
+
       describe('usePKCE parameter', () => {
         it('calls the native wrapper with default value `true`', () => {
           authorize(config, { refreshToken: 'such-token' });
@@ -542,7 +542,7 @@ describe('AppAuth', () => {
             true
           );
         });
-  
+
         it('calls the native wrapper with passed value `false`', () => {
           authorize({ ...config, usePKCE: false }, { refreshToken: 'such-token' });
           expect(mockAuthorize).toHaveBeenCalledWith(
@@ -752,8 +752,8 @@ describe('AppAuth', () => {
             );
           }).toThrow();
         });
-      })
-    })
+      });
+    });
 
     describe('Android-specific', () => {
       beforeEach(() => {
