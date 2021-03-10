@@ -129,6 +129,7 @@ with optional overrides.
   - **authorize** - (`{ [key: string]: value }`) headers to be passed during authorization request.
   - **token** - (`{ [key: string]: value }`) headers to be passed during token retrieval request.
   - **register** - (`{ [key: string]: value }`) headers to be passed during registration request.
+- **additionalHeaders** - (`{ [key: string]: value }`) _IOS_ you can specify additional headers to be passed for all authorize, refresh, and register requests.
 - **useNonce** - (`boolean`) _IOS_ (default: true) optionally allows not sending the nonce parameter, to support non-compliant providers
 - **usePKCE** - (`boolean`) (default: true) optionally allows not sending the code_challenge parameter and skipping PKCE code verification, to support non-compliant providers.
 - **skipCodeExchange** - (`boolean`) (default: false) just return the authorization response, instead of automatically exchanging the authorization code. This is useful if this exchange needs to be done manually (not client-side)

@@ -45,9 +45,12 @@ RCT_REMAP_METHOD(register,
                  tokenEndpointAuthMethod: (NSString *) tokenEndpointAuthMethod
                  additionalParameters: (NSDictionary *_Nullable) additionalParameters
                  serviceConfiguration: (NSDictionary *_Nullable) serviceConfiguration
+                 additionalHeaders: (NSDictionary *_Nullable) additionalHeaders
                  resolve: (RCTPromiseResolveBlock) resolve
                  reject: (RCTPromiseRejectBlock)  reject)
 {
+    [self configureUrlSession:additionalHeaders];
+
     // if we have manually provided configuration, we can use it and skip the OIDC well-known discovery endpoint call
     if (serviceConfiguration) {
         OIDServiceConfiguration *configuration = [self createServiceConfiguration:serviceConfiguration];
@@ -89,11 +92,14 @@ RCT_REMAP_METHOD(authorize,
                  additionalParameters: (NSDictionary *_Nullable) additionalParameters
                  serviceConfiguration: (NSDictionary *_Nullable) serviceConfiguration
                  skipCodeExchange: (BOOL) skipCodeExchange
+                 additionalHeaders: (NSDictionary *_Nullable) additionalHeaders
                  useNonce: (BOOL *) useNonce
                  usePKCE: (BOOL *) usePKCE
                  resolve: (RCTPromiseResolveBlock) resolve
                  reject: (RCTPromiseRejectBlock)  reject)
 {
+    [self configureUrlSession:additionalHeaders];
+
     // if we have manually provided configuration, we can use it and skip the OIDC well-known discovery endpoint call
     if (serviceConfiguration) {
         OIDServiceConfiguration *configuration = [self createServiceConfiguration:serviceConfiguration];
@@ -139,9 +145,12 @@ RCT_REMAP_METHOD(refresh,
                  scopes: (NSArray *) scopes
                  additionalParameters: (NSDictionary *_Nullable) additionalParameters
                  serviceConfiguration: (NSDictionary *_Nullable) serviceConfiguration
+                 additionalHeaders: (NSDictionary *_Nullable) additionalHeaders
                  resolve:(RCTPromiseResolveBlock) resolve
                  reject: (RCTPromiseRejectBlock)  reject)
 {
+    [self configureUrlSession:additionalHeaders];
+
     // if we have manually provided configuration, we can use it and skip the OIDC well-known discovery endpoint call
     if (serviceConfiguration) {
         OIDServiceConfiguration *configuration = [self createServiceConfiguration:serviceConfiguration];
@@ -374,6 +383,16 @@ RCT_REMAP_METHOD(refresh,
                                         }];
 }
 
+
+- (void) configureUrlSession: (NSDictionary*) headers {
+    NSURLSessionConfiguration* configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
+    if (headers != nil) {
+        configuration.HTTPAdditionalHeaders = headers;
+    }
+    
+    NSURLSession* session = [NSURLSession sessionWithConfiguration:configuration];
+    [OIDURLSessionProvider setSession:session];
+}
 
 /*
  * Take raw OIDAuthorizationResponse and turn it to response format to pass to JavaScript caller
