@@ -1,4 +1,4 @@
-name: React Native App Auth CI
+name: react-native-app-auth CI
 
 on:
   push:
