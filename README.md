@@ -6,6 +6,7 @@
 
 [![npm package version](https://badge.fury.io/js/react-native-app-auth.svg)](https://badge.fury.io/js/react-native-app-auth)
 [![Maintenance Status][maintenance-image]](#maintenance-status)
+![Workflow Status](https://github.com/FormidableLabs/react-native-app-auth/actions/workflows/main.yml/badge.svg?branch=main)
 
 This versions supports `react-native@0.60+`. The last pre-0.60 compatible version is [`v4.4.0`](https://github.com/FormidableLabs/react-native-app-auth/tree/v4.4.0).
 
