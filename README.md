@@ -8,7 +8,7 @@
 [![Maintenance Status][maintenance-image]](#maintenance-status)
 ![Workflow Status](https://github.com/FormidableLabs/react-native-app-auth/actions/workflows/main.yml/badge.svg?branch=main)
 
-This versions supports `react-native@0.60+`. The last pre-0.60 compatible version is [`v4.4.0`](https://github.com/FormidableLabs/react-native-app-auth/tree/v4.4.0).
+This versions supports `react-native@0.63+`. The last pre-0.63 compatible version is [`v5.1.3`](https://github.com/FormidableLabs/react-native-app-auth/tree/v5.1.3).
 
 React Native bridge for [AppAuth-iOS](https://github.com/openid/AppAuth-iOS) and
 [AppAuth-Android](https://github.com/openid/AppAuth-Android) SDKS for communicating with
