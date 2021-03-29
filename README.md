@@ -330,11 +330,14 @@ Make `AppDelegate` conform to `RNAppAuthAuthorizationFlowManager` with the follo
 + @property(nonatomic, weak)id<RNAppAuthAuthorizationFlowManagerDelegate>authorizationFlowManagerDelegate;
 ```
 
-Add the following code to `AppDelegate.m` (to support iOS 10 and below)
+Add the following code to `AppDelegate.m` (to support iOS <= 10 and React Navigation deep linking)
 
 ```diff
 + - (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<NSString *, id> *) options {
-+  return [self.authorizationFlowManagerDelegate resumeExternalUserAgentFlowWithURL:url];
++  if ([self.authorizationFlowManagerDelegate resumeExternalUserAgentFlowWithURL:url]) {
++    return YES;
++  }
++  return [RCTLinkingManager application:app openURL:url options:options];
 + }
 ```
 
