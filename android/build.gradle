@@ -57,6 +57,6 @@ repositories {
 dependencies {
     //noinspection GradleDynamicVersion
     implementation 'com.facebook.react:react-native:+'  // From node_modules
-    implementation 'net.openid:appauth:0.7.1'
+    implementation 'net.openid:appauth:0.8.1'
     implementation 'androidx.browser:browser:1.2.0'
 }
