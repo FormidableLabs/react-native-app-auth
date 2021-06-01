@@ -65,6 +65,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     private boolean dangerouslyAllowInsecureHttpRequests;
     private Boolean skipCodeExchange;
     private Boolean usePKCE;
+    private Boolean useNonce;
     private String codeVerifier;
     private String clientAuthMethod = "basic";
     private Map<String, String> registrationRequestHeaders = null;
@@ -221,6 +222,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final ReadableMap additionalParameters,
             final ReadableMap serviceConfiguration,
             final Boolean skipCodeExchange,
+            final Boolean useNonce,
             final Boolean usePKCE,
             final String clientAuthMethod,
             final boolean dangerouslyAllowInsecureHttpRequests,
@@ -239,6 +241,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         this.clientSecret = clientSecret;
         this.clientAuthMethod = clientAuthMethod;
         this.skipCodeExchange = skipCodeExchange;
+        this.useNonce = useNonce;
         this.usePKCE = usePKCE;
 
         // when serviceConfiguration is provided, we don't need to hit up the OpenID well-known id endpoint
@@ -251,6 +254,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                         clientId,
                         scopes,
                         redirectUrl,
+                        useNonce,
                         usePKCE,
                         additionalParametersMap
                 );
@@ -281,6 +285,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                         clientId,
                                         scopes,
                                         redirectUrl,
+                                        useNonce,
                                         usePKCE,
                                         additionalParametersMap
                                 );
@@ -531,6 +536,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final String clientId,
             final ReadableArray scopes,
             final String redirectUrl,
+            final Boolean useNonce,
             final Boolean usePKCE,
             final Map<String, String> additionalParametersMap
     ) {
@@ -555,7 +561,6 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         if (scopesString != null) {
             authRequestBuilder.setScope(scopesString);
         }
-
 
         if (additionalParametersMap != null) {
             // handle additional parameters separately to avoid exceptions from AppAuth
@@ -584,6 +589,10 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         } else {
             this.codeVerifier = CodeVerifierUtil.generateRandomCodeVerifier();
             authRequestBuilder.setCodeVerifier(this.codeVerifier);
+        }
+
+        if(!useNonce) {
+            authRequestBuilder.setNonce(null);
         }
 
         AuthorizationRequest authRequest = authRequestBuilder.build();
