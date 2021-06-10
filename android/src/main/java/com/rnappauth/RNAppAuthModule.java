@@ -403,10 +403,10 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             }
 
             final AuthorizationResponse response = AuthorizationResponse.fromIntent(data);
-            AuthorizationException exception = AuthorizationException.fromIntent(data);
-            if (exception != null) {
+            AuthorizationException ex = AuthorizationException.fromIntent(data);
+            if (ex != null) {
                 if (promise != null) {
-                    promise.reject(exception.error != null ? exception.error: "authentication_error", exception.getLocalizedMessage(), exception);
+                    handleAuthorizationException("authentication_error", ex, promise);
                 }
                 return;
             }
@@ -447,7 +447,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                         }
                     } else {
                         if (promise != null) {
-                            promise.reject(ex.error != null ? ex.error: "token_exchange_failed", ex.getLocalizedMessage(), ex);
+                            handleAuthorizationException("token_exchange_failed", ex, promise);
                         }
                     }
                 }
@@ -514,7 +514,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                     WritableMap map = RegistrationResponseFactory.registrationResponseToMap(response);
                     promise.resolve(map);
                 } else {
-                    promise.reject(ex.error != null ? ex.error: "registration_failed", ex.getLocalizedMessage(), ex);
+                    handleAuthorizationException("registration_failed", ex, promise);
                 }
             }
         };
@@ -652,7 +652,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                     WritableMap map = TokenResponseFactory.tokenResponseToMap(response);
                     promise.resolve(map);
                 } else {
-                    promise.reject(ex.error != null ? ex.error: "token_refresh_failed", ex.getLocalizedMessage(), ex);
+                    handleAuthorizationException("token_refresh_failed", ex, promise);
                 }
             }
         };
@@ -819,6 +819,14 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             return null;
         } else {
             return mServiceConfigurations.get(issuer);
+        }
+    }
+
+    private void handleAuthorizationException(final String fallbackErrorCode, final AuthorizationException ex, final Promise promise) {
+         if (ex.getLocalizedMessage() == null) {
+            promise.reject(fallbackErrorCode, ex.error, ex);
+        } else {
+            promise.reject(ex.error != null ? ex.error: fallbackErrorCode, ex.getLocalizedMessage(), ex);
         }
     }
 
