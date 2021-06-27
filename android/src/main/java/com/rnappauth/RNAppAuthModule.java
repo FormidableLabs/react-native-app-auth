@@ -394,7 +394,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
      */
     @Override
     public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
-        if (requestCode == 0) {
+        if (requestCode == 52) {
             if (data == null) {
                 if (promise != null) {
                     promise.reject("authentication_error", "Data intent is null" );
@@ -592,10 +592,10 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             AuthorizationService authService = new AuthorizationService(context, appAuthConfiguration);
             Intent authIntent = authService.getAuthorizationRequestIntent(authRequest);
 
-            currentActivity.startActivityForResult(authIntent, 0);
+            currentActivity.startActivityForResult(authIntent, 52);
         } else {
             AuthorizationService authService = new AuthorizationService(currentActivity, appAuthConfiguration);
-            PendingIntent pendingIntent = currentActivity.createPendingResult(0, new Intent(), 0);
+            PendingIntent pendingIntent = currentActivity.createPendingResult(52, new Intent(), 0);
 
             authService.performAuthorizationRequest(authRequest, pendingIntent);
         }
