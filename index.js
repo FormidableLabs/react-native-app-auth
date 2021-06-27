@@ -198,6 +198,7 @@ export const authorize = ({
   ];
 
   if (Platform.OS === 'android') {
+    nativeMethodArguments.push(useNonce);
     nativeMethodArguments.push(usePKCE);
     nativeMethodArguments.push(clientAuthMethod);
     nativeMethodArguments.push(dangerouslyAllowInsecureHttpRequests);
