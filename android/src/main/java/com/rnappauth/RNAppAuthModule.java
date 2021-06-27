@@ -158,7 +158,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     ) {
         this.parseHeaderMap(headers);
         final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests, this.registrationRequestHeaders);
-        final AppAuthConfiguration appAuthConfiguration = this.createAppAuthConfiguration(builder);
+        final AppAuthConfiguration appAuthConfiguration = this.createAppAuthConfiguration(builder, dangerouslyAllowInsecureHttpRequests);
         final HashMap<String, String> additionalParametersMap = MapUtil.readableMapToHashMap(additionalParameters);
 
         // when serviceConfiguration is provided, we don't need to hit up the OpenID well-known id endpoint
@@ -229,7 +229,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     ) {
         this.parseHeaderMap(headers);
         final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests, this.authorizationRequestHeaders);
-        final AppAuthConfiguration appAuthConfiguration = this.createAppAuthConfiguration(builder);
+        final AppAuthConfiguration appAuthConfiguration = this.createAppAuthConfiguration(builder, dangerouslyAllowInsecureHttpRequests);
         final HashMap<String, String> additionalParametersMap = MapUtil.readableMapToHashMap(additionalParameters);
 
         // store args in private fields for later use in onActivityResult handler
@@ -317,7 +317,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     ) {
         this.parseHeaderMap(headers);
         final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests, this.tokenRequestHeaders);
-        final AppAuthConfiguration appAuthConfiguration = createAppAuthConfiguration(builder);
+        final AppAuthConfiguration appAuthConfiguration = createAppAuthConfiguration(builder, dangerouslyAllowInsecureHttpRequests);
         final HashMap<String, String> additionalParametersMap = MapUtil.readableMapToHashMap(additionalParameters);
 
         if (clientSecret != null) {
@@ -428,7 +428,8 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
             final Promise authorizePromise = this.promise;
             final AppAuthConfiguration configuration = createAppAuthConfiguration(
-                    createConnectionBuilder(this.dangerouslyAllowInsecureHttpRequests, this.tokenRequestHeaders)
+                    createConnectionBuilder(this.dangerouslyAllowInsecureHttpRequests, this.tokenRequestHeaders),
+                    this.dangerouslyAllowInsecureHttpRequests
             );
 
             AuthorizationService authService = new AuthorizationService(this.reactContext, configuration);
@@ -504,7 +505,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         if (tokenEndpointAuthMethod != null) {
             registrationRequestBuilder.setTokenEndpointAuthenticationMethod(tokenEndpointAuthMethod);
         }
-        
+
         RegistrationRequest registrationRequest = registrationRequestBuilder.build();
 
         AuthorizationService.RegistrationResponseCallback registrationResponseCallback = new AuthorizationService.RegistrationResponseCallback() {
@@ -730,10 +731,14 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     /*
      * Create an App Auth configuration using the provided connection builder
      */
-    private AppAuthConfiguration createAppAuthConfiguration(ConnectionBuilder connectionBuilder) {
+    private AppAuthConfiguration createAppAuthConfiguration(
+            ConnectionBuilder connectionBuilder,
+            Boolean skipIssuerHttpsCheck
+    ) {
         return new AppAuthConfiguration
                 .Builder()
                 .setConnectionBuilder(connectionBuilder)
+                .setSkipIssuerHttpsCheck(skipIssuerHttpsCheck)
                 .build();
     }
 
