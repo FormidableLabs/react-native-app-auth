@@ -35,7 +35,7 @@ static NSUInteger const kStateSizeBytes = 32;
 static NSUInteger const kCodeVerifierBytes = 32;
 
 RCT_EXPORT_MODULE()
-    
+
 RCT_REMAP_METHOD(register,
                  issuer: (NSString *) issuer
                  redirectUrls: (NSArray *) redirectUrls
@@ -221,7 +221,7 @@ RCT_REMAP_METHOD(refresh,
   return [OIDTokenUtilities encodeBase64urlNoPadding:sha256Verifier];
 }
 
-    
+
 /*
  * Perform dynamic client registration with provided OIDServiceConfiguration
  */
@@ -239,7 +239,7 @@ RCT_REMAP_METHOD(refresh,
     for (NSString *urlString in redirectUrlStrings) {
         [redirectUrls addObject:[NSURL URLWithString:urlString]];
     }
-    
+
     OIDRegistrationRequest *request =
     [[OIDRegistrationRequest alloc] initWithConfiguration:configuration
                                              redirectURIs:redirectUrls
@@ -248,7 +248,7 @@ RCT_REMAP_METHOD(refresh,
                                               subjectType:subjectType
                                   tokenEndpointAuthMethod:tokenEndpointAuthMethod
                                      additionalParameters:additionalParameters];
-    
+
     [OIDAuthorizationService performRegistrationRequest:request
                                              completion:^(OIDRegistrationResponse *_Nullable response,
                                                           NSError *_Nullable error) {
@@ -260,7 +260,7 @@ RCT_REMAP_METHOD(refresh,
                                                  }
                                             }];
 }
-    
+
 /*
  * Authorize a user in exchange for a token with provided OIDServiceConfiguration
  */
@@ -340,7 +340,8 @@ RCT_REMAP_METHOD(refresh,
                                                         resolve([self formatResponse:authState.lastTokenResponse
                                                             withAuthResponse:authState.lastAuthorizationResponse]);
                                                     } else {
-                                                        reject(@"authentication_failed", [error localizedDescription], error);
+                                                        reject([self getErrorCode: error defaultCode:@"authentication_failed"],
+                                                               [error localizedDescription], error);
                                                     }
                                                 }]; // end [OIDAuthState authStateByPresentingAuthorizationRequest:request
     }
@@ -389,7 +390,7 @@ RCT_REMAP_METHOD(refresh,
     if (headers != nil) {
         configuration.HTTPAdditionalHeaders = headers;
     }
-    
+
     NSURLSession* session = [NSURLSession sessionWithConfiguration:configuration];
     [OIDURLSessionProvider setSession:session];
 }
@@ -466,13 +467,13 @@ RCT_REMAP_METHOD(refresh,
              @"scopes": authResponse.scope ? [authResponse.scope componentsSeparatedByString:@" "] : [NSArray new],
              };
 }
-    
+
 - (NSDictionary*)formatRegistrationResponse: (OIDRegistrationResponse*) response {
     NSDateFormatter *dateFormat = [[NSDateFormatter alloc] init];
     dateFormat.timeZone = [NSTimeZone timeZoneWithAbbreviation: @"UTC"];
     [dateFormat setLocale:[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"]];
     [dateFormat setDateFormat:@"yyyy-MM-dd'T'HH:mm:ss'Z'"];
-    
+
     return @{@"clientId": response.clientID,
              @"additionalParameters": response.additionalParameters,
              @"clientIdIssuedAt": response.clientIDIssuedAt ? [dateFormat stringFromDate:response.clientIDIssuedAt] : @"",
