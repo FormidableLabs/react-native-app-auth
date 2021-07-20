@@ -7,21 +7,21 @@ const { RNAppAuth } = NativeModules;
 const validateIssuerOrServiceConfigurationEndpoints = (issuer, serviceConfiguration) =>
   invariant(
     typeof issuer === 'string' ||
-    (serviceConfiguration &&
-      typeof serviceConfiguration.authorizationEndpoint === 'string' &&
-      typeof serviceConfiguration.tokenEndpoint === 'string'),
+      (serviceConfiguration &&
+        typeof serviceConfiguration.authorizationEndpoint === 'string' &&
+        typeof serviceConfiguration.tokenEndpoint === 'string'),
     'Config error: you must provide either an issuer or a service endpoints'
   );
 const validateIssuerOrServiceConfigurationRegistrationEndpoint = (issuer, serviceConfiguration) =>
   invariant(
     typeof issuer === 'string' ||
-    (serviceConfiguration && typeof serviceConfiguration.registrationEndpoint === 'string'),
+      (serviceConfiguration && typeof serviceConfiguration.registrationEndpoint === 'string'),
     'Config error: you must provide either an issuer or a registration endpoint'
   );
 const validateIssuerOrServiceConfigurationRevocationEndpoint = (issuer, serviceConfiguration) =>
   invariant(
     typeof issuer === 'string' ||
-    (serviceConfiguration && typeof serviceConfiguration.revocationEndpoint === 'string'),
+      (serviceConfiguration && typeof serviceConfiguration.revocationEndpoint === 'string'),
     'Config error: you must provide either an issuer or a revocation endpoint'
   );
 const validateClientId = clientId =>
@@ -41,8 +41,8 @@ const validateHeaders = headers => {
   const correctKeys = keys.filter(key => authorizedKeys.includes(key));
   invariant(
     keys.length <= authorizedKeys.length &&
-    correctKeys.length > 0 &&
-    correctKeys.length === keys.length,
+      correctKeys.length > 0 &&
+      correctKeys.length === keys.length,
     customHeaderTypeErrorMessage
   );
 
@@ -70,15 +70,15 @@ const validateAdditionalHeaders = headers => {
 };
 
 export const prefetchConfiguration = async ({
-                                              warmAndPrefetchChrome,
-                                              issuer,
-                                              redirectUrl,
-                                              clientId,
-                                              scopes,
-                                              serviceConfiguration,
-                                              dangerouslyAllowInsecureHttpRequests = false,
-                                              customHeaders,
-                                            }) => {
+  warmAndPrefetchChrome,
+  issuer,
+  redirectUrl,
+  clientId,
+  scopes,
+  serviceConfiguration,
+  dangerouslyAllowInsecureHttpRequests = false,
+  customHeaders,
+}) => {
   if (Platform.OS === 'android') {
     validateIssuerOrServiceConfigurationEndpoints(issuer, serviceConfiguration);
     validateClientId(clientId);
@@ -101,18 +101,18 @@ export const prefetchConfiguration = async ({
 };
 
 export const register = ({
-                           issuer,
-                           redirectUrls,
-                           responseTypes,
-                           grantTypes,
-                           subjectType,
-                           tokenEndpointAuthMethod,
-                           additionalParameters,
-                           serviceConfiguration,
-                           dangerouslyAllowInsecureHttpRequests = false,
-                           customHeaders,
-                           additionalHeaders,
-                         }) => {
+  issuer,
+  redirectUrls,
+  responseTypes,
+  grantTypes,
+  subjectType,
+  tokenEndpointAuthMethod,
+  additionalParameters,
+  serviceConfiguration,
+  dangerouslyAllowInsecureHttpRequests = false,
+  customHeaders,
+  additionalHeaders,
+}) => {
   validateIssuerOrServiceConfigurationRegistrationEndpoint(issuer, serviceConfiguration);
   validateHeaders(customHeaders);
   validateAdditionalHeaders(additionalHeaders);
@@ -123,12 +123,12 @@ export const register = ({
   );
   invariant(
     responseTypes == null ||
-    (Array.isArray(responseTypes) && responseTypes.every(rt => typeof rt === 'string')),
+      (Array.isArray(responseTypes) && responseTypes.every(rt => typeof rt === 'string')),
     'Config error: if provided, responseTypes must be an Array of strings'
   );
   invariant(
     grantTypes == null ||
-    (Array.isArray(grantTypes) && grantTypes.every(gt => typeof gt === 'string')),
+      (Array.isArray(grantTypes) && grantTypes.every(gt => typeof gt === 'string')),
     'Config error: if provided, grantTypes must be an Array of strings'
   );
   invariant(
@@ -164,23 +164,23 @@ export const register = ({
 };
 
 export const authorize = ({
-                            issuer,
-                            redirectUrl,
-                            clientId,
-                            clientSecret,
-                            scopes,
-                            useNonce = true,
-                            usePKCE = true,
-                            additionalParameters,
-                            serviceConfiguration,
-                            clientAuthMethod = 'basic',
-                            dangerouslyAllowInsecureHttpRequests = false,
-                            customHeaders,
-                            additionalHeaders,
-                            skipCodeExchange = false,
-                            iosCustomBrowser = null,
-                            androidAllowCustomBrowsers = null
-                          }) => {
+  issuer,
+  redirectUrl,
+  clientId,
+  clientSecret,
+  scopes,
+  useNonce = true,
+  usePKCE = true,
+  additionalParameters,
+  serviceConfiguration,
+  clientAuthMethod = 'basic',
+  dangerouslyAllowInsecureHttpRequests = false,
+  customHeaders,
+  additionalHeaders,
+  skipCodeExchange = false,
+  iosCustomBrowser = null,
+  androidAllowCustomBrowsers = null
+}) => {
   validateIssuerOrServiceConfigurationEndpoints(issuer, serviceConfiguration);
   validateClientId(clientId);
   validateRedirectUrl(redirectUrl);
@@ -230,7 +230,7 @@ export const refresh = (
     clientAuthMethod = 'basic',
     dangerouslyAllowInsecureHttpRequests = false,
     customHeaders,
-    additionalHeaders
+    additionalHeaders,
   },
   { refreshToken }
 ) => {
@@ -296,11 +296,11 @@ export const revoke = async (
     headers.Authorization = `Basic ${base64.encode(`${clientId}:${clientSecret}`)}`;
   }
   /**
-   Identity Server insists on client_id being passed in the body,
-   but Google does not. According to the spec, Google is right
-   so defaulting to no client_id
-   https://tools.ietf.org/html/rfc7009#section-2.1
-   **/
+    Identity Server insists on client_id being passed in the body,
+    but Google does not. According to the spec, Google is right
+    so defaulting to no client_id
+    https://tools.ietf.org/html/rfc7009#section-2.1
+  **/
   return await fetch(revocationEndpoint, {
     method: 'POST',
     headers,

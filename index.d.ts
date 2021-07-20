@@ -7,13 +7,13 @@ export interface ServiceConfiguration {
 
 export type BaseConfiguration =
   | {
-  issuer?: string;
-  serviceConfiguration: ServiceConfiguration;
-}
+      issuer?: string;
+      serviceConfiguration: ServiceConfiguration;
+    }
   | {
-  issuer: string;
-  serviceConfiguration?: ServiceConfiguration;
-};
+      issuer: string;
+      serviceConfiguration?: ServiceConfiguration;
+    };
 
 type CustomHeaders = {
   authorize?: Record<string, string>;
