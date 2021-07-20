@@ -317,41 +317,56 @@ RCT_REMAP_METHOD(refresh,
     }];
 
     UIViewController *presentingViewController = appDelegate.window.rootViewController.view.window ? appDelegate.window.rootViewController : appDelegate.window.rootViewController.presentedViewController;
-    id<OIDExternalUserAgent> externalUserAgent = [self getCustomBrowser: iosCustomBrowser];
+    id<OIDExternalUserAgent> externalUserAgent = iosCustomBrowser != nil ? [self getCustomBrowser: iosCustomBrowser] : nil;
+    
+    
 
     if (skipCodeExchange) {
-        _currentSession = [OIDAuthorizationService presentAuthorizationRequest:request
-                                                             externalUserAgent:externalUserAgent
-//                                                    presentingViewController:presentingViewController
-                                                    callback:^(OIDAuthorizationResponse *_Nullable authorizationResponse, NSError *_Nullable error) {
-                                                       typeof(self) strongSelf = weakSelf;
-                                                       strongSelf->_currentSession = nil;
-                                                       [UIApplication.sharedApplication endBackgroundTask:taskId];
-                                                       taskId = UIBackgroundTaskInvalid;
-                                                       if (authorizationResponse) {
-                                                           resolve([self formatAuthorizationResponse:authorizationResponse withCodeVerifier:codeVerifier]);
-                                                       } else {
-                                                           reject([self getErrorCode: error defaultCode:@"authentication_failed"],
-                                                                  [error localizedDescription], error);
-                                                       }
-                                                   }]; // end [OIDAuthState presentAuthorizationRequest:request1
+        OIDAuthorizationCallback callback = ^(OIDAuthorizationResponse *_Nullable authorizationResponse, NSError *_Nullable error) {
+            typeof(self) strongSelf = weakSelf;
+            strongSelf->_currentSession = nil;
+            [UIApplication.sharedApplication endBackgroundTask:taskId];
+            taskId = UIBackgroundTaskInvalid;
+            if (authorizationResponse) {
+                resolve([self formatAuthorizationResponse:authorizationResponse withCodeVerifier:codeVerifier]);
+            } else {
+                reject([self getErrorCode: error defaultCode:@"authentication_failed"],
+                       [error localizedDescription], error);
+            }
+        };
+        
+        if(externalUserAgent != nil) {
+            _currentSession = [OIDAuthorizationService presentAuthorizationRequest:request
+                                                                 externalUserAgent:externalUserAgent
+                                                                          callback:callback];
+        } else {
+            _currentSession = [OIDAuthorizationService presentAuthorizationRequest:request
+                                                          presentingViewController:presentingViewController
+                                                                          callback:callback];
+        }
     } else {
-        _currentSession = [OIDAuthState authStateByPresentingAuthorizationRequest:request
-                                                                externalUserAgent:externalUserAgent
-                                //presentingViewController:presentingViewController
-                                                callback:^(OIDAuthState *_Nullable authState,
-                                                            NSError *_Nullable error) {
-                                                    typeof(self) strongSelf = weakSelf;
-                                                    strongSelf->_currentSession = nil;
-                                                    [UIApplication.sharedApplication endBackgroundTask:taskId];
-                                                    taskId = UIBackgroundTaskInvalid;
-                                                    if (authState) {
-                                                        resolve([self formatResponse:authState.lastTokenResponse
-                                                            withAuthResponse:authState.lastAuthorizationResponse]);
-                                                    } else {
-                                                        reject(@"authentication_failed", [error localizedDescription], error);
-                                                    }
-                                                }]; // end [OIDAuthState authStateByPresentingAuthorizationRequest:request
+        OIDAuthStateAuthorizationCallback callback = ^(OIDAuthState *_Nullable authState, NSError *_Nullable error) {
+          typeof(self) strongSelf = weakSelf;
+          strongSelf->_currentSession = nil;
+          [UIApplication.sharedApplication endBackgroundTask:taskId];
+          taskId = UIBackgroundTaskInvalid;
+          if (authState) {
+              resolve([self formatResponse:authState.lastTokenResponse
+                  withAuthResponse:authState.lastAuthorizationResponse]);
+          } else {
+              reject(@"authentication_failed", [error localizedDescription], error);
+          }
+        };
+        
+        if(externalUserAgent != nil) {
+            _currentSession = [OIDAuthState authStateByPresentingAuthorizationRequest:request
+                                                                    externalUserAgent:externalUserAgent
+                                                                             callback:callback];
+        } else {
+            _currentSession = [OIDAuthState authStateByPresentingAuthorizationRequest:request
+                                                             presentingViewController:presentingViewController
+                                                                             callback:callback];
+        }
     }
 }
 
