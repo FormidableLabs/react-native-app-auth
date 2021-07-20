@@ -178,6 +178,7 @@ export const authorize = ({
   customHeaders,
   additionalHeaders,
   skipCodeExchange = false,
+  iosCustomBrowser = null,
 }) => {
   validateIssuerOrServiceConfigurationEndpoints(issuer, serviceConfiguration);
   validateClientId(clientId);
@@ -209,6 +210,7 @@ export const authorize = ({
     nativeMethodArguments.push(additionalHeaders);
     nativeMethodArguments.push(useNonce);
     nativeMethodArguments.push(usePKCE);
+    nativeMethodArguments.push(iosCustomBrowser);
   }
 
   return RNAppAuth.authorize(...nativeMethodArguments);

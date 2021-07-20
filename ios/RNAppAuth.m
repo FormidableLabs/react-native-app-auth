@@ -95,6 +95,7 @@ RCT_REMAP_METHOD(authorize,
                  additionalHeaders: (NSDictionary *_Nullable) additionalHeaders
                  useNonce: (BOOL *) useNonce
                  usePKCE: (BOOL *) usePKCE
+                 iosCustomBrowser: (NSString *) iosCustomBrowser
                  resolve: (RCTPromiseResolveBlock) resolve
                  reject: (RCTPromiseRejectBlock)  reject)
 {
@@ -112,6 +113,7 @@ RCT_REMAP_METHOD(authorize,
                                  usePKCE: usePKCE
                     additionalParameters: additionalParameters
                     skipCodeExchange: skipCodeExchange
+                        iosCustomBrowser: iosCustomBrowser
                                  resolve: resolve
                                   reject: reject];
     } else {
@@ -122,6 +124,7 @@ RCT_REMAP_METHOD(authorize,
                                                                     return;
                                                                 }
                                                                 [self authorizeWithConfiguration: configuration
+                                                                 
                                                                                      redirectUrl: redirectUrl
                                                                                         clientId: clientId
                                                                                     clientSecret: clientSecret
@@ -130,6 +133,7 @@ RCT_REMAP_METHOD(authorize,
                                                                                          usePKCE: usePKCE
                                                                             additionalParameters: additionalParameters
                                                                                 skipCodeExchange: skipCodeExchange
+                                                                                iosCustomBrowser: iosCustomBrowser
                                                                                          resolve: resolve
                                                                                           reject: reject];
                                                             }];
@@ -273,6 +277,7 @@ RCT_REMAP_METHOD(refresh,
                            usePKCE: (BOOL *) usePKCE
               additionalParameters: (NSDictionary *_Nullable) additionalParameters
               skipCodeExchange: (BOOL) skipCodeExchange
+                  iosCustomBrowser: (NSString *) iosCustomBrowser
                            resolve: (RCTPromiseResolveBlock) resolve
                             reject: (RCTPromiseRejectBlock)  reject
 {
@@ -285,6 +290,7 @@ RCT_REMAP_METHOD(refresh,
     OIDAuthorizationRequest *request =
     [[OIDAuthorizationRequest alloc] initWithConfiguration:configuration
                                                   clientId:clientId
+     
                                               clientSecret:clientSecret
                                                      scope:[OIDScopeUtilities scopesWithArray:scopes]
                                                redirectURL:[NSURL URLWithString:redirectUrl]
@@ -311,10 +317,12 @@ RCT_REMAP_METHOD(refresh,
     }];
 
     UIViewController *presentingViewController = appDelegate.window.rootViewController.view.window ? appDelegate.window.rootViewController : appDelegate.window.rootViewController.presentedViewController;
+    id<OIDExternalUserAgent> externalUserAgent = [self getCustomBrowser: iosCustomBrowser];
 
     if (skipCodeExchange) {
         _currentSession = [OIDAuthorizationService presentAuthorizationRequest:request
-                                   presentingViewController:presentingViewController
+                                                             externalUserAgent:externalUserAgent
+//                                                    presentingViewController:presentingViewController
                                                     callback:^(OIDAuthorizationResponse *_Nullable authorizationResponse, NSError *_Nullable error) {
                                                        typeof(self) strongSelf = weakSelf;
                                                        strongSelf->_currentSession = nil;
@@ -326,10 +334,11 @@ RCT_REMAP_METHOD(refresh,
                                                            reject([self getErrorCode: error defaultCode:@"authentication_failed"],
                                                                   [error localizedDescription], error);
                                                        }
-                                                   }]; // end [OIDAuthState presentAuthorizationRequest:request
+                                                   }]; // end [OIDAuthState presentAuthorizationRequest:request1
     } else {
         _currentSession = [OIDAuthState authStateByPresentingAuthorizationRequest:request
-                                presentingViewController:presentingViewController
+                                                                externalUserAgent:externalUserAgent
+                                //presentingViewController:presentingViewController
                                                 callback:^(OIDAuthState *_Nullable authState,
                                                             NSError *_Nullable error) {
                                                     typeof(self) strongSelf = weakSelf;
@@ -529,6 +538,31 @@ RCT_REMAP_METHOD(refresh,
     }
 
     return defaultCode;
+}
+
+- (id<OIDExternalUserAgent>)getCustomBrowser: (NSString *) browserType {
+    typedef id<OIDExternalUserAgent> (^BrowserBlock)(void);
+    
+    NSDictionary *browsers = @{
+        @"safari":
+            ^{
+                return [OIDExternalUserAgentIOSCustomBrowser CustomBrowserSafari];
+            },
+        @"chrome":
+            ^{
+                return [OIDExternalUserAgentIOSCustomBrowser CustomBrowserChrome];
+            },
+        @"opera":
+            ^{
+                return [OIDExternalUserAgentIOSCustomBrowser CustomBrowserOpera];
+            },
+        @"firefox":
+            ^{
+                return [OIDExternalUserAgentIOSCustomBrowser CustomBrowserFirefox];
+            }
+    };
+    BrowserBlock browser = browsers[browserType];
+    return browser();
 }
 
 @end
