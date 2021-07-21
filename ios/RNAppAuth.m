@@ -256,7 +256,7 @@ RCT_REMAP_METHOD(refresh,
                                                      resolve([self formatRegistrationResponse:response]);
                                                  } else {
                                                      reject([self getErrorCode: error defaultCode:@"registration_failed"],
-                                                            [error localizedDescription], error);
+                                                            [self getErrorMessage: error], error);
                                                  }
                                             }];
 }
@@ -324,7 +324,7 @@ RCT_REMAP_METHOD(refresh,
                                                            resolve([self formatAuthorizationResponse:authorizationResponse withCodeVerifier:codeVerifier]);
                                                        } else {
                                                            reject([self getErrorCode: error defaultCode:@"authentication_failed"],
-                                                                  [error localizedDescription], error);
+                                                                  [self getErrorMessage: error], error);
                                                        }
                                                    }]; // end [OIDAuthState presentAuthorizationRequest:request
     } else {
@@ -341,7 +341,7 @@ RCT_REMAP_METHOD(refresh,
                                                             withAuthResponse:authState.lastAuthorizationResponse]);
                                                     } else {
                                                         reject([self getErrorCode: error defaultCode:@"authentication_failed"],
-                                                               [error localizedDescription], error);
+                                                               [self getErrorMessage: error], error);
                                                     }
                                                 }]; // end [OIDAuthState authStateByPresentingAuthorizationRequest:request
     }
@@ -379,7 +379,7 @@ RCT_REMAP_METHOD(refresh,
                                                 resolve([self formatResponse:response]);
                                             } else {
                                                 reject([self getErrorCode: error defaultCode:@"token_refresh_failed"],
-                                                       [error localizedDescription], error);
+                                                       [self getErrorMessage: error], error);
                                             }
                                         }];
 }
@@ -530,6 +530,18 @@ RCT_REMAP_METHOD(refresh,
     }
 
     return defaultCode;
+}
+
+- (NSString*)getErrorMessage: (NSError*) error {
+    NSDictionary * userInfo = [error userInfo];
+
+    if (userInfo &&
+        userInfo[OIDOAuthErrorResponseErrorKey] &&
+        userInfo[OIDOAuthErrorResponseErrorKey][OIDOAuthErrorFieldErrorDescription]) {
+        return userInfo[OIDOAuthErrorResponseErrorKey][OIDOAuthErrorFieldErrorDescription];
+    } else {
+        return [error localizedDescription];
+    }
 }
 
 @end
