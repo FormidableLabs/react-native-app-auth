@@ -77,6 +77,8 @@ export type AuthConfiguration = BaseAuthConfiguration & {
   usePKCE?: boolean;
   warmAndPrefetchChrome?: boolean;
   skipCodeExchange?: boolean;
+  iosCustomBrowser?: 'safari' | 'chrome' | 'opera' | 'firefox';
+  androidAllowCustomBrowsers?: ('chrome' | 'chromeCustomTab' | 'firefox' | 'firefoxCustomTab' | 'samsung' | 'samsungCustomTab')[]
 };
 
 export interface AuthorizeResult {

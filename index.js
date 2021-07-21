@@ -178,6 +178,8 @@ export const authorize = ({
   customHeaders,
   additionalHeaders,
   skipCodeExchange = false,
+  iosCustomBrowser = null,
+  androidAllowCustomBrowsers = null
 }) => {
   validateIssuerOrServiceConfigurationEndpoints(issuer, serviceConfiguration);
   validateClientId(clientId);
@@ -203,12 +205,14 @@ export const authorize = ({
     nativeMethodArguments.push(clientAuthMethod);
     nativeMethodArguments.push(dangerouslyAllowInsecureHttpRequests);
     nativeMethodArguments.push(customHeaders);
+    nativeMethodArguments.push(androidAllowCustomBrowsers);
   }
 
   if (Platform.OS === 'ios') {
     nativeMethodArguments.push(additionalHeaders);
     nativeMethodArguments.push(useNonce);
     nativeMethodArguments.push(usePKCE);
+    nativeMethodArguments.push(iosCustomBrowser);
   }
 
   return RNAppAuth.authorize(...nativeMethodArguments);
