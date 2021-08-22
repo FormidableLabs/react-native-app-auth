@@ -1,23 +1,13 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { UIManager, LayoutAnimation, Alert } from 'react-native';
+import { UIManager, Alert } from 'react-native';
 import { authorize, refresh, revoke, prefetchConfiguration } from 'react-native-app-auth';
 import { Page, Button, ButtonContainer, Form, FormLabel, FormValue, Heading } from './components';
 
-UIManager.setLayoutAnimationEnabledExperimental &&
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-
-type State = {
-  hasLoggedInOnce: boolean,
-  provider: ?string,
-  accessToken: ?string,
-  accessTokenExpirationDate: ?string,
-  refreshToken: ?string
-};
 
 const configs = {
   identityserver: {
     issuer: 'https://demo.identityserver.io',
-    clientId: 'native.code',
+    clientId: 'interactive.public',
     redirectUrl: 'io.identityserver.demo:/oauthredirect',
     additionalParameters: {},
     scopes: ['openid', 'profile', 'email', 'offline_access'],
@@ -52,7 +42,7 @@ const defaultAuthState = {
   refreshToken: ''
 };
 
-export default () => {
+const App = () => {
   const [authState, setAuthState] = useState(defaultAuthState);
   React.useEffect(() => {
     prefetchConfiguration({
@@ -168,3 +158,5 @@ export default () => {
     </Page>
   );
 }
+
+export default App;

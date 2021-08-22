@@ -21,6 +21,8 @@ type CustomHeaders = {
   register?: Record<string, string>;
 };
 
+type AdditionalHeaders = Record<string, string>;
+
 interface BuiltInRegistrationParameters {
   client_name?: string;
   logo_uri?: string;
@@ -38,6 +40,7 @@ export type RegistrationConfiguration = BaseConfiguration & {
   additionalParameters?: BuiltInRegistrationParameters & { [name: string]: string };
   dangerouslyAllowInsecureHttpRequests?: boolean;
   customHeaders?: CustomHeaders;
+  additionalHeaders?: AdditionalHeaders;
 };
 
 export interface RegistrationResponse {
@@ -75,9 +78,11 @@ export type AuthConfiguration = BaseAuthConfiguration & {
    */
   useApplicationId?: string;
   customHeaders?: CustomHeaders;
+  additionalHeaders?: AdditionalHeaders;
   useNonce?: boolean;
   usePKCE?: boolean;
   warmAndPrefetchChrome?: boolean;
+  skipCodeExchange?: boolean;
 };
 
 export interface AuthorizeResult {
@@ -89,6 +94,8 @@ export interface AuthorizeResult {
   refreshToken: string;
   tokenType: string;
   scopes: string[];
+  authorizationCode: string;
+  codeVerifier?: string;
 }
 
 export interface RefreshResult {
@@ -125,3 +132,38 @@ export function revoke(
   config: BaseAuthConfiguration,
   revokeConfig: RevokeConfiguration
 ): Promise<void>;
+
+// https://tools.ietf.org/html/rfc6749#section-4.1.2.1
+type OAuthAuthorizationErrorCode =
+  | 'unauthorized_client'
+  | 'access_denied'
+  | 'unsupported_response_type'
+  | 'invalid_scope'
+  | 'server_error'
+  | 'temporarily_unavailable';
+// https://tools.ietf.org/html/rfc6749#section-5.2
+type OAuthTokenErrorCode =
+  | 'invalid_request'
+  | 'invalid_client'
+  | 'invalid_grant'
+  | 'unauthorized_client'
+  | 'unsupported_grant_type'
+  | 'invalid_scope';
+// https://openid.net/specs/openid-connect-registration-1_0.html#RegistrationError
+type OICRegistrationErrorCode = 'invalid_redirect_uri' | 'invalid_client_metadata';
+type AppAuthErrorCode =
+  | 'service_configuration_fetch_error'
+  | 'authentication_failed'
+  | 'token_refresh_failed'
+  | 'registration_failed'
+  | 'browser_not_found';
+
+type ErrorCode =
+  | OAuthAuthorizationErrorCode
+  | OAuthTokenErrorCode
+  | OICRegistrationErrorCode
+  | AppAuthErrorCode;
+
+export interface AppAuthError extends Error {
+  code: ErrorCode;
+}

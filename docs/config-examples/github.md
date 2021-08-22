@@ -1,9 +1,5 @@
 # GitHub
 
-** This is Android Only **
-
-Read more about iOS restrictions [here](https://github.com/FormidableLabs/react-native-app-auth/issues/194).
-
 Go to [OAuth Apps](https://github.com/settings/developers) to create your app.
 
 For the Authorization callback URL, choose something like `com.myapp://oauthredirect` and ensure you use `com.myapp` in your `appAuthRedirectScheme` in `android/app/build.gradle`.
@@ -14,6 +10,7 @@ const config = {
   clientId: '<client-id>',
   clientSecret: '<client-secret>',
   scopes: ['identity'],
+  additionalHeaders: { 'Accept': 'application/json' },
   serviceConfiguration: {
     authorizationEndpoint: 'https://github.com/login/oauth/authorize',
     tokenEndpoint: 'https://github.com/login/oauth/access_token',

@@ -35,7 +35,7 @@ static NSUInteger const kStateSizeBytes = 32;
 static NSUInteger const kCodeVerifierBytes = 32;
 
 RCT_EXPORT_MODULE()
-    
+
 RCT_REMAP_METHOD(register,
                  issuer: (NSString *) issuer
                  redirectUrls: (NSArray *) redirectUrls
@@ -45,9 +45,12 @@ RCT_REMAP_METHOD(register,
                  tokenEndpointAuthMethod: (NSString *) tokenEndpointAuthMethod
                  additionalParameters: (NSDictionary *_Nullable) additionalParameters
                  serviceConfiguration: (NSDictionary *_Nullable) serviceConfiguration
+                 additionalHeaders: (NSDictionary *_Nullable) additionalHeaders
                  resolve: (RCTPromiseResolveBlock) resolve
                  reject: (RCTPromiseRejectBlock)  reject)
 {
+    [self configureUrlSession:additionalHeaders];
+
     // if we have manually provided configuration, we can use it and skip the OIDC well-known discovery endpoint call
     if (serviceConfiguration) {
         OIDServiceConfiguration *configuration = [self createServiceConfiguration:serviceConfiguration];
@@ -88,11 +91,15 @@ RCT_REMAP_METHOD(authorize,
                  scopes: (NSArray *) scopes
                  additionalParameters: (NSDictionary *_Nullable) additionalParameters
                  serviceConfiguration: (NSDictionary *_Nullable) serviceConfiguration
+                 skipCodeExchange: (BOOL) skipCodeExchange
+                 additionalHeaders: (NSDictionary *_Nullable) additionalHeaders
                  useNonce: (BOOL *) useNonce
                  usePKCE: (BOOL *) usePKCE
                  resolve: (RCTPromiseResolveBlock) resolve
                  reject: (RCTPromiseRejectBlock)  reject)
 {
+    [self configureUrlSession:additionalHeaders];
+
     // if we have manually provided configuration, we can use it and skip the OIDC well-known discovery endpoint call
     if (serviceConfiguration) {
         OIDServiceConfiguration *configuration = [self createServiceConfiguration:serviceConfiguration];
@@ -104,6 +111,7 @@ RCT_REMAP_METHOD(authorize,
                                 useNonce: useNonce
                                  usePKCE: usePKCE
                     additionalParameters: additionalParameters
+                    skipCodeExchange: skipCodeExchange
                                  resolve: resolve
                                   reject: reject];
     } else {
@@ -121,6 +129,7 @@ RCT_REMAP_METHOD(authorize,
                                                                                         useNonce: useNonce
                                                                                          usePKCE: usePKCE
                                                                             additionalParameters: additionalParameters
+                                                                                skipCodeExchange: skipCodeExchange
                                                                                          resolve: resolve
                                                                                           reject: reject];
                                                             }];
@@ -136,9 +145,12 @@ RCT_REMAP_METHOD(refresh,
                  scopes: (NSArray *) scopes
                  additionalParameters: (NSDictionary *_Nullable) additionalParameters
                  serviceConfiguration: (NSDictionary *_Nullable) serviceConfiguration
+                 additionalHeaders: (NSDictionary *_Nullable) additionalHeaders
                  resolve:(RCTPromiseResolveBlock) resolve
                  reject: (RCTPromiseRejectBlock)  reject)
 {
+    [self configureUrlSession:additionalHeaders];
+
     // if we have manually provided configuration, we can use it and skip the OIDC well-known discovery endpoint call
     if (serviceConfiguration) {
         OIDServiceConfiguration *configuration = [self createServiceConfiguration:serviceConfiguration];
@@ -209,7 +221,7 @@ RCT_REMAP_METHOD(refresh,
   return [OIDTokenUtilities encodeBase64urlNoPadding:sha256Verifier];
 }
 
-    
+
 /*
  * Perform dynamic client registration with provided OIDServiceConfiguration
  */
@@ -227,7 +239,7 @@ RCT_REMAP_METHOD(refresh,
     for (NSString *urlString in redirectUrlStrings) {
         [redirectUrls addObject:[NSURL URLWithString:urlString]];
     }
-    
+
     OIDRegistrationRequest *request =
     [[OIDRegistrationRequest alloc] initWithConfiguration:configuration
                                              redirectURIs:redirectUrls
@@ -236,18 +248,19 @@ RCT_REMAP_METHOD(refresh,
                                               subjectType:subjectType
                                   tokenEndpointAuthMethod:tokenEndpointAuthMethod
                                      additionalParameters:additionalParameters];
-    
+
     [OIDAuthorizationService performRegistrationRequest:request
                                              completion:^(OIDRegistrationResponse *_Nullable response,
                                                           NSError *_Nullable error) {
                                                  if (response) {
                                                      resolve([self formatRegistrationResponse:response]);
                                                  } else {
-                                                     reject(@"registration_failed", [error localizedDescription], error);
+                                                     reject([self getErrorCode: error defaultCode:@"registration_failed"],
+                                                            [self getErrorMessage: error], error);
                                                  }
                                             }];
 }
-    
+
 /*
  * Authorize a user in exchange for a token with provided OIDServiceConfiguration
  */
@@ -259,6 +272,7 @@ RCT_REMAP_METHOD(refresh,
                           useNonce: (BOOL *) useNonce
                            usePKCE: (BOOL *) usePKCE
               additionalParameters: (NSDictionary *_Nullable) additionalParameters
+              skipCodeExchange: (BOOL) skipCodeExchange
                            resolve: (RCTPromiseResolveBlock) resolve
                             reject: (RCTPromiseRejectBlock)  reject
 {
@@ -296,23 +310,42 @@ RCT_REMAP_METHOD(refresh,
         taskId = UIBackgroundTaskInvalid;
     }];
 
-    _currentSession = [OIDAuthState authStateByPresentingAuthorizationRequest:request
-                                   presentingViewController:appDelegate.window.rootViewController
-                                                   callback:^(OIDAuthState *_Nullable authState,
-                                                              NSError *_Nullable error) {
+    UIViewController *presentingViewController = appDelegate.window.rootViewController.view.window ? appDelegate.window.rootViewController : appDelegate.window.rootViewController.presentedViewController;
+
+    if (skipCodeExchange) {
+        _currentSession = [OIDAuthorizationService presentAuthorizationRequest:request
+                                   presentingViewController:presentingViewController
+                                                    callback:^(OIDAuthorizationResponse *_Nullable authorizationResponse, NSError *_Nullable error) {
                                                        typeof(self) strongSelf = weakSelf;
                                                        strongSelf->_currentSession = nil;
                                                        [UIApplication.sharedApplication endBackgroundTask:taskId];
                                                        taskId = UIBackgroundTaskInvalid;
-                                                       if (authState) {
-                                                           resolve([self formatResponse:authState.lastTokenResponse
-                                                               withAuthResponse:authState.lastAuthorizationResponse]);
+                                                       if (authorizationResponse) {
+                                                           resolve([self formatAuthorizationResponse:authorizationResponse withCodeVerifier:codeVerifier]);
                                                        } else {
-                                                           reject(@"authentication_failed", [error localizedDescription], error);
+                                                           reject([self getErrorCode: error defaultCode:@"authentication_failed"],
+                                                                  [self getErrorMessage: error], error);
                                                        }
-                                                   }]; // end [OIDAuthState authStateByPresentingAuthorizationRequest:request
+                                                   }]; // end [OIDAuthState presentAuthorizationRequest:request
+    } else {
+        _currentSession = [OIDAuthState authStateByPresentingAuthorizationRequest:request
+                                presentingViewController:presentingViewController
+                                                callback:^(OIDAuthState *_Nullable authState,
+                                                            NSError *_Nullable error) {
+                                                    typeof(self) strongSelf = weakSelf;
+                                                    strongSelf->_currentSession = nil;
+                                                    [UIApplication.sharedApplication endBackgroundTask:taskId];
+                                                    taskId = UIBackgroundTaskInvalid;
+                                                    if (authState) {
+                                                        resolve([self formatResponse:authState.lastTokenResponse
+                                                            withAuthResponse:authState.lastAuthorizationResponse]);
+                                                    } else {
+                                                        reject([self getErrorCode: error defaultCode:@"authentication_failed"],
+                                                               [self getErrorMessage: error], error);
+                                                    }
+                                                }]; // end [OIDAuthState authStateByPresentingAuthorizationRequest:request
+    }
 }
-
 
 /*
  * Refresh a token with provided OIDServiceConfiguration
@@ -345,9 +378,54 @@ RCT_REMAP_METHOD(refresh,
                                             if (response) {
                                                 resolve([self formatResponse:response]);
                                             } else {
-                                                reject(@"token_refresh_failed", [error localizedDescription], error);
+                                                reject([self getErrorCode: error defaultCode:@"token_refresh_failed"],
+                                                       [self getErrorMessage: error], error);
                                             }
                                         }];
+}
+
+
+- (void) configureUrlSession: (NSDictionary*) headers {
+    NSURLSessionConfiguration* configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
+    if (headers != nil) {
+        configuration.HTTPAdditionalHeaders = headers;
+    }
+
+    NSURLSession* session = [NSURLSession sessionWithConfiguration:configuration];
+    [OIDURLSessionProvider setSession:session];
+}
+
+/*
+ * Take raw OIDAuthorizationResponse and turn it to response format to pass to JavaScript caller
+ */
+- (NSDictionary *)formatAuthorizationResponse: (OIDAuthorizationResponse *) response withCodeVerifier: (NSString *) codeVerifier {
+    NSDateFormatter *dateFormat = [[NSDateFormatter alloc] init];
+    dateFormat.timeZone = [NSTimeZone timeZoneWithAbbreviation: @"UTC"];
+    [dateFormat setLocale:[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"]];
+    [dateFormat setDateFormat:@"yyyy-MM-dd'T'HH:mm:ss'Z'"];
+
+    if (codeVerifier == nil) {
+      return @{@"authorizationCode": response.authorizationCode ? response.authorizationCode : @"",
+              @"state": response.state ? response.state : @"",
+              @"accessToken": response.accessToken ? response.accessToken : @"",
+              @"accessTokenExpirationDate": response.accessTokenExpirationDate ? [dateFormat stringFromDate:response.accessTokenExpirationDate] : @"",
+              @"tokenType": response.tokenType ? response.tokenType : @"",
+              @"idToken": response.idToken ? response.idToken : @"",
+              @"scopes": response.scope ? [response.scope componentsSeparatedByString:@" "] : [NSArray new],
+              @"additionalParameters": response.additionalParameters,
+              };
+    } else {
+      return @{@"authorizationCode": response.authorizationCode ? response.authorizationCode : @"",
+            @"state": response.state ? response.state : @"",
+            @"accessToken": response.accessToken ? response.accessToken : @"",
+            @"accessTokenExpirationDate": response.accessTokenExpirationDate ? [dateFormat stringFromDate:response.accessTokenExpirationDate] : @"",
+            @"tokenType": response.tokenType ? response.tokenType : @"",
+            @"idToken": response.idToken ? response.idToken : @"",
+            @"scopes": response.scope ? [response.scope componentsSeparatedByString:@" "] : [NSArray new],
+            @"additionalParameters": response.additionalParameters,
+            @"codeVerifier": codeVerifier
+            };
+    }
 }
 
 /*
@@ -389,13 +467,13 @@ RCT_REMAP_METHOD(refresh,
              @"scopes": authResponse.scope ? [authResponse.scope componentsSeparatedByString:@" "] : [NSArray new],
              };
 }
-    
+
 - (NSDictionary*)formatRegistrationResponse: (OIDRegistrationResponse*) response {
     NSDateFormatter *dateFormat = [[NSDateFormatter alloc] init];
     dateFormat.timeZone = [NSTimeZone timeZoneWithAbbreviation: @"UTC"];
     [dateFormat setLocale:[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"]];
     [dateFormat setDateFormat:@"yyyy-MM-dd'T'HH:mm:ss'Z'"];
-    
+
     return @{@"clientId": response.clientID,
              @"additionalParameters": response.additionalParameters,
              @"clientIdIssuedAt": response.clientIDIssuedAt ? [dateFormat stringFromDate:response.clientIDIssuedAt] : @"",
@@ -405,6 +483,65 @@ RCT_REMAP_METHOD(refresh,
              @"registrationClientUri": response.registrationClientURI ? response.registrationClientURI : @"",
              @"tokenEndpointAuthMethod": response.tokenEndpointAuthenticationMethod ? response.tokenEndpointAuthenticationMethod : @"",
              };
+}
+
+- (NSString*)getErrorCode: (NSError*) error defaultCode: (NSString *) defaultCode {
+    if ([[error domain] isEqualToString:OIDOAuthAuthorizationErrorDomain]) {
+        switch ([error code]) {
+            case OIDErrorCodeOAuthAuthorizationInvalidRequest:
+              return @"invalid_request";
+            case OIDErrorCodeOAuthAuthorizationUnauthorizedClient:
+              return @"unauthorized_client";
+            case OIDErrorCodeOAuthAuthorizationAccessDenied:
+              return @"access_denied";
+            case OIDErrorCodeOAuthAuthorizationUnsupportedResponseType:
+              return @"unsupported_response_type";
+            case OIDErrorCodeOAuthAuthorizationAuthorizationInvalidScope:
+              return @"invalid_scope";
+            case OIDErrorCodeOAuthAuthorizationServerError:
+              return @"server_error";
+            case OIDErrorCodeOAuthAuthorizationTemporarilyUnavailable:
+              return @"temporarily_unavailable";
+        }
+    } else if ([[error domain] isEqualToString:OIDOAuthTokenErrorDomain]) {
+        switch ([error code]) {
+            case OIDErrorCodeOAuthTokenInvalidRequest:
+              return @"invalid_request";
+            case OIDErrorCodeOAuthTokenInvalidClient:
+              return @"invalid_client";
+            case OIDErrorCodeOAuthTokenInvalidGrant:
+              return @"invalid_grant";
+            case OIDErrorCodeOAuthTokenUnauthorizedClient:
+              return @"unauthorized_client";
+            case OIDErrorCodeOAuthTokenUnsupportedGrantType:
+              return @"unsupported_grant_type";
+            case OIDErrorCodeOAuthTokenInvalidScope:
+              return @"invalid_scope";
+        }
+    } else if ([[error domain] isEqualToString:OIDOAuthRegistrationErrorDomain]) {
+        switch ([error code]) {
+            case OIDErrorCodeOAuthRegistrationInvalidRequest:
+              return @"invalid_request";
+            case OIDErrorCodeOAuthRegistrationInvalidRedirectURI:
+              return @"invalid_redirect_uri";
+            case OIDErrorCodeOAuthRegistrationInvalidClientMetadata:
+              return @"invalid_client_metadata";
+        }
+    }
+
+    return defaultCode;
+}
+
+- (NSString*)getErrorMessage: (NSError*) error {
+    NSDictionary * userInfo = [error userInfo];
+
+    if (userInfo &&
+        userInfo[OIDOAuthErrorResponseErrorKey] &&
+        userInfo[OIDOAuthErrorResponseErrorKey][OIDOAuthErrorFieldErrorDescription]) {
+        return userInfo[OIDOAuthErrorResponseErrorKey][OIDOAuthErrorFieldErrorDescription];
+    } else {
+        return [error localizedDescription];
+    }
 }
 
 @end

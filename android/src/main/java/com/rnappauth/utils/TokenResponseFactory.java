@@ -16,7 +16,7 @@ public final class TokenResponseFactory {
         if (!TextUtils.isEmpty(scope)) {
             String[] scopesArray = scope.split(" ");
 
-            for( int i = 0; i < scopesArray.length - 1; i++)
+            for( int i = 0; i < scopesArray.length; i++)
             {
                 scopeArray.pushString(scopesArray[i]);
             }
@@ -63,6 +63,49 @@ public final class TokenResponseFactory {
             map.putString("accessTokenExpirationDate", DateUtil.formatTimestamp(response.accessTokenExpirationTime));
         }
 
+
+        return map;
+    }
+
+
+    /*
+     * Read raw authorization into a React Native map to be passed down the bridge
+     */
+    public static final WritableMap authorizationResponseToMap(AuthorizationResponse authResponse) {
+        WritableMap map = Arguments.createMap();
+        map.putString("authorizationCode", authResponse.authorizationCode);
+        map.putString("accessToken", authResponse.accessToken);
+        map.putMap("additionalParameters", MapUtil.createAdditionalParametersMap(authResponse.additionalParameters));
+        map.putString("idToken", authResponse.idToken);
+        map.putString("tokenType", authResponse.tokenType);
+        map.putArray("scopes", createScopeArray(authResponse.scope));
+
+        if (authResponse.accessTokenExpirationTime != null) {
+            map.putString("accessTokenExpirationTime", DateUtil.formatTimestamp(authResponse.accessTokenExpirationTime));
+        }
+
+        return map;
+    }
+
+    /*
+     * Read raw authorization into a React Native map with codeVerifier value added if present to be passed down the bridge
+     */
+    public static final WritableMap authorizationCodeResponseToMap(AuthorizationResponse authResponse, String codeVerifier) {
+        WritableMap map = Arguments.createMap();
+        map.putString("authorizationCode", authResponse.authorizationCode);
+        map.putString("accessToken", authResponse.accessToken);
+        map.putMap("additionalParameters", MapUtil.createAdditionalParametersMap(authResponse.additionalParameters));
+        map.putString("idToken", authResponse.idToken);
+        map.putString("tokenType", authResponse.tokenType);
+        map.putArray("scopes", createScopeArray(authResponse.scope));
+
+        if (authResponse.accessTokenExpirationTime != null) {
+            map.putString("accessTokenExpirationTime", DateUtil.formatTimestamp(authResponse.accessTokenExpirationTime));
+        }
+
+        if (!TextUtils.isEmpty(codeVerifier)) {
+            map.putString("codeVerifier", codeVerifier);
+        }
 
         return map;
     }

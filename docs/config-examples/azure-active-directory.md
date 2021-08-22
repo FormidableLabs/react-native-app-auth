@@ -19,7 +19,7 @@ Please Note:
 const config = {
   issuer: 'https://login.microsoftonline.com/your-tenant-id',
   clientId: 'your-client-id',
-  redirectUrl: 'com.myapp://oauth/redirect',
+  redirectUrl: 'com.myapp://oauth/redirect/',
   additionalParameters: {
     resource: 'your-resource'
   }
@@ -42,7 +42,7 @@ The V2 endpoint follows the standard OAuth protocol with scopes. Detailed docume
 const config = {
   issuer: 'https://login.microsoftonline.com/your-tenant-id/v2.0',
   clientId: 'your-client-id',
-  redirectUrl: 'com.myapp://oauth/redirect',
+  redirectUrl: 'com.myapp://oauth/redirect/',
   scopes: ['openid', 'profile', 'email', 'offline_access']
 };
 
@@ -54,3 +54,5 @@ const refreshedState = await refresh(config, {
   refreshToken: authState.refreshToken,
 });
 ```
+
+**Important** When you add your app in the azure portal and are given a `redirectUrl` to use, make sure you add a trailing slash when you add it to your config - e.g. `msauth.BUNDLEID://auth/` - failure to add that causes it to fail in IOS.

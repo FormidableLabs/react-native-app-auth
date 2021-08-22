@@ -1,6 +1,6 @@
 {
   "name": "react-native-app-auth",
-  "version": "5.1.2",
+  "version": "6.4.0",
   "description": "React Native bridge for AppAuth for supporting any OAuth 2 provider",
   "main": "index.js",
   "types": "index.d.ts",
@@ -44,7 +44,7 @@
   "author": "kadi.kraman@formidable.com",
   "license": "MIT",
   "peerDependencies": {
-    "react-native": ">=0.60.0"
+    "react-native": ">=0.63.0"
   },
   "devDependencies": {
     "babel-eslint": "10.0.3",
