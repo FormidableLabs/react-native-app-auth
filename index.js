@@ -55,12 +55,6 @@ const validateHeaders = headers => {
   });
 };
 
-const validateAdditionalParameters = params => {
-  if (Platform.OS !== 'android') {
-    delete params["use_app"];
-  }
-}
-
 export const prefetchConfiguration = async ({
   warmAndPrefetchChrome,
   issuer,
@@ -160,13 +154,13 @@ export const authorize = ({
   serviceConfiguration,
   clientAuthMethod = 'basic',
   dangerouslyAllowInsecureHttpRequests = false,
+  useApplicationId,
   customHeaders,
 }) => {
   validateIssuerOrServiceConfigurationEndpoints(issuer, serviceConfiguration);
   validateClientId(clientId);
   validateRedirectUrl(redirectUrl);
   validateHeaders(customHeaders);
-  validateAdditionalParameters(additionalParameters)
 
   const nativeMethodArguments = [
     issuer,
@@ -182,6 +176,7 @@ export const authorize = ({
     nativeMethodArguments.push(usePKCE);
     nativeMethodArguments.push(clientAuthMethod);
     nativeMethodArguments.push(dangerouslyAllowInsecureHttpRequests);
+    nativeMethodArguments.push(useApplicationId);
     nativeMethodArguments.push(customHeaders);
   }
 

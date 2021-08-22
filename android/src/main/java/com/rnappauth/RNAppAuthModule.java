@@ -64,6 +64,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     private final ReactApplicationContext reactContext;
     private Promise promise;
     private boolean dangerouslyAllowInsecureHttpRequests;
+    private String useApplicationId;
     private String clientAuthMethod = "basic";
     private Map<String, String> registrationRequestHeaders = null;
     private Map<String, String> authorizationRequestHeaders = null;
@@ -221,6 +222,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final Boolean usePKCE,
             final String clientAuthMethod,
             final boolean dangerouslyAllowInsecureHttpRequests,
+            final String useApplicationId,
             final ReadableMap headers,
             final Promise promise
     ) {
@@ -232,6 +234,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         // store args in private fields for later use in onActivityResult handler
         this.promise = promise;
         this.dangerouslyAllowInsecureHttpRequests = dangerouslyAllowInsecureHttpRequests;
+        this.useApplicationId = useApplicationId;
         this.additionalParametersMap = additionalParametersMap;
         this.clientSecret = clientSecret;
         this.clientAuthMethod = clientAuthMethod;
@@ -520,7 +523,6 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             authRequestBuilder.setScope(scopesString);
         }
 
-        String useApp = null;
         if (additionalParametersMap != null) {
             // handle additional parameters separately to avoid exceptions from AppAuth
             if (additionalParametersMap.containsKey("display")) {
@@ -535,10 +537,6 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                 authRequestBuilder.setPrompt(additionalParametersMap.get("prompt"));
                 additionalParametersMap.remove("prompt");
             }
-            if (additionalParametersMap.containsKey("use_app")) {
-                useApp = additionalParametersMap.get("use_app");
-                additionalParametersMap.remove("use_app");
-            }
 
             authRequestBuilder.setAdditionalParameters(additionalParametersMap);
         }
@@ -552,11 +550,11 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
             AuthorizationService authService = new AuthorizationService(context, appAuthConfiguration);
             Intent intent = null;
-            if (!TextUtils.isEmpty(useApp)) {
-                if (isPackageInstalled(useApp, getReactApplicationContext().getPackageManager())) {
+            if (!TextUtils.isEmpty(this.useApplicationId)) {
+                if (isPackageInstalled(this.useApplicationId, getReactApplicationContext().getPackageManager())) {
                     Intent authIntent = new Intent(Intent.ACTION_VIEW);
                     authIntent.setData(authRequest.toUri());
-                    authIntent.setPackage(useApp);
+                    authIntent.setPackage(this.useApplicationId);
                     intent = AuthorizationManagementActivity
                             .createStartForResultIntent(getReactApplicationContext(), authRequest, authIntent);
                 }
