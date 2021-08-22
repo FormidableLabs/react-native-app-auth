@@ -127,7 +127,7 @@ with optional overrides.
   `hello=world&foo=bar` to the authorization request.
 - **clientAuthMethod** - (`string`) _ANDROID_ Client Authentication Method. Can be either `basic` (default) for [Basic Authentication](https://github.com/openid/AppAuth-Android/blob/master/library/java/net/openid/appauth/ClientSecretBasic.java) or `post` for [HTTP POST body Authentication](https://github.com/openid/AppAuth-Android/blob/master/library/java/net/openid/appauth/ClientSecretPost.java)
 - **dangerouslyAllowInsecureHttpRequests** - (`boolean`) _ANDROID_ whether to allow requests over plain HTTP or with self-signed SSL certificates. :warning: Can be useful for testing against local server, _should not be used in production._ This setting has no effect on iOS; to enable insecure HTTP requests, add a [NSExceptionAllowsInsecureHTTPLoads exception](https://cocoacasts.com/how-to-add-app-transport-security-exception-domains) to your App Transport Security settings.
-- `useApplicationId`: [Android only] specific the application id that you'd like to use for authenticating. Otherwise, use webview as default.
+- **useApplicationId** - (`string`): [Android only] specific the application id that you'd like to use for authenticating. Otherwise, use webview as default. (For Android 11, check [Android Setup](##### Android 11 setup for useApplicationId))
 - **customHeaders** - (`object`) _ANDROID_ you can specify custom headers to pass during authorize request and/or token request.
   - **authorize** - (`{ [key: string]: value }`) headers to be passed during authorization request.
   - **token** - (`{ [key: string]: value }`) headers to be passed during token retrieval request.
@@ -414,6 +414,20 @@ The scheme is the beginning of your OAuth Redirect URL, up to the scheme separat
 is `com.myapp://oauth`, then the url scheme will is `com.myapp`. The scheme must be in lowercase.
 
 NOTE: When integrating with [React Navigation deep linking](https://reactnavigation.org/docs/deep-linking/#set-up-with-bare-react-native-projects), be sure to make this scheme (and the scheme in the config's redirectUrl) unique from the scheme defined in the deep linking intent-filter. E.g. if the scheme in your intent-filter is set to `com.myapp`, then update the above scheme/redirectUrl to be `com.myapp.auth` [as seen here](https://github.com/FormidableLabs/react-native-app-auth/issues/494#issuecomment-797394994).
+
+##### Android 11 setup for useApplicationId
+In Android 11, to check specific app installed, you need to add the following to your `AndroidManifest.xml`
+```xml
+  <manifest package="your-package">
+    <queries>
+      <package android:name="com.strava" /> <!-- the app that you'd like to open for authenticating -->
+    </queries>
+  </manifest>
+```
+ or
+```xml
+  <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>
+```
 
 ## Usage
 
