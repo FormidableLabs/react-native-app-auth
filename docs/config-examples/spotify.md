@@ -37,6 +37,7 @@ const config = {
     authorizationEndpoint: 'https://accounts.spotify.com/authorize',
     tokenEndpoint: 'https://my-token-service/api/token',
   },
+  usePKCE: false,
 };
 
 const authState = await authorize(config);
