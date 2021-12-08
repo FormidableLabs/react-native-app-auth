@@ -184,6 +184,40 @@ RCT_REMAP_METHOD(refresh,
     }
 } // end RCT_REMAP_METHOD(refresh,
 
+RCT_REMAP_METHOD(logout,
+                 issuer: (NSString *) issuer
+                 idTokenHint: (NSString *) idTokenHint
+                 postLogoutRedirectURL: (NSString *) postLogoutRedirectURL
+                 serviceConfiguration: (NSDictionary *_Nullable) serviceConfiguration
+                 additionalParameters: (NSDictionary *_Nullable) additionalParameters
+                 resolve:(RCTPromiseResolveBlock) resolve
+                 reject: (RCTPromiseRejectBlock)  reject)
+{
+  if (serviceConfiguration) {
+    OIDServiceConfiguration *configuration = [self createServiceConfiguration:serviceConfiguration];
+    [self endSessionWithConfiguration: configuration
+                          idTokenHint: idTokenHint
+                postLogoutRedirectURL: postLogoutRedirectURL
+                 additionalParameters: additionalParameters
+                              resolve: resolve
+                               reject: reject];
+
+  } else {
+    [OIDAuthorizationService discoverServiceConfigurationForIssuer:[NSURL URLWithString:issuer]
+                                                        completion:^(OIDServiceConfiguration *_Nullable configuration, NSError *_Nullable error) {
+                                                                if (!configuration) {
+                                                                    reject(@"service_configuration_fetch_error", [error localizedDescription], error);
+                                                                    return;
+                                                                }
+                                                                [self endSessionWithConfiguration: configuration
+                                                                                      idTokenHint: idTokenHint
+                                                                            postLogoutRedirectURL: postLogoutRedirectURL
+                                                                             additionalParameters: additionalParameters
+                                                                                          resolve: resolve
+                                                                                           reject: reject];
+                                                        }];
+  }
+} // end RCT_REMAP_METHOD(logout,
 
 /*
  * Create a OIDServiceConfiguration from passed serviceConfiguration dictionary
@@ -192,12 +226,15 @@ RCT_REMAP_METHOD(refresh,
     NSURL *authorizationEndpoint = [NSURL URLWithString: [serviceConfiguration objectForKey:@"authorizationEndpoint"]];
     NSURL *tokenEndpoint = [NSURL URLWithString: [serviceConfiguration objectForKey:@"tokenEndpoint"]];
     NSURL *registrationEndpoint = [NSURL URLWithString: [serviceConfiguration objectForKey:@"registrationEndpoint"]];
+    NSURL *endSessionEndpoint = [NSURL URLWithString: [serviceConfiguration objectForKey:@"endSessionEndpoint"]];
 
     OIDServiceConfiguration *configuration =
     [[OIDServiceConfiguration alloc]
      initWithAuthorizationEndpoint:authorizationEndpoint
      tokenEndpoint:tokenEndpoint
-     registrationEndpoint:registrationEndpoint];
+     issuer:nil
+     registrationEndpoint:registrationEndpoint
+     endSessionEndpoint:endSessionEndpoint];
 
     return configuration;
 }
@@ -384,6 +421,49 @@ RCT_REMAP_METHOD(refresh,
                                         }];
 }
 
+- (void)endSessionWithConfiguration: (OIDServiceConfiguration *) configuration
+                        idTokenHint: (NSString *) idTokenHint
+              postLogoutRedirectURL: (NSString *) postLogoutRedirectURL
+               additionalParameters: (NSDictionary *_Nullable) additionalParameters
+                            resolve: (RCTPromiseResolveBlock) resolve
+                             reject: (RCTPromiseRejectBlock) reject {
+
+    OIDEndSessionRequest *endSessionRequest =
+      [[OIDEndSessionRequest alloc] initWithConfiguration: configuration
+                                              idTokenHint: idTokenHint
+                                    postLogoutRedirectURL: [NSURL URLWithString:postLogoutRedirectURL]
+                                     additionalParameters: additionalParameters];
+
+    id<UIApplicationDelegate, RNAppAuthAuthorizationFlowManager> appDelegate = (id<UIApplicationDelegate, RNAppAuthAuthorizationFlowManager>)[UIApplication sharedApplication].delegate;
+    if (![[appDelegate class] conformsToProtocol:@protocol(RNAppAuthAuthorizationFlowManager)]) {
+        [NSException raise:@"RNAppAuth Missing protocol conformance"
+                    format:@"%@ does not conform to RNAppAuthAuthorizationFlowManager", appDelegate];
+    }
+    appDelegate.authorizationFlowManagerDelegate = self;
+    __weak typeof(self) weakSelf = self;
+
+    taskId = [UIApplication.sharedApplication beginBackgroundTaskWithExpirationHandler:^{
+        [UIApplication.sharedApplication endBackgroundTask:taskId];
+        taskId = UIBackgroundTaskInvalid;
+    }];
+
+    UIViewController *presentingViewController = appDelegate.window.rootViewController.view.window ? appDelegate.window.rootViewController : appDelegate.window.rootViewController.presentedViewController;
+
+    _currentSession = [OIDAuthorizationService presentEndSessionRequest: endSessionRequest
+                                                      externalUserAgent: [self getExternalUserAgentWithPresentingViewController:presentingViewController]
+                                             callback: ^(OIDEndSessionResponse *_Nullable response, NSError *_Nullable error) {
+                                                          typeof(self) strongSelf = weakSelf;
+                                                          strongSelf->_currentSession = nil;
+                                                          [UIApplication.sharedApplication endBackgroundTask:taskId];
+                                                          taskId = UIBackgroundTaskInvalid;
+                                                          if (response) {
+                                                              resolve([self formatEndSessionResponse:response]);
+                                                          } else {
+                                                            reject([self getErrorCode: error defaultCode:@"end_session_failed"],
+                                                                   [self getErrorMessage: error], error);
+                                                          }
+                                                        }];
+}
 
 - (void) configureUrlSession: (NSDictionary*) headers {
     NSURLSessionConfiguration* configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
@@ -485,6 +565,14 @@ RCT_REMAP_METHOD(refresh,
              };
 }
 
+- (NSDictionary*)formatEndSessionResponse: (OIDEndSessionResponse*)response
+{
+    return @{@"state": response.state ? response.state : @"",
+             @"idTokenHint": response.request.idTokenHint,
+             @"postLogoutRedirectUri": response.request.postLogoutRedirectURL.absoluteString
+             };
+}
+
 - (NSString*)getErrorCode: (NSError*) error defaultCode: (NSString *) defaultCode {
     if ([[error domain] isEqualToString:OIDOAuthAuthorizationErrorDomain]) {
         switch ([error code]) {
@@ -542,6 +630,19 @@ RCT_REMAP_METHOD(refresh,
     } else {
         return [error localizedDescription];
     }
+}
+
+- (id<OIDExternalUserAgent>)getExternalUserAgentWithPresentingViewController: (UIViewController *)presentingViewController
+{
+  id<OIDExternalUserAgent> externalUserAgent;
+  #if TARGET_OS_IOS
+    externalUserAgent = [[OIDExternalUserAgentIOS alloc] initWithPresentingViewController:presentingViewController];
+  #elif TARGET_OS_MACCATALYST
+    externalUserAgent = [[OIDExternalUserAgentCatalyst alloc] initWithPresentingViewController:presentingViewController];
+  #elif TARGET_OS_OSX
+    externalUserAgent = [[OIDExternalUserAgentMac alloc] init];
+  #endif
+  return externalUserAgent;
 }
 
 @end

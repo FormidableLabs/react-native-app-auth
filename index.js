@@ -24,6 +24,12 @@ const validateIssuerOrServiceConfigurationRevocationEndpoint = (issuer, serviceC
       (serviceConfiguration && typeof serviceConfiguration.revocationEndpoint === 'string'),
     'Config error: you must provide either an issuer or a revocation endpoint'
   );
+const validateIssuerOrServiceConfigurationEndSessionEndpoint = (issuer, serviceConfiguration) =>
+  invariant(
+    typeof issuer === 'string' ||
+      (serviceConfiguration && typeof serviceConfiguration.endSessionEndpoint === 'string'),
+    'Config error: you must provide either an issuer or an end session endpoint'
+  );
 const validateClientId = clientId =>
   invariant(typeof clientId === 'string', 'Config error: clientId must be a string');
 const validateRedirectUrl = redirectUrl =>
@@ -304,4 +310,32 @@ export const revoke = async (
   }).catch(error => {
     throw new Error('Failed to revoke token', error);
   });
+};
+
+export const logout = (
+  {
+    issuer,
+    serviceConfiguration,
+    additionalParameters,
+    dangerouslyAllowInsecureHttpRequests = false,
+  },
+  { idToken, postLogoutRedirectUrl }
+) => {
+  validateIssuerOrServiceConfigurationEndSessionEndpoint(issuer, serviceConfiguration);
+  validateRedirectUrl(postLogoutRedirectUrl);
+  invariant(idToken, 'Please pass in the ID token');
+
+  const nativeMethodArguments = [
+    issuer,
+    idToken,
+    postLogoutRedirectUrl,
+    serviceConfiguration,
+    additionalParameters,
+  ];
+
+  if (Platform.OS === 'android') {
+    nativeMethodArguments.push(dangerouslyAllowInsecureHttpRequests);
+  }
+
+  return RNAppAuth.logout(...nativeMethodArguments);
 };

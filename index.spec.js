@@ -1,4 +1,4 @@
-import { authorize, refresh, register } from './';
+import { authorize, refresh, register, logout } from './';
 
 jest.mock('react-native', () => ({
   NativeModules: {
@@ -6,6 +6,7 @@ jest.mock('react-native', () => ({
       register: jest.fn(),
       authorize: jest.fn(),
       refresh: jest.fn(),
+      logout: jest.fn(),
     },
   },
   Platform: {
@@ -17,6 +18,7 @@ describe('AppAuth', () => {
   let mockRegister;
   let mockAuthorize;
   let mockRefresh;
+  let mockLogout;
 
   beforeAll(() => {
     mockRegister = require('react-native').NativeModules.RNAppAuth.register;
@@ -27,6 +29,9 @@ describe('AppAuth', () => {
 
     mockRefresh = require('react-native').NativeModules.RNAppAuth.refresh;
     mockRefresh.mockReturnValue('REFRESHED');
+
+    mockLogout = require('react-native').NativeModules.RNAppAuth.logout;
+    mockLogout.mockReturnValue('LOGOUT');
   });
 
   const config = {
@@ -62,6 +67,7 @@ describe('AppAuth', () => {
       mockRegister.mockReset();
       mockAuthorize.mockReset();
       mockRefresh.mockReset();
+      mockLogout.mockReset();
     });
 
     it('throws an error when issuer is not a string and serviceConfiguration is not passed', () => {
@@ -320,21 +326,12 @@ describe('AppAuth', () => {
       mockRegister.mockReset();
       mockAuthorize.mockReset();
       mockRefresh.mockReset();
+      mockLogout.mockReset();
     });
 
     it('throws an error when issuer is not a string and serviceConfiguration is not passed', () => {
       expect(() => {
         authorize({ ...config, issuer: () => ({}) });
-      }).toThrow('Config error: you must provide either an issuer or a service endpoints');
-    });
-
-    it('throws an error when serviceConfiguration does not have tokenEndpoint and issuer is not passed', () => {
-      expect(() => {
-        authorize({
-          ...config,
-          issuer: undefined,
-          serviceConfiguration: { authorizationEndpoint: '' },
-        });
       }).toThrow('Config error: you must provide either an issuer or a service endpoints');
     });
 
@@ -664,21 +661,12 @@ describe('AppAuth', () => {
       mockRegister.mockReset();
       mockAuthorize.mockReset();
       mockRefresh.mockReset();
+      mockLogout.mockReset();
     });
 
     it('throws an error when issuer is not a string and serviceConfiguration is not passed', () => {
       expect(() => {
         authorize({ ...config, issuer: () => ({}) });
-      }).toThrow('Config error: you must provide either an issuer or a service endpoints');
-    });
-
-    it('throws an error when serviceConfiguration does not have tokenEndpoint and issuer is not passed', () => {
-      expect(() => {
-        authorize({
-          ...config,
-          issuer: undefined,
-          serviceConfiguration: { authorizationEndpoint: '' },
-        });
       }).toThrow('Config error: you must provide either an issuer or a service endpoints');
     });
 
@@ -849,6 +837,110 @@ describe('AppAuth', () => {
             customHeaders
           );
         });
+      });
+    });
+  });
+
+  describe('end session', () => {
+    beforeEach(() => {
+      mockRegister.mockReset();
+      mockAuthorize.mockReset();
+      mockRefresh.mockReset();
+      mockLogout.mockReset();
+    });
+
+    it('throws an error when issuer is not a string and serviceConfiguration is not passed', () => {
+      expect(() => {
+        logout(
+          { ...config, issuer: () => ({}) },
+          { idToken: 'token', postLogoutRedirectUrl: 'redirect' }
+        );
+      }).toThrow('Config error: you must provide either an issuer or an end session endpoint');
+    });
+
+    it('throws an error when serviceConfiguration does not have endSessionEndpoint and issuer is not passed', () => {
+      expect(() => {
+        logout(
+          { ...config, issuer: undefined },
+          { idToken: 'token', postLogoutRedirectUrl: 'redirect' }
+        );
+      }).toThrow('Config error: you must provide either an issuer or an end session endpoint');
+    });
+
+    it('throws an error when postLogoutRedirectUrl is not a string', () => {
+      expect(() => {
+        logout(config, { idToken: 'token', postLogoutRedirectUrl: {} });
+      }).toThrow('Config error: redirectUrl must be a string');
+    });
+
+    it('throws an error when idToken is not passed in', () => {
+      expect(() => {
+        logout({ ...config }, { postLogoutRedirectUrl: 'redirect' });
+      }).toThrow('Please pass in the ID token');
+    });
+
+    describe('iOS-specific', () => {
+      beforeEach(() => {
+        require('react-native').Platform.OS = 'ios';
+      });
+
+      it('calls the native wrapper with the correct args', () => {
+        logout({ ...config }, { idToken: '_token_', postLogoutRedirectUrl: '_redirect_' });
+        expect(mockLogout).toHaveBeenCalledWith(
+          config.issuer,
+          '_token_',
+          '_redirect_',
+          config.serviceConfiguration,
+          config.additionalParameters
+        );
+      });
+    });
+
+    describe('Android-specific', () => {
+      beforeEach(() => {
+        require('react-native').Platform.OS = 'android';
+      });
+
+      it('calls the native wrapper with the correct args and undefined dangerouslyAllowInsecureHttpRequests', () => {
+        logout({ ...config }, { idToken: '_token_', postLogoutRedirectUrl: '_redirect_' });
+        expect(mockLogout).toHaveBeenCalledWith(
+          config.issuer,
+          '_token_',
+          '_redirect_',
+          config.serviceConfiguration,
+          config.additionalParameters,
+          false
+        );
+      });
+
+      it('calls the native wrapper with the correct args and dangerouslyAllowInsecureHttpRequests set to `true`', () => {
+        logout(
+          { ...config, dangerouslyAllowInsecureHttpRequests: true },
+          { idToken: '_token_', postLogoutRedirectUrl: '_redirect_' }
+        );
+        expect(mockLogout).toHaveBeenCalledWith(
+          config.issuer,
+          '_token_',
+          '_redirect_',
+          config.serviceConfiguration,
+          config.additionalParameters,
+          true
+        );
+      });
+
+      it('calls the native wrapper with the correct args and dangerouslyAllowInsecureHttpRequests set to `false`', () => {
+        logout(
+          { ...config, dangerouslyAllowInsecureHttpRequests: false },
+          { idToken: '_token_', postLogoutRedirectUrl: '_redirect_' }
+        );
+        expect(mockLogout).toHaveBeenCalledWith(
+          config.issuer,
+          '_token_',
+          '_redirect_',
+          config.serviceConfiguration,
+          config.additionalParameters,
+          false
+        );
       });
     });
   });
