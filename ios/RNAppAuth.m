@@ -24,7 +24,7 @@
     return dispatch_get_main_queue();
 }
 
-UIBackgroundTaskIdentifier taskId;
+UIBackgroundTaskIdentifier rnAppAuthTaskId;
 
 /*! @brief Number of random bytes generated for the @ state.
  */
@@ -305,9 +305,9 @@ RCT_REMAP_METHOD(refresh,
     appDelegate.authorizationFlowManagerDelegate = self;
     __weak typeof(self) weakSelf = self;
 
-    taskId = [UIApplication.sharedApplication beginBackgroundTaskWithExpirationHandler:^{
-        [UIApplication.sharedApplication endBackgroundTask:taskId];
-        taskId = UIBackgroundTaskInvalid;
+    rnAppAuthTaskId = [UIApplication.sharedApplication beginBackgroundTaskWithExpirationHandler:^{
+        [UIApplication.sharedApplication endBackgroundTask:rnAppAuthTaskId];
+        rnAppAuthTaskId = UIBackgroundTaskInvalid;
     }];
 
     UIViewController *presentingViewController = appDelegate.window.rootViewController.view.window ? appDelegate.window.rootViewController : appDelegate.window.rootViewController.presentedViewController;
@@ -318,8 +318,8 @@ RCT_REMAP_METHOD(refresh,
                                                     callback:^(OIDAuthorizationResponse *_Nullable authorizationResponse, NSError *_Nullable error) {
                                                        typeof(self) strongSelf = weakSelf;
                                                        strongSelf->_currentSession = nil;
-                                                       [UIApplication.sharedApplication endBackgroundTask:taskId];
-                                                       taskId = UIBackgroundTaskInvalid;
+                                                       [UIApplication.sharedApplication endBackgroundTask:rnAppAuthTaskId];
+                                                       rnAppAuthTaskId = UIBackgroundTaskInvalid;
                                                        if (authorizationResponse) {
                                                            resolve([self formatAuthorizationResponse:authorizationResponse withCodeVerifier:codeVerifier]);
                                                        } else {
@@ -334,8 +334,8 @@ RCT_REMAP_METHOD(refresh,
                                                             NSError *_Nullable error) {
                                                     typeof(self) strongSelf = weakSelf;
                                                     strongSelf->_currentSession = nil;
-                                                    [UIApplication.sharedApplication endBackgroundTask:taskId];
-                                                    taskId = UIBackgroundTaskInvalid;
+                                                    [UIApplication.sharedApplication endBackgroundTask:rnAppAuthTaskId];
+                                                    rnAppAuthTaskId = UIBackgroundTaskInvalid;
                                                     if (authState) {
                                                         resolve([self formatResponse:authState.lastTokenResponse
                                                             withAuthResponse:authState.lastAuthorizationResponse]);
