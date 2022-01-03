@@ -175,6 +175,7 @@ export const authorize = ({
   serviceConfiguration,
   clientAuthMethod = 'basic',
   dangerouslyAllowInsecureHttpRequests = false,
+  useApplicationId,
   customHeaders,
   additionalHeaders,
   skipCodeExchange = false,
@@ -202,6 +203,7 @@ export const authorize = ({
     nativeMethodArguments.push(usePKCE);
     nativeMethodArguments.push(clientAuthMethod);
     nativeMethodArguments.push(dangerouslyAllowInsecureHttpRequests);
+    nativeMethodArguments.push(useApplicationId);
     nativeMethodArguments.push(customHeaders);
   }
 

@@ -71,6 +71,12 @@ export type AuthConfiguration = BaseAuthConfiguration & {
   additionalParameters?: BuiltInParameters & { [name: string]: string };
   clientAuthMethod?: 'basic' | 'post';
   dangerouslyAllowInsecureHttpRequests?: boolean;
+  /** [Android only] Default use web view for authentication. 
+   * If you'd like to use third party app. Pass its package id here.
+   * 
+   * ex. useApplicationId: "com.strava"
+   */
+  useApplicationId?: string;
   customHeaders?: CustomHeaders;
   additionalHeaders?: AdditionalHeaders;
   useNonce?: boolean;

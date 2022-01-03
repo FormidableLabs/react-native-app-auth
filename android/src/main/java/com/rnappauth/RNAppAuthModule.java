@@ -2,12 +2,15 @@ package com.rnappauth;
 
 import android.app.Activity;
 import android.app.PendingIntent;
+import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.content.ActivityNotFoundException;
+import android.text.TextUtils;
+
 import androidx.annotation.Nullable;
 import androidx.browser.customtabs.CustomTabsCallback;
 import androidx.browser.customtabs.CustomTabsClient;
@@ -15,23 +18,23 @@ import androidx.browser.customtabs.CustomTabsServiceConnection;
 import androidx.browser.customtabs.CustomTabsSession;
 
 import com.facebook.react.bridge.ActivityEventListener;
+import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
-import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
-import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.ReadableType;
-
+import com.facebook.react.bridge.WritableMap;
+import com.rnappauth.utils.CustomConnectionBuilder;
 import com.rnappauth.utils.MapUtil;
-import com.rnappauth.utils.UnsafeConnectionBuilder;
 import com.rnappauth.utils.RegistrationResponseFactory;
 import com.rnappauth.utils.TokenResponseFactory;
-import com.rnappauth.utils.CustomConnectionBuilder;
+import com.rnappauth.utils.UnsafeConnectionBuilder;
 
 import net.openid.appauth.AppAuthConfiguration;
 import net.openid.appauth.AuthorizationException;
+import net.openid.appauth.AuthorizationManagementActivity;
 import net.openid.appauth.AuthorizationRequest;
 import net.openid.appauth.AuthorizationResponse;
 import net.openid.appauth.AuthorizationService;
@@ -43,8 +46,8 @@ import net.openid.appauth.CodeVerifierUtil;
 import net.openid.appauth.RegistrationRequest;
 import net.openid.appauth.RegistrationResponse;
 import net.openid.appauth.ResponseTypeValues;
-import net.openid.appauth.TokenResponse;
 import net.openid.appauth.TokenRequest;
+import net.openid.appauth.TokenResponse;
 import net.openid.appauth.connectivity.ConnectionBuilder;
 import net.openid.appauth.connectivity.DefaultConnectionBuilder;
 
@@ -63,6 +66,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     private final ReactApplicationContext reactContext;
     private Promise promise;
     private boolean dangerouslyAllowInsecureHttpRequests;
+    private String useApplicationId;
     private Boolean skipCodeExchange;
     private Boolean usePKCE;
     private Boolean useNonce;
@@ -226,6 +230,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final Boolean usePKCE,
             final String clientAuthMethod,
             final boolean dangerouslyAllowInsecureHttpRequests,
+            final String useApplicationId,
             final ReadableMap headers,
             final Promise promise
     ) {
@@ -237,6 +242,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         // store args in private fields for later use in onActivityResult handler
         this.promise = promise;
         this.dangerouslyAllowInsecureHttpRequests = dangerouslyAllowInsecureHttpRequests;
+        this.useApplicationId = useApplicationId;
         this.additionalParametersMap = additionalParametersMap;
         this.clientSecret = clientSecret;
         this.clientAuthMethod = clientAuthMethod;
@@ -299,10 +305,6 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                     builder
             );
         }
-
-
-
-
     }
 
     @ReactMethod
@@ -600,14 +602,34 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
             AuthorizationService authService = new AuthorizationService(context, appAuthConfiguration);
-            Intent authIntent = authService.getAuthorizationRequestIntent(authRequest);
-
-            currentActivity.startActivityForResult(authIntent, 52);
+            Intent intent = null;
+            if (!TextUtils.isEmpty(this.useApplicationId)) {
+                if (isPackageInstalled(this.useApplicationId, getReactApplicationContext().getPackageManager())) {
+                    Intent authIntent = new Intent(Intent.ACTION_VIEW);
+                    authIntent.setData(authRequest.toUri());
+                    authIntent.setPackage(this.useApplicationId);
+                    intent = AuthorizationManagementActivity
+                            .createStartForResultIntent(getReactApplicationContext(), authRequest, authIntent);
+                }
+            }
+            if (intent == null) {
+                intent = authService.getAuthorizationRequestIntent(authRequest);
+            }
+            currentActivity.startActivityForResult(intent, 52);
         } else {
             AuthorizationService authService = new AuthorizationService(currentActivity, appAuthConfiguration);
             PendingIntent pendingIntent = currentActivity.createPendingResult(52, new Intent(), 0);
 
             authService.performAuthorizationRequest(authRequest, pendingIntent);
+        }
+    }
+
+    public static boolean isPackageInstalled(String packageName, PackageManager packageManager) {
+        try {
+            return packageManager.getApplicationInfo(packageName, 0).enabled;
+        }
+        catch (PackageManager.NameNotFoundException e) {
+            return false;
         }
     }
 
