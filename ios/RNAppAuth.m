@@ -442,9 +442,9 @@ RCT_REMAP_METHOD(logout,
     appDelegate.authorizationFlowManagerDelegate = self;
     __weak typeof(self) weakSelf = self;
 
-    taskId = [UIApplication.sharedApplication beginBackgroundTaskWithExpirationHandler:^{
-        [UIApplication.sharedApplication endBackgroundTask:taskId];
-        taskId = UIBackgroundTaskInvalid;
+    rnAppAuthTaskId = [UIApplication.sharedApplication beginBackgroundTaskWithExpirationHandler:^{
+        [UIApplication.sharedApplication endBackgroundTask:rnAppAuthTaskId];
+        rnAppAuthTaskId = UIBackgroundTaskInvalid;
     }];
 
     UIViewController *presentingViewController = appDelegate.window.rootViewController.view.window ? appDelegate.window.rootViewController : appDelegate.window.rootViewController.presentedViewController;
@@ -454,8 +454,8 @@ RCT_REMAP_METHOD(logout,
                                              callback: ^(OIDEndSessionResponse *_Nullable response, NSError *_Nullable error) {
                                                           typeof(self) strongSelf = weakSelf;
                                                           strongSelf->_currentSession = nil;
-                                                          [UIApplication.sharedApplication endBackgroundTask:taskId];
-                                                          taskId = UIBackgroundTaskInvalid;
+                                                          [UIApplication.sharedApplication endBackgroundTask:rnAppAuthTaskId];
+                                                          rnAppAuthTaskId = UIBackgroundTaskInvalid;
                                                           if (response) {
                                                               resolve([self formatEndSessionResponse:response]);
                                                           } else {
