@@ -33,7 +33,7 @@ await revoke(config, {
 
 // End session
 await logout(config, {
-  idTokenHint: authState.idToken,
+  idToken: authState.idToken,
   postLogoutRedirectUrl: 'com.{yourReversedOktaDomain}:/logout'
 });
 ```
