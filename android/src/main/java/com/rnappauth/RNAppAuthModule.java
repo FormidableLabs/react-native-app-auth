@@ -449,7 +449,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
             AuthorizationService authService = new AuthorizationService(this.reactContext, configuration);
 
-            TokenRequest tokenRequest = this.additionalParametersMap? response.createTokenExchangeRequest(this.additionalParametersMap) : response.createTokenExchangeRequest();
+            TokenRequest tokenRequest = this.additionalParametersMap != null? response.createTokenExchangeRequest(this.additionalParametersMap) : response.createTokenExchangeRequest();
 
             AuthorizationService.TokenResponseCallback tokenResponseCallback = new AuthorizationService.TokenResponseCallback() {
 
@@ -479,12 +479,12 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             }
 
             SharedPreferences.Editor editor = sharedPref.edit();
-            editor.remove("dangerouslyAllowInsecureHttpRequests")
-            editor.remove("clientSecret")
-            editor.remove("dangerouslyAllowInsecureHttpRequests")
-            editor.remove("skipCodeExchange")
-            editor.remove("usePKCE")
-            editor.remove("codeVerifier")
+            editor.remove("dangerouslyAllowInsecureHttpRequests");
+            editor.remove("clientSecret");
+            editor.remove("dangerouslyAllowInsecureHttpRequests");
+            editor.remove("skipCodeExchange");
+            editor.remove("usePKCE");
+            editor.remove("codeVerifier");
             editor.apply();
 
         }
@@ -701,8 +701,8 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         }
             SharedPreferences sharedPref = getCurrentActivity().getPreferences(Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = sharedPref.edit();
-            editor.remove("dangerouslyAllowInsecureHttpRequests")
-            editor.apply()
+            editor.remove("dangerouslyAllowInsecureHttpRequests");
+            editor.apply();
     }
 
     private void parseHeaderMap (ReadableMap headerMap) {
