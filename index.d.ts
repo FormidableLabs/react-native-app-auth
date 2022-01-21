@@ -74,6 +74,7 @@ export type AuthConfiguration = BaseAuthConfiguration & {
   dangerouslyAllowInsecureHttpRequests?: boolean;
   customHeaders?: CustomHeaders;
   additionalHeaders?: AdditionalHeaders;
+  requestTimeoutSeconds?: number;
   useNonce?: boolean;
   usePKCE?: boolean;
   warmAndPrefetchChrome?: boolean;

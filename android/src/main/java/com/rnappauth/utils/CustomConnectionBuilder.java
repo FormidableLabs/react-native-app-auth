@@ -33,6 +33,9 @@ import java.util.Map;
 public final class CustomConnectionBuilder implements ConnectionBuilder {
 
     private Map<String, String> headers = null;
+    // 0 would be an infinite timeout value - never desireable.
+    // We will only set this value on the connection if it's greater than 0.
+    private int connectionTimeout = 0;
     private ConnectionBuilder connectionBuilder;
 
     public CustomConnectionBuilder(ConnectionBuilder connectionBuilderToUse) {
@@ -43,14 +46,24 @@ public final class CustomConnectionBuilder implements ConnectionBuilder {
         headers = headersToSet;
     }
 
+    public void setConnectionTimeout (int timeout) {
+        connectionTimeout = timeout;
+    }
+
     @NonNull
     @Override
     public HttpURLConnection openConnection(@NonNull Uri uri) throws IOException {
         HttpURLConnection conn = connectionBuilder.openConnection(uri);
+
         if (headers != null) {
             for (Map.Entry<String, String> header: headers.entrySet()) {
                 conn.setRequestProperty(header.getKey(), header.getValue());
             }
+        }
+
+        if (connectionTimeout > 0) {
+            conn.setConnectTimeout(connectionTimeout);
+            conn.setReadTimeout(connectionTimeout);
         }
 
         return conn;

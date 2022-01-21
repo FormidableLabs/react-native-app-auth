@@ -75,8 +75,23 @@ const validateAdditionalHeaders = headers => {
   );
 };
 
+const validateConnectionTimeoutSeconds = timeout => {
+  if (timeout === 0) {
+    return;
+  }
+
+  invariant(typeof timeout === 'number', 'Config error: connectionTimeoutSeconds must be a number');
+};
+
+const MILLI_PER_SEC = 1000;
+
+const convertTimeoutForPlatform = (platform, connectionTimeout) =>
+  platform === 'android' && connectionTimeout > 0
+    ? connectionTimeout * MILLI_PER_SEC
+    : connectionTimeout;
+
 export const prefetchConfiguration = async ({
-  warmAndPrefetchChrome,
+  warmAndPrefetchChrome = false,
   issuer,
   redirectUrl,
   clientId,
@@ -84,12 +99,14 @@ export const prefetchConfiguration = async ({
   serviceConfiguration,
   dangerouslyAllowInsecureHttpRequests = false,
   customHeaders,
+  connectionTimeoutSeconds = 0,
 }) => {
   if (Platform.OS === 'android') {
     validateIssuerOrServiceConfigurationEndpoints(issuer, serviceConfiguration);
     validateClientId(clientId);
     validateRedirectUrl(redirectUrl);
     validateHeaders(customHeaders);
+    validateConnectionTimeoutSeconds(connectionTimeoutSeconds);
 
     const nativeMethodArguments = [
       warmAndPrefetchChrome,
@@ -100,6 +117,7 @@ export const prefetchConfiguration = async ({
       serviceConfiguration,
       dangerouslyAllowInsecureHttpRequests,
       customHeaders,
+      convertTimeoutForPlatform(Platform.OS, connectionTimeoutSeconds),
     ];
 
     RNAppAuth.prefetchConfiguration(...nativeMethodArguments);
@@ -118,10 +136,12 @@ export const register = ({
   dangerouslyAllowInsecureHttpRequests = false,
   customHeaders,
   additionalHeaders,
+  connectionTimeoutSeconds = 0,
 }) => {
   validateIssuerOrServiceConfigurationRegistrationEndpoint(issuer, serviceConfiguration);
   validateHeaders(customHeaders);
   validateAdditionalHeaders(additionalHeaders);
+  validateConnectionTimeoutSeconds(connectionTimeoutSeconds);
 
   invariant(
     Array.isArray(redirectUrls) && redirectUrls.every(url => typeof url === 'string'),
@@ -155,6 +175,7 @@ export const register = ({
     tokenEndpointAuthMethod,
     additionalParameters,
     serviceConfiguration,
+    convertTimeoutForPlatform(Platform.OS, connectionTimeoutSeconds),
   ];
 
   if (Platform.OS === 'android') {
@@ -184,12 +205,14 @@ export const authorize = ({
   customHeaders,
   additionalHeaders,
   skipCodeExchange = false,
+  connectionTimeoutSeconds = 0,
 }) => {
   validateIssuerOrServiceConfigurationEndpoints(issuer, serviceConfiguration);
   validateClientId(clientId);
   validateRedirectUrl(redirectUrl);
   validateHeaders(customHeaders);
   validateAdditionalHeaders(additionalHeaders);
+  validateConnectionTimeoutSeconds(connectionTimeoutSeconds);
   // TODO: validateAdditionalParameters
 
   const nativeMethodArguments = [
@@ -201,6 +224,7 @@ export const authorize = ({
     additionalParameters,
     serviceConfiguration,
     skipCodeExchange,
+    convertTimeoutForPlatform(Platform.OS, connectionTimeoutSeconds),
   ];
 
   if (Platform.OS === 'android') {
@@ -227,12 +251,13 @@ export const refresh = (
     clientId,
     clientSecret,
     scopes,
-    additionalParameters,
+    additionalParameters = {},
     serviceConfiguration,
     clientAuthMethod = 'basic',
     dangerouslyAllowInsecureHttpRequests = false,
     customHeaders,
     additionalHeaders,
+    connectionTimeoutSeconds = 0,
   },
   { refreshToken }
 ) => {
@@ -241,6 +266,7 @@ export const refresh = (
   validateRedirectUrl(redirectUrl);
   validateHeaders(customHeaders);
   validateAdditionalHeaders(additionalHeaders);
+  validateConnectionTimeoutSeconds(connectionTimeoutSeconds);
   invariant(refreshToken, 'Please pass in a refresh token');
   // TODO: validateAdditionalParameters
 
@@ -253,6 +279,7 @@ export const refresh = (
     scopes,
     additionalParameters,
     serviceConfiguration,
+    convertTimeoutForPlatform(Platform.OS, connectionTimeoutSeconds),
   ];
 
   if (Platform.OS === 'android') {

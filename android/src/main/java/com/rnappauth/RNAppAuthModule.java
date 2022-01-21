@@ -225,6 +225,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final ReadableMap additionalParameters,
             final ReadableMap serviceConfiguration,
             final Boolean skipCodeExchange,
+            final Double connectionTimeoutMillis,
             final Boolean useNonce,
             final Boolean usePKCE,
             final String clientAuthMethod,
@@ -318,6 +319,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final ReadableArray scopes,
             final ReadableMap additionalParameters,
             final ReadableMap serviceConfiguration,
+            final Double connectionTimeoutMillis,
             final String clientAuthMethod,
             final boolean dangerouslyAllowInsecureHttpRequests,
             final ReadableMap headers,
@@ -884,7 +886,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     /*
      *  Create appropriate connection builder based on provided settings
      */
-    private ConnectionBuilder createConnectionBuilder(boolean allowInsecureConnections, Map<String, String> headers) {
+    private ConnectionBuilder createConnectionBuilder(boolean allowInsecureConnections, Map<String, String> headers, Double connectionTimeoutMillis) {
         ConnectionBuilder proxiedBuilder;
 
         if (allowInsecureConnections) {
