@@ -7,6 +7,8 @@ Full support out of the box.
 > Log in to your Okta Developer account and navigate to **Applications** > **Add Application**. Click **Native** and click the **Next** button. Give the app a name you’ll remember (e.g., `React Native`), select `Refresh Token` as a grant type, in addition to the default `Authorization Code`. Copy the **Login redirect URI** (e.g., `com.oktapreview.dev-158606:/callback`) and save it somewhere. You'll need this value when configuring your app.
 >
 > Click **Done** and you'll see a client ID on the next screen. Copy the redirect URI and clientId values into your App Auth config.
+>
+> To end the session, `postLogoutRedirectUrl` has to be one of the **Sign-out redirect URIs** defined in the **General Settings** > **LOGIN** section of the application page previously created.
 
 ```js
 const config = {
@@ -27,5 +29,11 @@ const refreshedState = await refresh(config, {
 // Revoke token
 await revoke(config, {
   tokenToRevoke: refreshedState.refreshToken
+});
+
+// End session
+await logout(config, {
+  idToken: authState.idToken,
+  postLogoutRedirectUrl: 'com.{yourReversedOktaDomain}:/logout'
 });
 ```
