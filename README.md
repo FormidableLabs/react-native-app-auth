@@ -151,6 +151,7 @@ This is the result from the auth server:
 - **scopes** - ([`string`]) the scopes the user has agreed to be granted
 - **authorizationCode** - (`string`) the authorization code (only if `skipCodeExchange=true`)
 - **codeVerifier** - (`string`) the codeVerifier value used for the PKCE exchange (only if both `skipCodeExchange=true` and `usePKCE=true`)
+- **connectionTimeoutSeconds** - (`number`) configure the request timeout interval in seconds.
 
 ### `refresh`
 
