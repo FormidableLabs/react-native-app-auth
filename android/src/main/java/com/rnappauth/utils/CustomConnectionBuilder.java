@@ -33,7 +33,7 @@ import java.util.Map;
 public final class CustomConnectionBuilder implements ConnectionBuilder {
 
     private Map<String, String> headers = null;
-    // 0 would be an infinite timeout value - never desireable.
+    // 0 would be an infinite timeout value - never desirable.
     // We will only set this value on the connection if it's greater than 0.
     private int connectionTimeout = 0;
     private ConnectionBuilder connectionBuilder;
