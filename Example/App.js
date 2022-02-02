@@ -47,7 +47,8 @@ const App = () => {
   React.useEffect(() => {
     prefetchConfiguration({
       warmAndPrefetchChrome: true,
-      ...configs.identityserver
+      connectionTimeoutSeconds: 5,
+      ...configs.identityserver,
     });
   }, []);
 
@@ -55,7 +56,10 @@ const App = () => {
     async provider => {
       try {
         const config = configs[provider];
-        const newAuthState = await authorize(config);
+        const newAuthState = await authorize({
+          ...config,
+          connectionTimeoutSeconds: 5,
+        });
 
         setAuthState({
           hasLoggedInOnce: true,

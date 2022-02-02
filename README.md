@@ -151,6 +151,7 @@ This is the result from the auth server:
 - **scopes** - ([`string`]) the scopes the user has agreed to be granted
 - **authorizationCode** - (`string`) the authorization code (only if `skipCodeExchange=true`)
 - **codeVerifier** - (`string`) the codeVerifier value used for the PKCE exchange (only if both `skipCodeExchange=true` and `usePKCE=true`)
+- **connectionTimeoutSeconds** - (`number`) configure the request timeout interval in seconds. This must be a positive number. The default values are 60 seconds on iOS and 15 seconds on Android.
 
 ### `refresh`
 
@@ -201,12 +202,12 @@ This method will logout a user, as per the [OpenID Connect RP Initiated Logout](
 import { logout } from 'react-native-app-auth';
 
 const config = {
-  issuer: '<YOUR_ISSUER_URL>'
+  issuer: '<YOUR_ISSUER_URL>',
 };
 
 const result = await logout(config, {
   idToken: '<ID_TOKEN>',
-  postLogoutRedirectUrl: '<POST_LOGOUT_URL>'
+  postLogoutRedirectUrl: '<POST_LOGOUT_URL>',
 });
 ```
 
@@ -276,14 +277,14 @@ are not distributed as part of the bridge.
 
 AppAuth supports three options for dependency management.
 
-1. **CocoaPods**
+1.  **CocoaPods**
 
     ```sh
     cd ios
     pod install
     ```
 
-2. **Carthage**
+2.  **Carthage**
 
     With [Carthage](https://github.com/Carthage/Carthage), add the following line to your `Cartfile`:
 
@@ -295,7 +296,7 @@ AppAuth supports three options for dependency management.
 
     Add a copy files build step for `AppAuth.framework`: open Build Phases on Xcode, add a new "Copy Files" phase, choose "Frameworks" as destination, add `AppAuth.framework` and ensure "Code Sign on Copy" is checked.
 
-3. **Static Library**
+3.  **Static Library**
 
     You can also use [AppAuth-iOS](https://github.com/openid/AppAuth-iOS) as a static library. This
     requires linking the library and your project and including the headers. Suggested configuration:
