@@ -22,6 +22,7 @@ import net.openid.appauth.connectivity.ConnectionBuilder;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.util.concurrent.TimeUnit;
 import java.util.Map;
 
 
@@ -33,9 +34,9 @@ import java.util.Map;
 public final class CustomConnectionBuilder implements ConnectionBuilder {
 
     private Map<String, String> headers = null;
-    // 0 would be an infinite timeout value - never desirable.
-    // We will only set this value on the connection if it's greater than 0.
-    private int connectionTimeout = 0;
+
+    private int connectionTimeoutMs = (int) TimeUnit.SECONDS.toMillis(15);
+    private int readTimeoutMs = (int) TimeUnit.SECONDS.toMillis(10);     
     private ConnectionBuilder connectionBuilder;
 
     public CustomConnectionBuilder(ConnectionBuilder connectionBuilderToUse) {
@@ -47,7 +48,8 @@ public final class CustomConnectionBuilder implements ConnectionBuilder {
     }
 
     public void setConnectionTimeout (int timeout) {
-        connectionTimeout = timeout;
+        connectionTimeoutMs = timeout;
+        readTimeoutMs = timeout;
     }
 
     @NonNull
@@ -61,10 +63,8 @@ public final class CustomConnectionBuilder implements ConnectionBuilder {
             }
         }
 
-        if (connectionTimeout > 0) {
-            conn.setConnectTimeout(connectionTimeout);
-            conn.setReadTimeout(connectionTimeout);
-        }
+        conn.setConnectTimeout(connectionTimeoutMs);
+        conn.setReadTimeout(readTimeoutMs);
 
         return conn;
     }

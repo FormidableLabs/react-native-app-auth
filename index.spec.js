@@ -1,4 +1,12 @@
-import { authorize, refresh, register, logout } from './';
+import {
+  authorize,
+  refresh,
+  register,
+  logout,
+  DEFAULT_TIMEOUT_IOS,
+  DEFAULT_TIMEOUT_ANDROID,
+  SECOND_IN_MS,
+} from './';
 
 jest.mock('react-native', () => ({
   NativeModules: {
@@ -35,8 +43,7 @@ describe('AppAuth', () => {
   });
 
   const TIMEOUT_SEC = 5;
-  const MILLI_PER_SEC = 1000;
-  const TIMEOUT_MILLIS = TIMEOUT_SEC * MILLI_PER_SEC;
+  const TIMEOUT_MILLIS = TIMEOUT_SEC * SECOND_IN_MS;
 
   const config = {
     issuer: 'test-issuer',
@@ -236,6 +243,24 @@ describe('AppAuth', () => {
             registerConfig.additionalHeaders
           );
         });
+
+        it('calls the native wrapper with the default value when connectionTimeoutSeconds is undefined', () => {
+          // eslint-disable-next-line no-unused-vars
+          const { connectionTimeoutSeconds, ...configValues } = registerConfig;
+          register(configValues);
+          expect(mockRegister).toHaveBeenCalledWith(
+            registerConfig.issuer,
+            registerConfig.redirectUrls,
+            registerConfig.responseTypes,
+            registerConfig.grantTypes,
+            registerConfig.subjectType,
+            registerConfig.tokenEndpointAuthMethod,
+            registerConfig.additionalParameters,
+            registerConfig.serviceConfiguration,
+            DEFAULT_TIMEOUT_IOS,
+            registerConfig.additionalHeaders
+          );
+        });
       });
 
       describe('additionalHeaders parameter', () => {
@@ -291,6 +316,25 @@ describe('AppAuth', () => {
             registerConfig.additionalParameters,
             registerConfig.serviceConfiguration,
             TIMEOUT_MILLIS,
+            false,
+            registerConfig.customHeaders
+          );
+        });
+
+        it('calls the native wrapper with the default value when connectionTimeoutSeconds is undefined', () => {
+          // eslint-disable-next-line no-unused-vars
+          const { connectionTimeoutSeconds, ...configValues } = registerConfig;
+          register(configValues);
+          expect(mockRegister).toHaveBeenCalledWith(
+            registerConfig.issuer,
+            registerConfig.redirectUrls,
+            registerConfig.responseTypes,
+            registerConfig.grantTypes,
+            registerConfig.subjectType,
+            registerConfig.tokenEndpointAuthMethod,
+            registerConfig.additionalParameters,
+            registerConfig.serviceConfiguration,
+            DEFAULT_TIMEOUT_ANDROID * SECOND_IN_MS,
             false,
             registerConfig.customHeaders
           );
@@ -511,7 +555,7 @@ describe('AppAuth', () => {
         null,
         null,
         false,
-        0,
+        DEFAULT_TIMEOUT_IOS,
         null,
         true,
         true

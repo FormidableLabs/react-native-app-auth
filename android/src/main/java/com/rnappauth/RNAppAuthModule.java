@@ -95,6 +95,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final ReadableMap serviceConfiguration,
             final boolean dangerouslyAllowInsecureHttpRequests,
             final ReadableMap headers,
+            final Double connectionTimeoutMillis,
             final Promise promise
     ) {
         if (warmAndPrefetchChrome) {
@@ -102,7 +103,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         }
 
         this.parseHeaderMap(headers);
-        final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests, this.authorizationRequestHeaders);
+        final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests, this.authorizationRequestHeaders, connectionTimeoutMillis);
         final CountDownLatch fetchConfigurationLatch = new CountDownLatch(1);
 
         if(!isPrefetched) {
@@ -156,12 +157,13 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final String tokenEndpointAuthMethod,
             final ReadableMap additionalParameters,
             final ReadableMap serviceConfiguration,
+            final Double connectionTimeoutMillis,
             final boolean dangerouslyAllowInsecureHttpRequests,
             final ReadableMap headers,
             final Promise promise
     ) {
         this.parseHeaderMap(headers);
-        final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests, this.registrationRequestHeaders);
+        final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests, this.registrationRequestHeaders, connectionTimeoutMillis);
         final AppAuthConfiguration appAuthConfiguration = this.createAppAuthConfiguration(builder, dangerouslyAllowInsecureHttpRequests);
         final HashMap<String, String> additionalParametersMap = MapUtil.readableMapToHashMap(additionalParameters);
 
@@ -234,7 +236,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final Promise promise
     ) {
         this.parseHeaderMap(headers);
-        final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests, this.authorizationRequestHeaders);
+        final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests, this.authorizationRequestHeaders, connectionTimeoutMillis);
         final AppAuthConfiguration appAuthConfiguration = this.createAppAuthConfiguration(builder, dangerouslyAllowInsecureHttpRequests);
         final HashMap<String, String> additionalParametersMap = MapUtil.readableMapToHashMap(additionalParameters);
 
@@ -326,7 +328,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final Promise promise
     ) {
         this.parseHeaderMap(headers);
-        final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests, this.tokenRequestHeaders);
+        final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests, this.tokenRequestHeaders, connectionTimeoutMillis);
         final AppAuthConfiguration appAuthConfiguration = createAppAuthConfiguration(builder, dangerouslyAllowInsecureHttpRequests);
         final HashMap<String, String> additionalParametersMap = MapUtil.readableMapToHashMap(additionalParameters);
 
@@ -896,6 +898,27 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         }
 
         CustomConnectionBuilder customConnection = new CustomConnectionBuilder(proxiedBuilder);
+        
+        if (headers != null) {
+            customConnection.setHeaders(headers);
+        }
+
+        customConnection.setConnectionTimeout(connectionTimeoutMillis.intValue());
+
+        return customConnection;
+    }
+
+    private ConnectionBuilder createConnectionBuilder(boolean allowInsecureConnections, Map<String, String> headers) {
+        ConnectionBuilder proxiedBuilder;
+
+        if (allowInsecureConnections) {
+            proxiedBuilder = UnsafeConnectionBuilder.INSTANCE;
+        } else {
+            proxiedBuilder = DefaultConnectionBuilder.INSTANCE;
+        }
+
+        CustomConnectionBuilder customConnection = new CustomConnectionBuilder(proxiedBuilder);
+        
         if (headers != null) {
             customConnection.setHeaders(headers);
         }

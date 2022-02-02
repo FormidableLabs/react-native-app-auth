@@ -76,18 +76,23 @@ const validateAdditionalHeaders = headers => {
 };
 
 const validateConnectionTimeoutSeconds = timeout => {
-  if (timeout === 0) {
+  if (!timeout) {
     return;
   }
 
   invariant(typeof timeout === 'number', 'Config error: connectionTimeoutSeconds must be a number');
 };
 
-const MILLI_PER_SEC = 1000;
+export const SECOND_IN_MS = 1000;
+export const DEFAULT_TIMEOUT_IOS = 60;
+export const DEFAULT_TIMEOUT_ANDROID = 15;
 
-const convertTimeoutForPlatform = (platform, connectionTimeout) =>
+const convertTimeoutForPlatform = (
+  platform,
+  connectionTimeout = Platform.OS === 'ios' ? DEFAULT_TIMEOUT_IOS : DEFAULT_TIMEOUT_ANDROID
+) =>
   platform === 'android' && connectionTimeout > 0
-    ? connectionTimeout * MILLI_PER_SEC
+    ? connectionTimeout * SECOND_IN_MS
     : connectionTimeout;
 
 export const prefetchConfiguration = async ({
@@ -99,7 +104,7 @@ export const prefetchConfiguration = async ({
   serviceConfiguration,
   dangerouslyAllowInsecureHttpRequests = false,
   customHeaders,
-  connectionTimeoutSeconds = 0,
+  connectionTimeoutSeconds,
 }) => {
   if (Platform.OS === 'android') {
     validateIssuerOrServiceConfigurationEndpoints(issuer, serviceConfiguration);
@@ -136,7 +141,7 @@ export const register = ({
   dangerouslyAllowInsecureHttpRequests = false,
   customHeaders,
   additionalHeaders,
-  connectionTimeoutSeconds = 0,
+  connectionTimeoutSeconds,
 }) => {
   validateIssuerOrServiceConfigurationRegistrationEndpoint(issuer, serviceConfiguration);
   validateHeaders(customHeaders);
@@ -205,7 +210,7 @@ export const authorize = ({
   customHeaders,
   additionalHeaders,
   skipCodeExchange = false,
-  connectionTimeoutSeconds = 0,
+  connectionTimeoutSeconds,
 }) => {
   validateIssuerOrServiceConfigurationEndpoints(issuer, serviceConfiguration);
   validateClientId(clientId);
@@ -257,7 +262,7 @@ export const refresh = (
     dangerouslyAllowInsecureHttpRequests = false,
     customHeaders,
     additionalHeaders,
-    connectionTimeoutSeconds = 0,
+    connectionTimeoutSeconds,
   },
   { refreshToken }
 ) => {
