@@ -474,9 +474,7 @@ RCT_REMAP_METHOD(logout,
         configuration.HTTPAdditionalHeaders = headers;
     }
 
-    if (sessionTimeout > 0) {
-      configuration.timeoutIntervalForRequest = sessionTimeout;
-    }
+    configuration.timeoutIntervalForRequest = sessionTimeout;
 
     NSURLSession* session = [NSURLSession sessionWithConfiguration:configuration];
     [OIDURLSessionProvider setSession:session];
