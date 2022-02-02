@@ -90,10 +90,7 @@ export const DEFAULT_TIMEOUT_ANDROID = 15;
 const convertTimeoutForPlatform = (
   platform,
   connectionTimeout = Platform.OS === 'ios' ? DEFAULT_TIMEOUT_IOS : DEFAULT_TIMEOUT_ANDROID
-) =>
-  platform === 'android' && connectionTimeout > 0
-    ? connectionTimeout * SECOND_IN_MS
-    : connectionTimeout;
+) => (platform === 'android' ? connectionTimeout * SECOND_IN_MS : connectionTimeout);
 
 export const prefetchConfiguration = async ({
   warmAndPrefetchChrome = false,
