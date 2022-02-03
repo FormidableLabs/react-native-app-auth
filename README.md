@@ -136,6 +136,7 @@ with optional overrides.
 - **useNonce** - (`boolean`) (default: true) optionally allows not sending the nonce parameter, to support non-compliant providers
 - **usePKCE** - (`boolean`) (default: true) optionally allows not sending the code_challenge parameter and skipping PKCE code verification, to support non-compliant providers.
 - **skipCodeExchange** - (`boolean`) (default: false) just return the authorization response, instead of automatically exchanging the authorization code. This is useful if this exchange needs to be done manually (not client-side)
+- **connectionTimeoutSeconds** - (`number`) configure the request timeout interval in seconds. This must be a positive number. The default values are 60 seconds on iOS and 15 seconds on Android.
 
 #### result
 
@@ -151,7 +152,6 @@ This is the result from the auth server:
 - **scopes** - ([`string`]) the scopes the user has agreed to be granted
 - **authorizationCode** - (`string`) the authorization code (only if `skipCodeExchange=true`)
 - **codeVerifier** - (`string`) the codeVerifier value used for the PKCE exchange (only if both `skipCodeExchange=true` and `usePKCE=true`)
-- **connectionTimeoutSeconds** - (`number`) configure the request timeout interval in seconds. This must be a positive number. The default values are 60 seconds on iOS and 15 seconds on Android.
 
 ### `refresh`
 
@@ -241,6 +241,7 @@ const registerResult = await register(registerConfig);
   `hello=world&foo=bar` to the authorization request.
 - **dangerouslyAllowInsecureHttpRequests** - (`boolean`) _ANDROID_ same as in authorization config
 - **customHeaders** - (`object`) _ANDROID_ same as in authorization config
+- **connectionTimeoutSeconds** - (`number`) configure the request timeout interval in seconds. This must be a positive number. The default values are 60 seconds on iOS and 15 seconds on Android.
 
 #### registerResult
 
