@@ -6,21 +6,21 @@ Please note:
 
 * Dropbox does not provide a OIDC discovery endpoint, so `serviceConfiguration` is used instead.
 * Dropbox OAuth requires a [client secret](#note-about-client-secrets).
-* Dropbox OAuth does not allow non-https redirect URLs, so you'll need to use a [Universal Link on iOS](https://developer.apple.com/library/archive/documentation/General/Conceptual/AppSearch/UniversalLinks.html) or write a HTTPS endpoint.
-* Dropbox OAuth does not provide refresh tokens or a revoke endpoint.
+* Dropbox access tokens are short lived and will expire after a short period of time. To update your access token a separate call needs to be made to [/oauth2/token](https://www.dropbox.com/developers/documentation/http/documentation#oauth2-token) to obtain a new access token.
 
 ```js
 const config = {
   clientId: 'your-client-id-generated-by-dropbox',
   clientSecret: 'your-client-secret-generated-by-dropbox',
-  redirectUrl: 'https://native-redirect-endpoint/oauth/dropbox',
+  redirectUrl: 'your.app.bundle.id://oauth',
   scopes: [],
   serviceConfiguration: {
     authorizationEndpoint: 'https://www.dropbox.com/oauth2/authorize',
     tokenEndpoint: `https://www.dropbox.com/oauth2/token`,
   },
-  useNonce: false,
-  usePKCE: false,
+  additionalParameters: {
+    token_access_type: 'offline',
+  },
 };
 
 // Log in to get an authentication token
