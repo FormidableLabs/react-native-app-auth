@@ -14,7 +14,9 @@ public final class EndSessionResponseFactory {
 
         map.putString("state", response.state);
         map.putString("idTokenHint", response.request.idTokenHint);
-        map.putString("postLogoutRedirectUri", response.request.postLogoutRedirectUri.toString());
+        if (response.request.postLogoutRedirectUri != null) {
+            map.putString("postLogoutRedirectUri", response.request.postLogoutRedirectUri.toString());
+        }
 
         return map;
     }
