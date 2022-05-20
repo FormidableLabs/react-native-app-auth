@@ -784,11 +784,9 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         final Activity currentActivity = getCurrentActivity();
 
         EndSessionRequest.Builder endSessionRequestBuilder =
-                new EndSessionRequest.Builder(
-                        serviceConfiguration,
-                        idTokenHint,
-                        Uri.parse(postLogoutRedirectUri)
-                );
+                new EndSessionRequest.Builder(serviceConfiguration)
+                        .setIdTokenHint(idTokenHint)
+                        .setPostLogoutRedirectUri(Uri.parse(postLogoutRedirectUri));
 
         if (additionalParametersMap != null) {
             if (additionalParametersMap.containsKey("state")) {

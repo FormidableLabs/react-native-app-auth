@@ -13,8 +13,8 @@ public final class EndSessionResponseFactory {
         WritableMap map = Arguments.createMap();
 
         map.putString("state", response.state);
-        map.putString("idTokenHint", response.request.idToken);
-        map.putString("postLogoutRedirectUri", response.request.redirectUri.toString());
+        map.putString("idTokenHint", response.request.idTokenHint);
+        map.putString("postLogoutRedirectUri", response.request.postLogoutRedirectUri.toString());
 
         return map;
     }
