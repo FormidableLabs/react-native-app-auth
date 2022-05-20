@@ -175,7 +175,8 @@ type AppAuthErrorCode =
   | 'token_exchange_failed'
   | 'registration_failed'
   | 'browser_not_found'
-  | 'end_session_failed';
+  | 'end_session_failed'
+  | 'authentication_error';
 
 type ErrorCode =
   | OAuthAuthorizationErrorCode
