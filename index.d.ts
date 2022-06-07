@@ -172,9 +172,11 @@ type AppAuthErrorCode =
   | 'service_configuration_fetch_error'
   | 'authentication_failed'
   | 'token_refresh_failed'
+  | 'token_exchange_failed'
   | 'registration_failed'
   | 'browser_not_found'
-  | 'end_session_failed';
+  | 'end_session_failed'
+  | 'authentication_error';
 
 type ErrorCode =
   | OAuthAuthorizationErrorCode
