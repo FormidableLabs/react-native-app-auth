@@ -674,9 +674,16 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                 authRequestBuilder.setState(additionalParametersMap.get("state"));
                 additionalParametersMap.remove("state");
             }
+
+            if (additionalParametersMap.containsKey("nonce")) {
+                authRequestBuilder.setNonce(additionalParametersMap.get("nonce"));
+                additionalParametersMap.remove("nonce");
+            
+           }
             if (additionalParametersMap.containsKey("ui_locales")) {
                 authRequestBuilder.setUiLocales(additionalParametersMap.get("ui_locales"));
                 additionalParametersMap.remove("ui_locales");
+
             }
 
             authRequestBuilder.setAdditionalParameters(additionalParametersMap);

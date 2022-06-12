@@ -319,7 +319,7 @@ RCT_REMAP_METHOD(logout,
 
     NSString *codeVerifier = usePKCE ? [[self class] generateCodeVerifier] : nil;
     NSString *codeChallenge = usePKCE ? [[self class] codeChallengeS256ForVerifier:codeVerifier] : nil;
-    NSString *nonce = useNonce ? [[self class] generateState] : nil;
+    NSString *nonce =  useNonce ? additionalParameters[@"nonce"]? additionalParameters[@"nonce"]:  [[self class] generateState] : nil ;
 
     // builds authentication request
     OIDAuthorizationRequest *request =
