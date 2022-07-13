@@ -1,8 +1,20 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { UIManager, Alert } from 'react-native';
-import { authorize, refresh, revoke, prefetchConfiguration } from 'react-native-app-auth';
-import { Page, Button, ButtonContainer, Form, FormLabel, FormValue, Heading } from './components';
-
+import React, {useState, useCallback, useMemo} from 'react';
+import {UIManager, Alert} from 'react-native';
+import {
+  authorize,
+  refresh,
+  revoke,
+  prefetchConfiguration,
+} from 'react-native-app-auth';
+import {
+  Page,
+  Button,
+  ButtonContainer,
+  Form,
+  FormLabel,
+  FormValue,
+  Heading,
+} from './components';
 
 const configs = {
   identityserver: {
@@ -31,7 +43,7 @@ const configs = {
     //   tokenEndpoint: 'https://samples.auth0.com/oauth/token',
     //   revocationEndpoint: 'https://samples.auth0.com/oauth/revoke'
     // }
-  }
+  },
 };
 
 const defaultAuthState = {
@@ -39,7 +51,7 @@ const defaultAuthState = {
   provider: '',
   accessToken: '',
   accessTokenExpirationDate: '',
-  refreshToken: ''
+  refreshToken: '',
 };
 
 const App = () => {
@@ -48,7 +60,7 @@ const App = () => {
     prefetchConfiguration({
       warmAndPrefetchChrome: true,
       connectionTimeoutSeconds: 5,
-      ...configs.identityserver,
+      ...configs.auth0,
     });
   }, []);
 
@@ -64,28 +76,27 @@ const App = () => {
         setAuthState({
           hasLoggedInOnce: true,
           provider: provider,
-          ...newAuthState
+          ...newAuthState,
         });
       } catch (error) {
         Alert.alert('Failed to log in', error.message);
       }
     },
-    [authState]
+    [authState],
   );
 
   const handleRefresh = useCallback(async () => {
     try {
       const config = configs[authState.provider];
       const newAuthState = await refresh(config, {
-        refreshToken: authState.refreshToken
+        refreshToken: authState.refreshToken,
       });
 
       setAuthState(current => ({
         ...current,
         ...newAuthState,
-        refreshToken: newAuthState.refreshToken || current.refreshToken
-      }))
-
+        refreshToken: newAuthState.refreshToken || current.refreshToken,
+      }));
     } catch (error) {
       Alert.alert('Failed to refresh token', error.message);
     }
@@ -96,14 +107,14 @@ const App = () => {
       const config = configs[authState.provider];
       await revoke(config, {
         tokenToRevoke: authState.accessToken,
-        sendClientId: true
+        sendClientId: true,
       });
 
       setAuthState({
         provider: '',
         accessToken: '',
         accessTokenExpirationDate: '',
-        refreshToken: ''
+        refreshToken: '',
       });
     } catch (error) {
       Alert.alert('Failed to revoke token', error.message);
@@ -122,7 +133,7 @@ const App = () => {
 
   return (
     <Page>
-      {!!authState.accessToken ? (
+      {authState.accessToken ? (
         <Form>
           <FormLabel>accessToken</FormLabel>
           <FormValue>{authState.accessToken}</FormValue>
@@ -134,7 +145,9 @@ const App = () => {
           <FormValue>{authState.scopes.join(', ')}</FormValue>
         </Form>
       ) : (
-        <Heading>{authState.hasLoggedInOnce ? 'Goodbye.' : 'Hello, stranger.'}</Heading>
+        <Heading>
+          {authState.hasLoggedInOnce ? 'Goodbye.' : 'Hello, stranger.'}
+        </Heading>
       )}
 
       <ButtonContainer>
@@ -152,7 +165,7 @@ const App = () => {
             />
           </>
         ) : null}
-        {!!authState.refreshToken ? (
+        {authState.refreshToken ? (
           <Button onPress={handleRefresh} text="Refresh" color="#24C2CB" />
         ) : null}
         {showRevoke ? (
@@ -161,6 +174,6 @@ const App = () => {
       </ButtonContainer>
     </Page>
   );
-}
+};
 
 export default App;
