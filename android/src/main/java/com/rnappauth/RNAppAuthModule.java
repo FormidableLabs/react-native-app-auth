@@ -13,6 +13,8 @@ import androidx.browser.customtabs.CustomTabsCallback;
 import androidx.browser.customtabs.CustomTabsClient;
 import androidx.browser.customtabs.CustomTabsServiceConnection;
 import androidx.browser.customtabs.CustomTabsSession;
+import androidx.browser.customtabs.CustomTabsIntent;
+import androidx.browser.customtabs.TrustedWebUtils;
 
 import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -704,7 +706,12 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
             AuthorizationService authService = new AuthorizationService(context, appAuthConfiguration);
-            Intent authIntent = authService.getAuthorizationRequestIntent(authRequest);
+
+            CustomTabsIntent.Builder intentBuilder = authService.createCustomTabsIntentBuilder();
+            CustomTabsIntent customTabsIntent = intentBuilder.build();
+            customTabsIntent.intent.putExtra(TrustedWebUtils.EXTRA_LAUNCH_AS_TRUSTED_WEB_ACTIVITY, true);
+
+            Intent authIntent = authService.getAuthorizationRequestIntent(authRequest, customTabsIntent);
 
             currentActivity.startActivityForResult(authIntent, 52);
         } else {
