@@ -3,6 +3,7 @@ package com.rnappauth;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.ComponentName;
+import android.content.SharedPreferences;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -65,17 +66,12 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
     private final ReactApplicationContext reactContext;
     private Promise promise;
-    private boolean dangerouslyAllowInsecureHttpRequests;
-    private Boolean skipCodeExchange;
-    private Boolean usePKCE;
     private Boolean useNonce;
-    private String codeVerifier;
     private String clientAuthMethod = "basic";
     private Map<String, String> registrationRequestHeaders = null;
     private Map<String, String> authorizationRequestHeaders = null;
     private Map<String, String> tokenRequestHeaders = null;
     private Map<String, String> additionalParametersMap;
-    private String clientSecret;
     private final ConcurrentHashMap<String, AuthorizationServiceConfiguration> mServiceConfigurations = new ConcurrentHashMap<>();
     private boolean isPrefetched = false;
 
@@ -242,13 +238,17 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
         // store args in private fields for later use in onActivityResult handler
         this.promise = promise;
-        this.dangerouslyAllowInsecureHttpRequests = dangerouslyAllowInsecureHttpRequests;
         this.additionalParametersMap = additionalParametersMap;
-        this.clientSecret = clientSecret;
         this.clientAuthMethod = clientAuthMethod;
-        this.skipCodeExchange = skipCodeExchange;
         this.useNonce = useNonce;
-        this.usePKCE = usePKCE;
+
+        SharedPreferences sharedPref = getCurrentActivity().getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putBoolean("dangerouslyAllowInsecureHttpRequests", dangerouslyAllowInsecureHttpRequests);
+        editor.putBoolean("skipCodeExchange", skipCodeExchange);
+        editor.putBoolean("usePKCE", usePKCE);
+        editor.putString("clientSecret", clientSecret);
+        editor.apply();
 
         // when serviceConfiguration is provided, we don't need to hit up the OpenID well-known id endpoint
         if (serviceConfiguration != null || hasServiceConfiguration(issuer)) {
@@ -337,7 +337,10 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         }
 
         // store setting in private field for later use in onActivityResult handler
-        this.dangerouslyAllowInsecureHttpRequests = dangerouslyAllowInsecureHttpRequests;
+        SharedPreferences sharedPref = getCurrentActivity().getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putBoolean("dangerouslyAllowInsecureHttpRequests", dangerouslyAllowInsecureHttpRequests);
+        editor.apply();
         this.additionalParametersMap = additionalParametersMap;
 
         // when serviceConfiguration is provided, we don't need to hit up the OpenID well-known id endpoint
@@ -489,10 +492,17 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                 return;
             }
 
-            if (this.skipCodeExchange) {
+            SharedPreferences sharedPref = getCurrentActivity().getPreferences(Context.MODE_PRIVATE);
+            Boolean skipCodeExchange = sharedPref.getBoolean("skipCodeExchange", false);
+
+            if (skipCodeExchange) {
+       
+                String codeVerifier = sharedPref.getString("codeVerifier", null);
+                Boolean usePKCE = sharedPref.getBoolean("usePKCE", true);
+
                 WritableMap map;
-                if (this.usePKCE && this.codeVerifier != null) {
-                    map = TokenResponseFactory.authorizationCodeResponseToMap(response, this.codeVerifier);
+                if (usePKCE && codeVerifier != null) {
+                    map = TokenResponseFactory.authorizationCodeResponseToMap(response, codeVerifier);
                 } else {
                     map = TokenResponseFactory.authorizationResponseToMap(response);
                 }
@@ -503,16 +513,16 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                 return;
             }
 
-
+            Boolean dangerouslyAllowInsecureHttpRequests = sharedPref.getBoolean("dangerouslyAllowInsecureHttpRequests", false);
             final Promise authorizePromise = this.promise;
             final AppAuthConfiguration configuration = createAppAuthConfiguration(
-                    createConnectionBuilder(this.dangerouslyAllowInsecureHttpRequests, this.tokenRequestHeaders),
-                    this.dangerouslyAllowInsecureHttpRequests
+                    createConnectionBuilder(dangerouslyAllowInsecureHttpRequests, this.tokenRequestHeaders),
+                    dangerouslyAllowInsecureHttpRequests
             );
 
             AuthorizationService authService = new AuthorizationService(this.reactContext, configuration);
 
-            TokenRequest tokenRequest = response.createTokenExchangeRequest(this.additionalParametersMap);
+            TokenRequest tokenRequest = this.additionalParametersMap != null? response.createTokenExchangeRequest(this.additionalParametersMap) : response.createTokenExchangeRequest();
 
             AuthorizationService.TokenResponseCallback tokenResponseCallback = new AuthorizationService.TokenResponseCallback() {
 
@@ -532,13 +542,23 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                 }
             };
 
-            if (this.clientSecret != null) {
-                ClientAuthentication clientAuth = this.getClientAuthentication(this.clientSecret, this.clientAuthMethod);
+            String clientSecret = sharedPref.getString("clientSecret", null);   
+            if (clientSecret != null) {
+                ClientAuthentication clientAuth = this.getClientAuthentication(clientSecret, this.clientAuthMethod);
                 authService.performTokenRequest(tokenRequest, clientAuth, tokenResponseCallback);
 
             } else {
                 authService.performTokenRequest(tokenRequest, tokenResponseCallback);
             }
+
+            SharedPreferences.Editor editor = sharedPref.edit();
+            editor.remove("dangerouslyAllowInsecureHttpRequests");
+            editor.remove("clientSecret");
+            editor.remove("dangerouslyAllowInsecureHttpRequests");
+            editor.remove("skipCodeExchange");
+            editor.remove("usePKCE");
+            editor.remove("codeVerifier");
+            editor.apply();
 
         }
 
@@ -692,8 +712,12 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         if (!usePKCE) {
             authRequestBuilder.setCodeVerifier(null);
         } else {
-            this.codeVerifier = CodeVerifierUtil.generateRandomCodeVerifier();
-            authRequestBuilder.setCodeVerifier(this.codeVerifier);
+            String codeVerifier = CodeVerifierUtil.generateRandomCodeVerifier();
+            SharedPreferences sharedPref = getCurrentActivity().getPreferences(Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPref.edit();
+            editor.putString("codeVerifier", codeVerifier);
+            editor.apply();
+            authRequestBuilder.setCodeVerifier(codeVerifier);
         }
 
         if(!useNonce) {
@@ -779,6 +803,10 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         } else {
             authService.performTokenRequest(tokenRequest, tokenResponseCallback);
         }
+            SharedPreferences sharedPref = getCurrentActivity().getPreferences(Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPref.edit();
+            editor.remove("dangerouslyAllowInsecureHttpRequests");
+            editor.apply();
     }
 
     /*
