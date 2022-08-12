@@ -208,7 +208,7 @@ export const authorize = ({
   additionalHeaders,
   skipCodeExchange = false,
   iosCustomBrowser = null,
-  androidAllowCustomBrowsers = null
+  androidAllowCustomBrowsers = null,
   connectionTimeoutSeconds,
 }) => {
   validateIssuerOrServiceConfigurationEndpoints(issuer, serviceConfiguration);

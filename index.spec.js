@@ -60,6 +60,8 @@ describe('AppAuth', () => {
     additionalHeaders: { header: 'value' },
     connectionTimeoutSeconds: TIMEOUT_SEC,
     skipCodeExchange: false,
+    iosCustomBrowser: 'safari',
+    androidAllowCustomBrowsers: ['chrome'],
   };
 
   const registerConfig = {
@@ -530,7 +532,8 @@ describe('AppAuth', () => {
         config.connectionTimeoutSeconds,
         config.additionalHeaders,
         config.useNonce,
-        config.usePKCE
+        config.usePKCE,
+        config.iosCustomBrowser
       );
     });
 
@@ -558,7 +561,8 @@ describe('AppAuth', () => {
         DEFAULT_TIMEOUT_IOS,
         null,
         true,
-        true
+        true,
+        null
       );
     });
 
@@ -582,7 +586,8 @@ describe('AppAuth', () => {
             config.connectionTimeoutSeconds,
             config.additionalHeaders,
             config.useNonce,
-            config.usePKCE
+            config.usePKCE,
+            config.iosCustomBrowser
           );
         });
       });
@@ -603,7 +608,8 @@ describe('AppAuth', () => {
             config.connectionTimeoutSeconds,
             additionalHeaders,
             config.useNonce,
-            config.usePKCE
+            config.usePKCE,
+            config.iosCustomBrowser
           );
         });
 
@@ -634,7 +640,8 @@ describe('AppAuth', () => {
             config.connectionTimeoutSeconds,
             config.additionalHeaders,
             true,
-            true
+            true,
+            config.iosCustomBrowser
           );
         });
 
@@ -652,7 +659,8 @@ describe('AppAuth', () => {
             config.connectionTimeoutSeconds,
             config.additionalHeaders,
             false,
-            true
+            true,
+            config.iosCustomBrowser
           );
         });
       });
@@ -672,7 +680,8 @@ describe('AppAuth', () => {
             config.connectionTimeoutSeconds,
             config.additionalHeaders,
             config.useNonce,
-            true
+            true,
+            config.iosCustomBrowser
           );
         });
 
@@ -690,7 +699,8 @@ describe('AppAuth', () => {
             config.connectionTimeoutSeconds,
             config.additionalHeaders,
             config.useNonce,
-            false
+            false,
+            config.iosCustomBrowser
           );
         });
       });
@@ -718,7 +728,8 @@ describe('AppAuth', () => {
             config.usePKCE,
             config.clientAuthMethod,
             false,
-            config.customHeaders
+            config.customHeaders,
+            config.androidAllowCustomBrowsers
           );
         });
       });
@@ -740,7 +751,8 @@ describe('AppAuth', () => {
             config.usePKCE,
             config.clientAuthMethod,
             false,
-            config.customHeaders
+            config.customHeaders,
+            config.androidAllowCustomBrowsers
           );
         });
 
@@ -760,7 +772,8 @@ describe('AppAuth', () => {
             config.usePKCE,
             config.clientAuthMethod,
             false,
-            config.customHeaders
+            config.customHeaders,
+            config.androidAllowCustomBrowsers
           );
         });
 
@@ -780,7 +793,8 @@ describe('AppAuth', () => {
             config.usePKCE,
             config.clientAuthMethod,
             true,
-            config.customHeaders
+            config.customHeaders,
+            config.androidAllowCustomBrowsers
           );
         });
       });
@@ -809,7 +823,8 @@ describe('AppAuth', () => {
             config.usePKCE,
             config.clientAuthMethod,
             false,
-            customHeaders
+            customHeaders,
+            config.androidAllowCustomBrowsers
           );
         });
       });
