@@ -902,7 +902,8 @@ describe('AppAuth', () => {
         config.additionalParameters,
         config.serviceConfiguration,
         config.connectionTimeoutSeconds,
-        config.additionalHeaders
+        config.additionalHeaders,
+        config.iosCustomBrowser
       );
     });
 
@@ -924,7 +925,8 @@ describe('AppAuth', () => {
             config.additionalParameters,
             config.serviceConfiguration,
             config.connectionTimeoutSeconds,
-            config.additionalHeaders
+            config.additionalHeaders,
+            config.iosCustomBrowser
           );
         });
       });
@@ -943,7 +945,8 @@ describe('AppAuth', () => {
             config.additionalParameters,
             config.serviceConfiguration,
             config.connectionTimeoutSeconds,
-            additionalHeaders
+            additionalHeaders,
+            config.iosCustomBrowser
           );
         });
 
@@ -975,7 +978,8 @@ describe('AppAuth', () => {
             TIMEOUT_MILLIS,
             config.clientAuthMethod,
             false,
-            config.customHeaders
+            config.customHeaders,
+            config.androidAllowCustomBrowsers
           );
         });
       });
@@ -995,7 +999,8 @@ describe('AppAuth', () => {
             TIMEOUT_MILLIS,
             config.clientAuthMethod,
             false,
-            config.customHeaders
+            config.customHeaders,
+            config.androidAllowCustomBrowsers
           );
         });
 
@@ -1013,7 +1018,8 @@ describe('AppAuth', () => {
             TIMEOUT_MILLIS,
             config.clientAuthMethod,
             false,
-            config.customHeaders
+            config.customHeaders,
+            config.androidAllowCustomBrowsers
           );
         });
 
@@ -1031,7 +1037,8 @@ describe('AppAuth', () => {
             TIMEOUT_MILLIS,
             config.clientAuthMethod,
             true,
-            config.customHeaders
+            config.customHeaders,
+            config.androidAllowCustomBrowsers
           );
         });
       });
@@ -1054,7 +1061,8 @@ describe('AppAuth', () => {
             TIMEOUT_MILLIS,
             config.clientAuthMethod,
             false,
-            customHeaders
+            customHeaders,
+            config.androidAllowCustomBrowsers
           );
         });
       });
@@ -1111,7 +1119,8 @@ describe('AppAuth', () => {
           '_token_',
           '_redirect_',
           config.serviceConfiguration,
-          config.additionalParameters
+          config.additionalParameters,
+          config.iosCustomBrowser
         );
       });
     });
@@ -1129,7 +1138,8 @@ describe('AppAuth', () => {
           '_redirect_',
           config.serviceConfiguration,
           config.additionalParameters,
-          false
+          false,
+          config.androidAllowCustomBrowsers
         );
       });
 
@@ -1144,7 +1154,8 @@ describe('AppAuth', () => {
           '_redirect_',
           config.serviceConfiguration,
           config.additionalParameters,
-          true
+          true,
+          config.androidAllowCustomBrowsers
         );
       });
 
@@ -1159,7 +1170,8 @@ describe('AppAuth', () => {
           '_redirect_',
           config.serviceConfiguration,
           config.additionalParameters,
-          false
+          false,
+          config.androidAllowCustomBrowsers
         );
       });
     });

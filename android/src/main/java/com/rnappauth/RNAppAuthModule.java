@@ -241,8 +241,8 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final Promise promise
     ) {
         this.parseHeaderMap(headers);
-        final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests, this.authorizationRequestHeaders, connectionTimeoutMillis, androidAllowCustomBrowsers);
-        final AppAuthConfiguration appAuthConfiguration = this.createAppAuthConfiguration(builder, dangerouslyAllowInsecureHttpRequests);
+        final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests, this.authorizationRequestHeaders, connectionTimeoutMillis);
+        final AppAuthConfiguration appAuthConfiguration = this.createAppAuthConfiguration(builder, dangerouslyAllowInsecureHttpRequests, androidAllowCustomBrowsers);
         final HashMap<String, String> additionalParametersMap = MapUtil.readableMapToHashMap(additionalParameters);
 
         // store args in private fields for later use in onActivityResult handler
@@ -330,11 +330,12 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final String clientAuthMethod,
             final boolean dangerouslyAllowInsecureHttpRequests,
             final ReadableMap headers,
+            final ReadableArray androidAllowCustomBrowsers,
             final Promise promise
     ) {
         this.parseHeaderMap(headers);
         final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests, this.tokenRequestHeaders, connectionTimeoutMillis);
-        final AppAuthConfiguration appAuthConfiguration = createAppAuthConfiguration(builder, dangerouslyAllowInsecureHttpRequests, null);
+        final AppAuthConfiguration appAuthConfiguration = createAppAuthConfiguration(builder, dangerouslyAllowInsecureHttpRequests, androidAllowCustomBrowsers);
         final HashMap<String, String> additionalParametersMap = MapUtil.readableMapToHashMap(additionalParameters);
 
         if (clientSecret != null) {
@@ -414,10 +415,11 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final ReadableMap serviceConfiguration,
             final ReadableMap additionalParameters,
             final boolean dangerouslyAllowInsecureHttpRequests,
+            final ReadableArray androidAllowCustomBrowsers,
             final Promise promise
     ) {
         final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests, null);
-        final AppAuthConfiguration appAuthConfiguration = this.createAppAuthConfiguration(builder, dangerouslyAllowInsecureHttpRequests);
+        final AppAuthConfiguration appAuthConfiguration = this.createAppAuthConfiguration(builder, dangerouslyAllowInsecureHttpRequests, androidAllowCustomBrowsers);
         final HashMap<String, String> additionalParametersMap = MapUtil.readableMapToHashMap(additionalParameters);
 
         this.promise = promise;
