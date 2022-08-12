@@ -24,6 +24,12 @@ const validateIssuerOrServiceConfigurationRevocationEndpoint = (issuer, serviceC
       (serviceConfiguration && typeof serviceConfiguration.revocationEndpoint === 'string'),
     'Config error: you must provide either an issuer or a revocation endpoint'
   );
+const validateIssuerOrServiceConfigurationEndSessionEndpoint = (issuer, serviceConfiguration) =>
+  invariant(
+    typeof issuer === 'string' ||
+      (serviceConfiguration && typeof serviceConfiguration.endSessionEndpoint === 'string'),
+    'Config error: you must provide either an issuer or an end session endpoint'
+  );
 const validateClientId = clientId =>
   invariant(typeof clientId === 'string', 'Config error: clientId must be a string');
 const validateRedirectUrl = redirectUrl =>
@@ -69,8 +75,25 @@ const validateAdditionalHeaders = headers => {
   );
 };
 
+const validateConnectionTimeoutSeconds = timeout => {
+  if (!timeout) {
+    return;
+  }
+
+  invariant(typeof timeout === 'number', 'Config error: connectionTimeoutSeconds must be a number');
+};
+
+export const SECOND_IN_MS = 1000;
+export const DEFAULT_TIMEOUT_IOS = 60;
+export const DEFAULT_TIMEOUT_ANDROID = 15;
+
+const convertTimeoutForPlatform = (
+  platform,
+  connectionTimeout = Platform.OS === 'ios' ? DEFAULT_TIMEOUT_IOS : DEFAULT_TIMEOUT_ANDROID
+) => (platform === 'android' ? connectionTimeout * SECOND_IN_MS : connectionTimeout);
+
 export const prefetchConfiguration = async ({
-  warmAndPrefetchChrome,
+  warmAndPrefetchChrome = false,
   issuer,
   redirectUrl,
   clientId,
@@ -78,12 +101,14 @@ export const prefetchConfiguration = async ({
   serviceConfiguration,
   dangerouslyAllowInsecureHttpRequests = false,
   customHeaders,
+  connectionTimeoutSeconds,
 }) => {
   if (Platform.OS === 'android') {
     validateIssuerOrServiceConfigurationEndpoints(issuer, serviceConfiguration);
     validateClientId(clientId);
     validateRedirectUrl(redirectUrl);
     validateHeaders(customHeaders);
+    validateConnectionTimeoutSeconds(connectionTimeoutSeconds);
 
     const nativeMethodArguments = [
       warmAndPrefetchChrome,
@@ -94,6 +119,7 @@ export const prefetchConfiguration = async ({
       serviceConfiguration,
       dangerouslyAllowInsecureHttpRequests,
       customHeaders,
+      convertTimeoutForPlatform(Platform.OS, connectionTimeoutSeconds),
     ];
 
     RNAppAuth.prefetchConfiguration(...nativeMethodArguments);
@@ -112,10 +138,12 @@ export const register = ({
   dangerouslyAllowInsecureHttpRequests = false,
   customHeaders,
   additionalHeaders,
+  connectionTimeoutSeconds,
 }) => {
   validateIssuerOrServiceConfigurationRegistrationEndpoint(issuer, serviceConfiguration);
   validateHeaders(customHeaders);
   validateAdditionalHeaders(additionalHeaders);
+  validateConnectionTimeoutSeconds(connectionTimeoutSeconds);
 
   invariant(
     Array.isArray(redirectUrls) && redirectUrls.every(url => typeof url === 'string'),
@@ -149,6 +177,7 @@ export const register = ({
     tokenEndpointAuthMethod,
     additionalParameters,
     serviceConfiguration,
+    convertTimeoutForPlatform(Platform.OS, connectionTimeoutSeconds),
   ];
 
   if (Platform.OS === 'android') {
@@ -180,12 +209,14 @@ export const authorize = ({
   skipCodeExchange = false,
   iosCustomBrowser = null,
   androidAllowCustomBrowsers = null
+  connectionTimeoutSeconds,
 }) => {
   validateIssuerOrServiceConfigurationEndpoints(issuer, serviceConfiguration);
   validateClientId(clientId);
   validateRedirectUrl(redirectUrl);
   validateHeaders(customHeaders);
   validateAdditionalHeaders(additionalHeaders);
+  validateConnectionTimeoutSeconds(connectionTimeoutSeconds);
   // TODO: validateAdditionalParameters
 
   const nativeMethodArguments = [
@@ -197,6 +228,7 @@ export const authorize = ({
     additionalParameters,
     serviceConfiguration,
     skipCodeExchange,
+    convertTimeoutForPlatform(Platform.OS, connectionTimeoutSeconds),
   ];
 
   if (Platform.OS === 'android') {
@@ -225,12 +257,13 @@ export const refresh = (
     clientId,
     clientSecret,
     scopes,
-    additionalParameters,
+    additionalParameters = {},
     serviceConfiguration,
     clientAuthMethod = 'basic',
     dangerouslyAllowInsecureHttpRequests = false,
     customHeaders,
     additionalHeaders,
+    connectionTimeoutSeconds,
   },
   { refreshToken }
 ) => {
@@ -239,6 +272,7 @@ export const refresh = (
   validateRedirectUrl(redirectUrl);
   validateHeaders(customHeaders);
   validateAdditionalHeaders(additionalHeaders);
+  validateConnectionTimeoutSeconds(connectionTimeoutSeconds);
   invariant(refreshToken, 'Please pass in a refresh token');
   // TODO: validateAdditionalParameters
 
@@ -251,6 +285,7 @@ export const refresh = (
     scopes,
     additionalParameters,
     serviceConfiguration,
+    convertTimeoutForPlatform(Platform.OS, connectionTimeoutSeconds),
   ];
 
   if (Platform.OS === 'android') {
@@ -308,4 +343,32 @@ export const revoke = async (
   }).catch(error => {
     throw new Error('Failed to revoke token', error);
   });
+};
+
+export const logout = (
+  {
+    issuer,
+    serviceConfiguration,
+    additionalParameters,
+    dangerouslyAllowInsecureHttpRequests = false,
+  },
+  { idToken, postLogoutRedirectUrl }
+) => {
+  validateIssuerOrServiceConfigurationEndSessionEndpoint(issuer, serviceConfiguration);
+  validateRedirectUrl(postLogoutRedirectUrl);
+  invariant(idToken, 'Please pass in the ID token');
+
+  const nativeMethodArguments = [
+    issuer,
+    idToken,
+    postLogoutRedirectUrl,
+    serviceConfiguration,
+    additionalParameters,
+  ];
+
+  if (Platform.OS === 'android') {
+    nativeMethodArguments.push(dangerouslyAllowInsecureHttpRequests);
+  }
+
+  return RNAppAuth.logout(...nativeMethodArguments);
 };

@@ -24,7 +24,7 @@
     return dispatch_get_main_queue();
 }
 
-UIBackgroundTaskIdentifier taskId;
+UIBackgroundTaskIdentifier rnAppAuthTaskId;
 
 /*! @brief Number of random bytes generated for the @ state.
  */
@@ -44,12 +44,13 @@ RCT_REMAP_METHOD(register,
                  subjectType: (NSString *) subjectType
                  tokenEndpointAuthMethod: (NSString *) tokenEndpointAuthMethod
                  additionalParameters: (NSDictionary *_Nullable) additionalParameters
+                 connectionTimeoutSeconds: (double) connectionTimeoutSeconds
                  serviceConfiguration: (NSDictionary *_Nullable) serviceConfiguration
                  additionalHeaders: (NSDictionary *_Nullable) additionalHeaders
                  resolve: (RCTPromiseResolveBlock) resolve
                  reject: (RCTPromiseRejectBlock)  reject)
 {
-    [self configureUrlSession:additionalHeaders];
+    [self configureUrlSession:additionalHeaders sessionTimeout:connectionTimeoutSeconds];
 
     // if we have manually provided configuration, we can use it and skip the OIDC well-known discovery endpoint call
     if (serviceConfiguration) {
@@ -92,6 +93,7 @@ RCT_REMAP_METHOD(authorize,
                  additionalParameters: (NSDictionary *_Nullable) additionalParameters
                  serviceConfiguration: (NSDictionary *_Nullable) serviceConfiguration
                  skipCodeExchange: (BOOL) skipCodeExchange
+                 connectionTimeoutSeconds: (double) connectionTimeoutSeconds
                  additionalHeaders: (NSDictionary *_Nullable) additionalHeaders
                  useNonce: (BOOL *) useNonce
                  usePKCE: (BOOL *) usePKCE
@@ -99,7 +101,7 @@ RCT_REMAP_METHOD(authorize,
                  resolve: (RCTPromiseResolveBlock) resolve
                  reject: (RCTPromiseRejectBlock)  reject)
 {
-    [self configureUrlSession:additionalHeaders];
+    [self configureUrlSession:additionalHeaders sessionTimeout:connectionTimeoutSeconds];
 
     // if we have manually provided configuration, we can use it and skip the OIDC well-known discovery endpoint call
     if (serviceConfiguration) {
@@ -149,11 +151,12 @@ RCT_REMAP_METHOD(refresh,
                  scopes: (NSArray *) scopes
                  additionalParameters: (NSDictionary *_Nullable) additionalParameters
                  serviceConfiguration: (NSDictionary *_Nullable) serviceConfiguration
+                 connectionTimeoutSeconds: (double) connectionTimeoutSeconds
                  additionalHeaders: (NSDictionary *_Nullable) additionalHeaders
                  resolve:(RCTPromiseResolveBlock) resolve
                  reject: (RCTPromiseRejectBlock)  reject)
 {
-    [self configureUrlSession:additionalHeaders];
+    [self configureUrlSession:additionalHeaders sessionTimeout:connectionTimeoutSeconds];
 
     // if we have manually provided configuration, we can use it and skip the OIDC well-known discovery endpoint call
     if (serviceConfiguration) {
@@ -188,6 +191,40 @@ RCT_REMAP_METHOD(refresh,
     }
 } // end RCT_REMAP_METHOD(refresh,
 
+RCT_REMAP_METHOD(logout,
+                 issuer: (NSString *) issuer
+                 idTokenHint: (NSString *) idTokenHint
+                 postLogoutRedirectURL: (NSString *) postLogoutRedirectURL
+                 serviceConfiguration: (NSDictionary *_Nullable) serviceConfiguration
+                 additionalParameters: (NSDictionary *_Nullable) additionalParameters
+                 resolve:(RCTPromiseResolveBlock) resolve
+                 reject: (RCTPromiseRejectBlock)  reject)
+{
+  if (serviceConfiguration) {
+    OIDServiceConfiguration *configuration = [self createServiceConfiguration:serviceConfiguration];
+    [self endSessionWithConfiguration: configuration
+                          idTokenHint: idTokenHint
+                postLogoutRedirectURL: postLogoutRedirectURL
+                 additionalParameters: additionalParameters
+                              resolve: resolve
+                               reject: reject];
+
+  } else {
+    [OIDAuthorizationService discoverServiceConfigurationForIssuer:[NSURL URLWithString:issuer]
+                                                        completion:^(OIDServiceConfiguration *_Nullable configuration, NSError *_Nullable error) {
+                                                                if (!configuration) {
+                                                                    reject(@"service_configuration_fetch_error", [error localizedDescription], error);
+                                                                    return;
+                                                                }
+                                                                [self endSessionWithConfiguration: configuration
+                                                                                      idTokenHint: idTokenHint
+                                                                            postLogoutRedirectURL: postLogoutRedirectURL
+                                                                             additionalParameters: additionalParameters
+                                                                                          resolve: resolve
+                                                                                           reject: reject];
+                                                        }];
+  }
+} // end RCT_REMAP_METHOD(logout,
 
 /*
  * Create a OIDServiceConfiguration from passed serviceConfiguration dictionary
@@ -196,12 +233,15 @@ RCT_REMAP_METHOD(refresh,
     NSURL *authorizationEndpoint = [NSURL URLWithString: [serviceConfiguration objectForKey:@"authorizationEndpoint"]];
     NSURL *tokenEndpoint = [NSURL URLWithString: [serviceConfiguration objectForKey:@"tokenEndpoint"]];
     NSURL *registrationEndpoint = [NSURL URLWithString: [serviceConfiguration objectForKey:@"registrationEndpoint"]];
+    NSURL *endSessionEndpoint = [NSURL URLWithString: [serviceConfiguration objectForKey:@"endSessionEndpoint"]];
 
     OIDServiceConfiguration *configuration =
     [[OIDServiceConfiguration alloc]
      initWithAuthorizationEndpoint:authorizationEndpoint
      tokenEndpoint:tokenEndpoint
-     registrationEndpoint:registrationEndpoint];
+     issuer:nil
+     registrationEndpoint:registrationEndpoint
+     endSessionEndpoint:endSessionEndpoint];
 
     return configuration;
 }
@@ -284,7 +324,7 @@ RCT_REMAP_METHOD(refresh,
 
     NSString *codeVerifier = usePKCE ? [[self class] generateCodeVerifier] : nil;
     NSString *codeChallenge = usePKCE ? [[self class] codeChallengeS256ForVerifier:codeVerifier] : nil;
-    NSString *nonce = useNonce ? [[self class] generateState] : nil;
+    NSString *nonce =  useNonce ? additionalParameters[@"nonce"]? additionalParameters[@"nonce"]:  [[self class] generateState] : nil ;
 
     // builds authentication request
     OIDAuthorizationRequest *request =
@@ -295,7 +335,7 @@ RCT_REMAP_METHOD(refresh,
                                                      scope:[OIDScopeUtilities scopesWithArray:scopes]
                                                redirectURL:[NSURL URLWithString:redirectUrl]
                                               responseType:OIDResponseTypeCode
-                                                     state:[[self class] generateState]
+                                                     state: additionalParameters[@"state"] ? nil : [[self class] generateState]
                                                      nonce:nonce
                                               codeVerifier:codeVerifier
                                              codeChallenge:codeChallenge
@@ -311,9 +351,9 @@ RCT_REMAP_METHOD(refresh,
     appDelegate.authorizationFlowManagerDelegate = self;
     __weak typeof(self) weakSelf = self;
 
-    taskId = [UIApplication.sharedApplication beginBackgroundTaskWithExpirationHandler:^{
-        [UIApplication.sharedApplication endBackgroundTask:taskId];
-        taskId = UIBackgroundTaskInvalid;
+    rnAppAuthTaskId = [UIApplication.sharedApplication beginBackgroundTaskWithExpirationHandler:^{
+        [UIApplication.sharedApplication endBackgroundTask:rnAppAuthTaskId];
+        rnAppAuthTaskId = UIBackgroundTaskInvalid;
     }];
 
     UIViewController *presentingViewController = appDelegate.window.rootViewController.view.window ? appDelegate.window.rootViewController : appDelegate.window.rootViewController.presentedViewController;
@@ -323,20 +363,21 @@ RCT_REMAP_METHOD(refresh,
 
     if (skipCodeExchange) {
         OIDAuthorizationCallback callback = ^(OIDAuthorizationResponse *_Nullable authorizationResponse, NSError *_Nullable error) {
-            typeof(self) strongSelf = weakSelf;
-            strongSelf->_currentSession = nil;
-            [UIApplication.sharedApplication endBackgroundTask:taskId];
-            taskId = UIBackgroundTaskInvalid;
-            if (authorizationResponse) {
-                resolve([self formatAuthorizationResponse:authorizationResponse withCodeVerifier:codeVerifier]);
-            } else {
-                reject([self getErrorCode: error defaultCode:@"authentication_failed"],
-                       [self getErrorMessage: error], error);
-            }
-        };
+                                                       typeof(self) strongSelf = weakSelf;
+                                                       strongSelf->_currentSession = nil;
+                                                       [UIApplication.sharedApplication endBackgroundTask:rnAppAuthTaskId];
+                                                       rnAppAuthTaskId = UIBackgroundTaskInvalid;
+                                                       if (authorizationResponse) {
+                                                           resolve([self formatAuthorizationResponse:authorizationResponse withCodeVerifier:codeVerifier]);
+                                                       } else {
+                                                           reject([self getErrorCode: error defaultCode:@"authentication_failed"],
+                                                                  [self getErrorMessage: error], error);
+                                                       }
+                                                   };
         
         if(externalUserAgent != nil) {
             _currentSession = [OIDAuthorizationService presentAuthorizationRequest:request
+                                                          presentingViewController:presentingViewController
                                                                  externalUserAgent:externalUserAgent
                                                                           callback:callback];
         } else {
@@ -345,22 +386,24 @@ RCT_REMAP_METHOD(refresh,
                                                                           callback:callback];
         }
     } else {
-        OIDAuthStateAuthorizationCallback callback = ^(OIDAuthState *_Nullable authState, NSError *_Nullable error) {
-          typeof(self) strongSelf = weakSelf;
-          strongSelf->_currentSession = nil;
-          [UIApplication.sharedApplication endBackgroundTask:taskId];
-          taskId = UIBackgroundTaskInvalid;
-          if (authState) {
-              resolve([self formatResponse:authState.lastTokenResponse
-                  withAuthResponse:authState.lastAuthorizationResponse]);
-          } else {
-              reject([self getErrorCode: error defaultCode:@"authentication_failed"],
-                     [self getErrorMessage: error], error);
-          }
-        };
+        OIDAuthStateAuthorizationCallback callback = ^(OIDAuthState *_Nullable authState,
+                                                            NSError *_Nullable error) {
+                                                    typeof(self) strongSelf = weakSelf;
+                                                    strongSelf->_currentSession = nil;
+                                                    [UIApplication.sharedApplication endBackgroundTask:rnAppAuthTaskId];
+                                                    rnAppAuthTaskId = UIBackgroundTaskInvalid;
+                                                    if (authState) {
+                                                        resolve([self formatResponse:authState.lastTokenResponse
+                                                            withAuthResponse:authState.lastAuthorizationResponse]);
+                                                    } else {
+                                                        reject([self getErrorCode: error defaultCode:@"authentication_failed"],
+                                                               [self getErrorMessage: error], error);
+                                                    }
+                                                };
         
         if(externalUserAgent != nil) {
-            _currentSession = [OIDAuthState authStateByPresentingAuthorizationRequest:request
+            _currentSession = [OIDAuthorizationService presentAuthorizationRequest:request
+                                                             presentingViewController:presentingViewController
                                                                     externalUserAgent:externalUserAgent
                                                                              callback:callback];
         } else {
@@ -408,12 +451,57 @@ RCT_REMAP_METHOD(refresh,
                                         }];
 }
 
+- (void)endSessionWithConfiguration: (OIDServiceConfiguration *) configuration
+                        idTokenHint: (NSString *) idTokenHint
+              postLogoutRedirectURL: (NSString *) postLogoutRedirectURL
+               additionalParameters: (NSDictionary *_Nullable) additionalParameters
+                            resolve: (RCTPromiseResolveBlock) resolve
+                             reject: (RCTPromiseRejectBlock) reject {
 
-- (void) configureUrlSession: (NSDictionary*) headers {
+    OIDEndSessionRequest *endSessionRequest =
+      [[OIDEndSessionRequest alloc] initWithConfiguration: configuration
+                                              idTokenHint: idTokenHint
+                                    postLogoutRedirectURL: [NSURL URLWithString:postLogoutRedirectURL]
+                                     additionalParameters: additionalParameters];
+
+    id<UIApplicationDelegate, RNAppAuthAuthorizationFlowManager> appDelegate = (id<UIApplicationDelegate, RNAppAuthAuthorizationFlowManager>)[UIApplication sharedApplication].delegate;
+    if (![[appDelegate class] conformsToProtocol:@protocol(RNAppAuthAuthorizationFlowManager)]) {
+        [NSException raise:@"RNAppAuth Missing protocol conformance"
+                    format:@"%@ does not conform to RNAppAuthAuthorizationFlowManager", appDelegate];
+    }
+    appDelegate.authorizationFlowManagerDelegate = self;
+    __weak typeof(self) weakSelf = self;
+
+    rnAppAuthTaskId = [UIApplication.sharedApplication beginBackgroundTaskWithExpirationHandler:^{
+        [UIApplication.sharedApplication endBackgroundTask:rnAppAuthTaskId];
+        rnAppAuthTaskId = UIBackgroundTaskInvalid;
+    }];
+
+    UIViewController *presentingViewController = appDelegate.window.rootViewController.view.window ? appDelegate.window.rootViewController : appDelegate.window.rootViewController.presentedViewController;
+
+    _currentSession = [OIDAuthorizationService presentEndSessionRequest: endSessionRequest
+                                                      externalUserAgent: [self getExternalUserAgentWithPresentingViewController:presentingViewController]
+                                             callback: ^(OIDEndSessionResponse *_Nullable response, NSError *_Nullable error) {
+                                                          typeof(self) strongSelf = weakSelf;
+                                                          strongSelf->_currentSession = nil;
+                                                          [UIApplication.sharedApplication endBackgroundTask:rnAppAuthTaskId];
+                                                          rnAppAuthTaskId = UIBackgroundTaskInvalid;
+                                                          if (response) {
+                                                              resolve([self formatEndSessionResponse:response]);
+                                                          } else {
+                                                            reject([self getErrorCode: error defaultCode:@"end_session_failed"],
+                                                                   [self getErrorMessage: error], error);
+                                                          }
+                                                        }];
+}
+
+- (void)configureUrlSession: (NSDictionary*) headers sessionTimeout: (double) sessionTimeout{
     NSURLSessionConfiguration* configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
     if (headers != nil) {
         configuration.HTTPAdditionalHeaders = headers;
     }
+
+    configuration.timeoutIntervalForRequest = sessionTimeout;
 
     NSURLSession* session = [NSURLSession sessionWithConfiguration:configuration];
     [OIDURLSessionProvider setSession:session];
@@ -509,6 +597,14 @@ RCT_REMAP_METHOD(refresh,
              };
 }
 
+- (NSDictionary*)formatEndSessionResponse: (OIDEndSessionResponse*)response
+{
+    return @{@"state": response.state ? response.state : @"",
+             @"idTokenHint": response.request.idTokenHint,
+             @"postLogoutRedirectUri": response.request.postLogoutRedirectURL.absoluteString
+             };
+}
+
 - (NSString*)getErrorCode: (NSError*) error defaultCode: (NSString *) defaultCode {
     if ([[error domain] isEqualToString:OIDOAuthAuthorizationErrorDomain]) {
         switch ([error code]) {
@@ -591,6 +687,19 @@ RCT_REMAP_METHOD(refresh,
     } else {
         return [error localizedDescription];
     }
+}
+
+- (id<OIDExternalUserAgent>)getExternalUserAgentWithPresentingViewController: (UIViewController *)presentingViewController
+{
+  id<OIDExternalUserAgent> externalUserAgent;
+  #if TARGET_OS_MACCATALYST
+    externalUserAgent = [[OIDExternalUserAgentCatalyst alloc] initWithPresentingViewController:presentingViewController];
+  #elif TARGET_OS_IOS
+    externalUserAgent = [[OIDExternalUserAgentIOS alloc] initWithPresentingViewController:presentingViewController];
+  #elif TARGET_OS_OSX
+    externalUserAgent = [[OIDExternalUserAgentMac alloc] init];
+  #endif
+  return externalUserAgent;
 }
 
 @end

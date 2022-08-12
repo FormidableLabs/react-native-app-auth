@@ -118,6 +118,7 @@ with optional overrides.
   - **tokenEndpoint** - (`string`) _REQUIRED_ fully formed url to the OAuth token exchange endpoint
   - **revocationEndpoint** - (`string`) fully formed url to the OAuth token revocation endpoint. If you want to be able to revoke a token and no `issuer` is specified, this field is mandatory.
   - **registrationEndpoint** - (`string`) fully formed url to your OAuth/OpenID Connect registration endpoint. Only necessary for servers that require client registration.
+  - **endSessionEndpoint** - (`string`) fully formed url to your OpenID Connect end session endpoint. If you want to be able to end a user's session and no `issuer` is specified, this field is mandatory.
 - **clientId** - (`string`) _REQUIRED_ your client id on the auth server
 - **clientSecret** - (`string`) client secret to pass to token exchange requests. :warning: Read more about [client secrets](#note-about-client-secrets)
 - **redirectUrl** - (`string`) _REQUIRED_ the url that links back to your app with the auth code
@@ -137,6 +138,7 @@ with optional overrides.
 - **skipCodeExchange** - (`boolean`) (default: false) just return the authorization response, instead of automatically exchanging the authorization code. This is useful if this exchange needs to be done manually (not client-side)
 - **iosCustomBrowser** - (`string`) (default: undefined) _IOS_ override the used browser for authorization, used to open an external browser. If no value is provided, the `SFAuthenticationSession` or `SFSafariViewController` are used.
 - **androidAllowCustomBrowsers** - (`string[]`) (default: undefined) _ANDROID_ override the used browser for authorization. If no value is provided, all browsers are allowed.
+- **connectionTimeoutSeconds** - (`number`) configure the request timeout interval in seconds. This must be a positive number. The default values are 60 seconds on iOS and 15 seconds on Android.
 
 #### result
 
@@ -194,6 +196,23 @@ const result = await revoke(config, {
 });
 ```
 
+### `logout`
+
+This method will logout a user, as per the [OpenID Connect RP Initiated Logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html) specification. It requires an `idToken`, obtained after successfully authenticating with OpenID Connect, and a URL to redirect back after the logout has been performed.
+
+```js
+import { logout } from 'react-native-app-auth';
+
+const config = {
+  issuer: '<YOUR_ISSUER_URL>',
+};
+
+const result = await logout(config, {
+  idToken: '<ID_TOKEN>',
+  postLogoutRedirectUrl: '<POST_LOGOUT_URL>',
+});
+```
+
 ### `register`
 
 This will perform [dynamic client registration](https://openid.net/specs/openid-connect-registration-1_0.html) on the given provider.
@@ -224,6 +243,7 @@ const registerResult = await register(registerConfig);
   `hello=world&foo=bar` to the authorization request.
 - **dangerouslyAllowInsecureHttpRequests** - (`boolean`) _ANDROID_ same as in authorization config
 - **customHeaders** - (`object`) _ANDROID_ same as in authorization config
+- **connectionTimeoutSeconds** - (`number`) configure the request timeout interval in seconds. This must be a positive number. The default values are 60 seconds on iOS and 15 seconds on Android.
 
 #### registerResult
 
@@ -260,14 +280,14 @@ are not distributed as part of the bridge.
 
 AppAuth supports three options for dependency management.
 
-1. **CocoaPods**
+1.  **CocoaPods**
 
     ```sh
     cd ios
     pod install
     ```
 
-2. **Carthage**
+2.  **Carthage**
 
     With [Carthage](https://github.com/Carthage/Carthage), add the following line to your `Cartfile`:
 
@@ -279,7 +299,7 @@ AppAuth supports three options for dependency management.
 
     Add a copy files build step for `AppAuth.framework`: open Build Phases on Xcode, add a new "Copy Files" phase, choose "Frameworks" as destination, add `AppAuth.framework` and ensure "Code Sign on Copy" is checked.
 
-3. **Static Library**
+3.  **Static Library**
 
     You can also use [AppAuth-iOS](https://github.com/openid/AppAuth-iOS) as a static library. This
     requires linking the library and your project and including the headers. Suggested configuration:

@@ -1,4 +1,12 @@
-import { authorize, refresh, register } from './';
+import {
+  authorize,
+  refresh,
+  register,
+  logout,
+  DEFAULT_TIMEOUT_IOS,
+  DEFAULT_TIMEOUT_ANDROID,
+  SECOND_IN_MS,
+} from './';
 
 jest.mock('react-native', () => ({
   NativeModules: {
@@ -6,6 +14,7 @@ jest.mock('react-native', () => ({
       register: jest.fn(),
       authorize: jest.fn(),
       refresh: jest.fn(),
+      logout: jest.fn(),
     },
   },
   Platform: {
@@ -17,6 +26,7 @@ describe('AppAuth', () => {
   let mockRegister;
   let mockAuthorize;
   let mockRefresh;
+  let mockLogout;
 
   beforeAll(() => {
     mockRegister = require('react-native').NativeModules.RNAppAuth.register;
@@ -27,7 +37,13 @@ describe('AppAuth', () => {
 
     mockRefresh = require('react-native').NativeModules.RNAppAuth.refresh;
     mockRefresh.mockReturnValue('REFRESHED');
+
+    mockLogout = require('react-native').NativeModules.RNAppAuth.logout;
+    mockLogout.mockReturnValue('LOGOUT');
   });
+
+  const TIMEOUT_SEC = 5;
+  const TIMEOUT_MILLIS = TIMEOUT_SEC * SECOND_IN_MS;
 
   const config = {
     issuer: 'test-issuer',
@@ -42,6 +58,7 @@ describe('AppAuth', () => {
     usePKCE: true,
     customHeaders: null,
     additionalHeaders: { header: 'value' },
+    connectionTimeoutSeconds: TIMEOUT_SEC,
     skipCodeExchange: false,
   };
 
@@ -55,6 +72,7 @@ describe('AppAuth', () => {
     additionalParameters: {},
     additionalHeaders: { header: 'value' },
     serviceConfiguration: null,
+    connectionTimeoutSeconds: TIMEOUT_SEC,
   };
 
   describe('register', () => {
@@ -62,6 +80,7 @@ describe('AppAuth', () => {
       mockRegister.mockReset();
       mockAuthorize.mockReset();
       mockRefresh.mockReset();
+      mockLogout.mockReset();
     });
 
     it('throws an error when issuer is not a string and serviceConfiguration is not passed', () => {
@@ -178,6 +197,15 @@ describe('AppAuth', () => {
       }).toThrow();
     });
 
+    it('throws an error when connectionTimeoutSeconds value isnt a number', () => {
+      expect(() => {
+        register({
+          ...registerConfig,
+          connectionTimeoutSeconds: 'blah',
+        });
+      }).toThrow('Config error: connectionTimeoutSeconds must be a number');
+    });
+
     it('calls the native wrapper with the correct args on iOS', () => {
       register(registerConfig);
       expect(mockRegister).toHaveBeenCalledWith(
@@ -189,6 +217,7 @@ describe('AppAuth', () => {
         registerConfig.tokenEndpointAuthMethod,
         registerConfig.additionalParameters,
         registerConfig.serviceConfiguration,
+        registerConfig.connectionTimeoutSeconds,
         registerConfig.additionalHeaders
       );
     });
@@ -196,6 +225,42 @@ describe('AppAuth', () => {
     describe('iOS-specific', () => {
       beforeEach(() => {
         require('react-native').Platform.OS = 'ios';
+      });
+
+      describe('connectionTimeoutSeconds parameter', () => {
+        it('calls the native wrapper with the non-converted value', () => {
+          register(registerConfig);
+          expect(mockRegister).toHaveBeenCalledWith(
+            registerConfig.issuer,
+            registerConfig.redirectUrls,
+            registerConfig.responseTypes,
+            registerConfig.grantTypes,
+            registerConfig.subjectType,
+            registerConfig.tokenEndpointAuthMethod,
+            registerConfig.additionalParameters,
+            registerConfig.serviceConfiguration,
+            registerConfig.connectionTimeoutSeconds,
+            registerConfig.additionalHeaders
+          );
+        });
+
+        it('calls the native wrapper with the default value when connectionTimeoutSeconds is undefined', () => {
+          // eslint-disable-next-line no-unused-vars
+          const { connectionTimeoutSeconds, ...configValues } = registerConfig;
+          register(configValues);
+          expect(mockRegister).toHaveBeenCalledWith(
+            registerConfig.issuer,
+            registerConfig.redirectUrls,
+            registerConfig.responseTypes,
+            registerConfig.grantTypes,
+            registerConfig.subjectType,
+            registerConfig.tokenEndpointAuthMethod,
+            registerConfig.additionalParameters,
+            registerConfig.serviceConfiguration,
+            DEFAULT_TIMEOUT_IOS,
+            registerConfig.additionalHeaders
+          );
+        });
       });
 
       describe('additionalHeaders parameter', () => {
@@ -211,6 +276,7 @@ describe('AppAuth', () => {
             registerConfig.tokenEndpointAuthMethod,
             registerConfig.additionalParameters,
             registerConfig.serviceConfiguration,
+            registerConfig.connectionTimeoutSeconds,
             additionalHeaders
           );
         });
@@ -237,6 +303,44 @@ describe('AppAuth', () => {
         require('react-native').Platform.OS = 'ios';
       });
 
+      describe('connectionTimeoutSeconds parameter', () => {
+        it('calls the native wrapper with the value converted to milliseconds', () => {
+          register(registerConfig);
+          expect(mockRegister).toHaveBeenCalledWith(
+            registerConfig.issuer,
+            registerConfig.redirectUrls,
+            registerConfig.responseTypes,
+            registerConfig.grantTypes,
+            registerConfig.subjectType,
+            registerConfig.tokenEndpointAuthMethod,
+            registerConfig.additionalParameters,
+            registerConfig.serviceConfiguration,
+            TIMEOUT_MILLIS,
+            false,
+            registerConfig.customHeaders
+          );
+        });
+
+        it('calls the native wrapper with the default value when connectionTimeoutSeconds is undefined', () => {
+          // eslint-disable-next-line no-unused-vars
+          const { connectionTimeoutSeconds, ...configValues } = registerConfig;
+          register(configValues);
+          expect(mockRegister).toHaveBeenCalledWith(
+            registerConfig.issuer,
+            registerConfig.redirectUrls,
+            registerConfig.responseTypes,
+            registerConfig.grantTypes,
+            registerConfig.subjectType,
+            registerConfig.tokenEndpointAuthMethod,
+            registerConfig.additionalParameters,
+            registerConfig.serviceConfiguration,
+            DEFAULT_TIMEOUT_ANDROID * SECOND_IN_MS,
+            false,
+            registerConfig.customHeaders
+          );
+        });
+      });
+
       describe('dangerouslyAllowInsecureHttpRequests parameter', () => {
         it('calls the native wrapper with default value `false`', () => {
           register(registerConfig);
@@ -249,6 +353,7 @@ describe('AppAuth', () => {
             registerConfig.tokenEndpointAuthMethod,
             registerConfig.additionalParameters,
             registerConfig.serviceConfiguration,
+            TIMEOUT_MILLIS,
             false,
             registerConfig.customHeaders
           );
@@ -265,6 +370,7 @@ describe('AppAuth', () => {
             registerConfig.tokenEndpointAuthMethod,
             registerConfig.additionalParameters,
             registerConfig.serviceConfiguration,
+            TIMEOUT_MILLIS,
             false,
             registerConfig.customHeaders
           );
@@ -281,6 +387,7 @@ describe('AppAuth', () => {
             registerConfig.tokenEndpointAuthMethod,
             registerConfig.additionalParameters,
             registerConfig.serviceConfiguration,
+            TIMEOUT_MILLIS,
             true,
             registerConfig.customHeaders
           );
@@ -307,6 +414,7 @@ describe('AppAuth', () => {
             registerConfig.tokenEndpointAuthMethod,
             registerConfig.additionalParameters,
             registerConfig.serviceConfiguration,
+            TIMEOUT_MILLIS,
             false,
             customHeaders
           );
@@ -320,21 +428,12 @@ describe('AppAuth', () => {
       mockRegister.mockReset();
       mockAuthorize.mockReset();
       mockRefresh.mockReset();
+      mockLogout.mockReset();
     });
 
     it('throws an error when issuer is not a string and serviceConfiguration is not passed', () => {
       expect(() => {
         authorize({ ...config, issuer: () => ({}) });
-      }).toThrow('Config error: you must provide either an issuer or a service endpoints');
-    });
-
-    it('throws an error when serviceConfiguration does not have tokenEndpoint and issuer is not passed', () => {
-      expect(() => {
-        authorize({
-          ...config,
-          issuer: undefined,
-          serviceConfiguration: { authorizationEndpoint: '' },
-        });
       }).toThrow('Config error: you must provide either an issuer or a service endpoints');
     });
 
@@ -408,6 +507,14 @@ describe('AppAuth', () => {
         });
       }).toThrow();
     });
+    it('throws an error when connectionTimeoutSeconds value isnt a number', () => {
+      expect(() => {
+        authorize({
+          ...config,
+          connectionTimeoutSeconds: 'blah',
+        });
+      }).toThrow('Config error: connectionTimeoutSeconds must be a number');
+    });
 
     it('calls the native wrapper with the correct args on iOS', () => {
       authorize(config);
@@ -420,6 +527,7 @@ describe('AppAuth', () => {
         config.additionalParameters,
         config.serviceConfiguration,
         config.skipCodeExchange,
+        config.connectionTimeoutSeconds,
         config.additionalHeaders,
         config.useNonce,
         config.usePKCE
@@ -447,6 +555,7 @@ describe('AppAuth', () => {
         null,
         null,
         false,
+        DEFAULT_TIMEOUT_IOS,
         null,
         true,
         true
@@ -456,6 +565,26 @@ describe('AppAuth', () => {
     describe('iOS-specific', () => {
       beforeEach(() => {
         require('react-native').Platform.OS = 'ios';
+      });
+
+      describe('connectionTimeoutSeconds parameter', () => {
+        it('calls the native wrapper with the non-converted value', () => {
+          authorize(config);
+          expect(mockAuthorize).toHaveBeenCalledWith(
+            config.issuer,
+            config.redirectUrl,
+            config.clientId,
+            config.clientSecret,
+            config.scopes,
+            config.additionalParameters,
+            config.serviceConfiguration,
+            config.skipCodeExchange,
+            config.connectionTimeoutSeconds,
+            config.additionalHeaders,
+            config.useNonce,
+            config.usePKCE
+          );
+        });
       });
 
       describe('additionalHeaders parameter', () => {
@@ -471,6 +600,7 @@ describe('AppAuth', () => {
             config.additionalParameters,
             config.serviceConfiguration,
             config.skipCodeExchange,
+            config.connectionTimeoutSeconds,
             additionalHeaders,
             config.useNonce,
             config.usePKCE
@@ -491,7 +621,7 @@ describe('AppAuth', () => {
 
       describe('useNonce parameter', () => {
         it('calls the native wrapper with default value `true`', () => {
-          authorize(config, { refreshToken: 'such-token' });
+          authorize(config);
           expect(mockAuthorize).toHaveBeenCalledWith(
             config.issuer,
             config.redirectUrl,
@@ -501,6 +631,7 @@ describe('AppAuth', () => {
             config.additionalParameters,
             config.serviceConfiguration,
             false,
+            config.connectionTimeoutSeconds,
             config.additionalHeaders,
             true,
             true
@@ -508,7 +639,7 @@ describe('AppAuth', () => {
         });
 
         it('calls the native wrapper with passed value `false`', () => {
-          authorize({ ...config, useNonce: false }, { refreshToken: 'such-token' });
+          authorize({ ...config, useNonce: false });
           expect(mockAuthorize).toHaveBeenCalledWith(
             config.issuer,
             config.redirectUrl,
@@ -518,6 +649,7 @@ describe('AppAuth', () => {
             config.additionalParameters,
             config.serviceConfiguration,
             false,
+            config.connectionTimeoutSeconds,
             config.additionalHeaders,
             false,
             true
@@ -527,7 +659,7 @@ describe('AppAuth', () => {
 
       describe('usePKCE parameter', () => {
         it('calls the native wrapper with default value `true`', () => {
-          authorize(config, { refreshToken: 'such-token' });
+          authorize(config);
           expect(mockAuthorize).toHaveBeenCalledWith(
             config.issuer,
             config.redirectUrl,
@@ -537,6 +669,7 @@ describe('AppAuth', () => {
             config.additionalParameters,
             config.serviceConfiguration,
             config.skipCodeExchange,
+            config.connectionTimeoutSeconds,
             config.additionalHeaders,
             config.useNonce,
             true
@@ -544,7 +677,7 @@ describe('AppAuth', () => {
         });
 
         it('calls the native wrapper with passed value `false`', () => {
-          authorize({ ...config, usePKCE: false }, { refreshToken: 'such-token' });
+          authorize({ ...config, usePKCE: false });
           expect(mockAuthorize).toHaveBeenCalledWith(
             config.issuer,
             config.redirectUrl,
@@ -554,6 +687,7 @@ describe('AppAuth', () => {
             config.additionalParameters,
             config.serviceConfiguration,
             config.skipCodeExchange,
+            config.connectionTimeoutSeconds,
             config.additionalHeaders,
             config.useNonce,
             false
@@ -567,9 +701,28 @@ describe('AppAuth', () => {
         require('react-native').Platform.OS = 'android';
       });
 
-      afterEach(() => {
-        require('react-native').Platform.OS = 'ios';
+      describe('connectionTimeoutSeconds parameter', () => {
+        it('calls the native wrapper with the value converted to milliseconds', () => {
+          authorize(config);
+          expect(mockAuthorize).toHaveBeenCalledWith(
+            config.issuer,
+            config.redirectUrl,
+            config.clientId,
+            config.clientSecret,
+            config.scopes,
+            config.additionalParameters,
+            config.serviceConfiguration,
+            config.skipCodeExchange,
+            TIMEOUT_MILLIS,
+            config.useNonce,
+            config.usePKCE,
+            config.clientAuthMethod,
+            false,
+            config.customHeaders
+          );
+        });
       });
+
       describe('dangerouslyAllowInsecureHttpRequests parameter', () => {
         it('calls the native wrapper with default value `false`', () => {
           authorize(config);
@@ -582,6 +735,7 @@ describe('AppAuth', () => {
             config.additionalParameters,
             config.serviceConfiguration,
             config.skipCodeExchange,
+            TIMEOUT_MILLIS,
             config.useNonce,
             config.usePKCE,
             config.clientAuthMethod,
@@ -601,6 +755,7 @@ describe('AppAuth', () => {
             config.additionalParameters,
             config.serviceConfiguration,
             false,
+            TIMEOUT_MILLIS,
             config.useNonce,
             config.usePKCE,
             config.clientAuthMethod,
@@ -620,6 +775,7 @@ describe('AppAuth', () => {
             config.additionalParameters,
             config.serviceConfiguration,
             false,
+            TIMEOUT_MILLIS,
             config.useNonce,
             config.usePKCE,
             config.clientAuthMethod,
@@ -648,6 +804,7 @@ describe('AppAuth', () => {
             config.additionalParameters,
             config.serviceConfiguration,
             false,
+            TIMEOUT_MILLIS,
             config.useNonce,
             config.usePKCE,
             config.clientAuthMethod,
@@ -664,43 +821,40 @@ describe('AppAuth', () => {
       mockRegister.mockReset();
       mockAuthorize.mockReset();
       mockRefresh.mockReset();
+      mockLogout.mockReset();
+      require('react-native').Platform.OS = 'ios';
     });
+
+    const refreshToken = 'abc-token';
 
     it('throws an error when issuer is not a string and serviceConfiguration is not passed', () => {
       expect(() => {
-        authorize({ ...config, issuer: () => ({}) });
+        refresh({ ...config, issuer: () => ({}) }, { refreshToken });
       }).toThrow('Config error: you must provide either an issuer or a service endpoints');
     });
 
     it('throws an error when serviceConfiguration does not have tokenEndpoint and issuer is not passed', () => {
       expect(() => {
-        authorize({
-          ...config,
-          issuer: undefined,
-          serviceConfiguration: { authorizationEndpoint: '' },
-        });
-      }).toThrow('Config error: you must provide either an issuer or a service endpoints');
-    });
-
-    it('throws an error when serviceConfiguration does not have tokenEndpoint and issuer is not passed', () => {
-      expect(() => {
-        authorize({
-          ...config,
-          issuer: undefined,
-          serviceConfiguration: { authorizationEndpoint: '' },
-        });
+        refresh(
+          {
+            ...config,
+            issuer: undefined,
+            serviceConfiguration: { authorizationEndpoint: '' },
+          },
+          { refreshToken }
+        );
       }).toThrow('Config error: you must provide either an issuer or a service endpoints');
     });
 
     it('throws an error when redirectUrl is not a string', () => {
       expect(() => {
-        authorize({ ...config, redirectUrl: {} });
+        refresh({ ...config, redirectUrl: {} }, { refreshToken });
       }).toThrow('Config error: redirectUrl must be a string');
     });
 
     it('throws an error when clientId is not a string', () => {
       expect(() => {
-        authorize({ ...config, clientId: 123 });
+        refresh({ ...config, clientId: 123 }, { refreshToken });
       }).toThrow('Config error: clientId must be a string');
     });
 
@@ -709,18 +863,30 @@ describe('AppAuth', () => {
         refresh(config, {});
       }).toThrow('Please pass in a refresh token');
     });
+    it('throws an error when connectionTimeoutSeconds value isnt a number', () => {
+      expect(() => {
+        refresh(
+          {
+            ...config,
+            connectionTimeoutSeconds: 'blah',
+          },
+          { refreshToken }
+        );
+      }).toThrow('Config error: connectionTimeoutSeconds must be a number');
+    });
 
     it('calls the native wrapper with the correct args on iOS', () => {
-      refresh({ ...config }, { refreshToken: 'such-token' });
+      refresh({ ...config }, { refreshToken });
       expect(mockRefresh).toHaveBeenCalledWith(
         config.issuer,
         config.redirectUrl,
         config.clientId,
         config.clientSecret,
-        'such-token',
+        refreshToken,
         config.scopes,
         config.additionalParameters,
         config.serviceConfiguration,
+        config.connectionTimeoutSeconds,
         config.additionalHeaders
       );
     });
@@ -730,10 +896,27 @@ describe('AppAuth', () => {
         require('react-native').Platform.OS = 'ios';
       });
 
+      describe('connectionTimeoutSeconds parameter', () => {
+        it('calls the native wrapper with the non-converted value', () => {
+          refresh(config, { refreshToken });
+          expect(mockRefresh).toHaveBeenCalledWith(
+            config.issuer,
+            config.redirectUrl,
+            config.clientId,
+            config.clientSecret,
+            refreshToken,
+            config.scopes,
+            config.additionalParameters,
+            config.serviceConfiguration,
+            config.connectionTimeoutSeconds,
+            config.additionalHeaders
+          );
+        });
+      });
+
       describe('additionalHeaders parameter', () => {
         it('calls the native wrapper with additional headers', () => {
           const additionalHeaders = { header: 'value' };
-          const refreshToken = 'a-token';
           refresh({ ...config, additionalHeaders }, { refreshToken });
           expect(mockRefresh).toHaveBeenCalledWith(
             config.issuer,
@@ -744,16 +927,14 @@ describe('AppAuth', () => {
             config.scopes,
             config.additionalParameters,
             config.serviceConfiguration,
+            config.connectionTimeoutSeconds,
             additionalHeaders
           );
         });
 
         it('throws an error when values are not Record<string,string>', () => {
           expect(() => {
-            refresh(
-              { ...config, additionalHeaders: { notString: {} } },
-              { refreshToken: 'such-token' }
-            );
+            refresh({ ...config, additionalHeaders: { notString: {} } }, { refreshToken });
           }).toThrow();
         });
       });
@@ -764,22 +945,39 @@ describe('AppAuth', () => {
         require('react-native').Platform.OS = 'android';
       });
 
-      afterEach(() => {
-        require('react-native').Platform.OS = 'ios';
-      });
-
-      describe(' dangerouslyAllowInsecureHttpRequests parameter', () => {
-        it('calls the native wrapper with default value `false`', () => {
-          refresh(config, { refreshToken: 'such-token' });
+      describe('connectionTimeoutSeconds parameter', () => {
+        it('calls the native wrapper with the value converted to milliseconds', () => {
+          refresh(config, { refreshToken });
           expect(mockRefresh).toHaveBeenCalledWith(
             config.issuer,
             config.redirectUrl,
             config.clientId,
             config.clientSecret,
-            'such-token',
+            refreshToken,
             config.scopes,
             config.additionalParameters,
             config.serviceConfiguration,
+            TIMEOUT_MILLIS,
+            config.clientAuthMethod,
+            false,
+            config.customHeaders
+          );
+        });
+      });
+
+      describe(' dangerouslyAllowInsecureHttpRequests parameter', () => {
+        it('calls the native wrapper with default value `false`', () => {
+          refresh(config, { refreshToken });
+          expect(mockRefresh).toHaveBeenCalledWith(
+            config.issuer,
+            config.redirectUrl,
+            config.clientId,
+            config.clientSecret,
+            refreshToken,
+            config.scopes,
+            config.additionalParameters,
+            config.serviceConfiguration,
+            TIMEOUT_MILLIS,
             config.clientAuthMethod,
             false,
             config.customHeaders
@@ -787,19 +985,17 @@ describe('AppAuth', () => {
         });
 
         it('calls the native wrapper with passed value `false`', () => {
-          refresh(
-            { ...config, dangerouslyAllowInsecureHttpRequests: false },
-            { refreshToken: 'such-token' }
-          );
+          refresh({ ...config, dangerouslyAllowInsecureHttpRequests: false }, { refreshToken });
           expect(mockRefresh).toHaveBeenCalledWith(
             config.issuer,
             config.redirectUrl,
             config.clientId,
             config.clientSecret,
-            'such-token',
+            refreshToken,
             config.scopes,
             config.additionalParameters,
             config.serviceConfiguration,
+            TIMEOUT_MILLIS,
             config.clientAuthMethod,
             false,
             config.customHeaders
@@ -807,19 +1003,17 @@ describe('AppAuth', () => {
         });
 
         it('calls the native wrapper with passed value `true`', () => {
-          refresh(
-            { ...config, dangerouslyAllowInsecureHttpRequests: true },
-            { refreshToken: 'such-token' }
-          );
+          refresh({ ...config, dangerouslyAllowInsecureHttpRequests: true }, { refreshToken });
           expect(mockRefresh).toHaveBeenCalledWith(
             config.issuer,
             config.redirectUrl,
             config.clientId,
             config.clientSecret,
-            'such-token',
+            refreshToken,
             config.scopes,
             config.additionalParameters,
             config.serviceConfiguration,
+            TIMEOUT_MILLIS,
             config.clientAuthMethod,
             true,
             config.customHeaders
@@ -832,23 +1026,126 @@ describe('AppAuth', () => {
           const customTokenHeaders = { Authorization: 'Basic someBase64Value' };
           const customAuthorizeHeaders = { Authorization: 'Basic someOtherBase64Value' };
           const customHeaders = { token: customTokenHeaders, authorize: customAuthorizeHeaders };
-          authorize({ ...config, customHeaders });
-          expect(mockAuthorize).toHaveBeenCalledWith(
+          refresh({ ...config, customHeaders }, { refreshToken });
+          expect(mockRefresh).toHaveBeenCalledWith(
             config.issuer,
             config.redirectUrl,
             config.clientId,
             config.clientSecret,
+            refreshToken,
             config.scopes,
             config.additionalParameters,
             config.serviceConfiguration,
-            false,
-            config.useNonce,
-            config.usePKCE,
+            TIMEOUT_MILLIS,
             config.clientAuthMethod,
             false,
             customHeaders
           );
         });
+      });
+    });
+  });
+
+  describe('end session', () => {
+    beforeEach(() => {
+      mockRegister.mockReset();
+      mockAuthorize.mockReset();
+      mockRefresh.mockReset();
+      mockLogout.mockReset();
+    });
+
+    it('throws an error when issuer is not a string and serviceConfiguration is not passed', () => {
+      expect(() => {
+        logout(
+          { ...config, issuer: () => ({}) },
+          { idToken: 'token', postLogoutRedirectUrl: 'redirect' }
+        );
+      }).toThrow('Config error: you must provide either an issuer or an end session endpoint');
+    });
+
+    it('throws an error when serviceConfiguration does not have endSessionEndpoint and issuer is not passed', () => {
+      expect(() => {
+        logout(
+          { ...config, issuer: undefined },
+          { idToken: 'token', postLogoutRedirectUrl: 'redirect' }
+        );
+      }).toThrow('Config error: you must provide either an issuer or an end session endpoint');
+    });
+
+    it('throws an error when postLogoutRedirectUrl is not a string', () => {
+      expect(() => {
+        logout(config, { idToken: 'token', postLogoutRedirectUrl: {} });
+      }).toThrow('Config error: redirectUrl must be a string');
+    });
+
+    it('throws an error when idToken is not passed in', () => {
+      expect(() => {
+        logout({ ...config }, { postLogoutRedirectUrl: 'redirect' });
+      }).toThrow('Please pass in the ID token');
+    });
+
+    describe('iOS-specific', () => {
+      beforeEach(() => {
+        require('react-native').Platform.OS = 'ios';
+      });
+
+      it('calls the native wrapper with the correct args', () => {
+        logout({ ...config }, { idToken: '_token_', postLogoutRedirectUrl: '_redirect_' });
+        expect(mockLogout).toHaveBeenCalledWith(
+          config.issuer,
+          '_token_',
+          '_redirect_',
+          config.serviceConfiguration,
+          config.additionalParameters
+        );
+      });
+    });
+
+    describe('Android-specific', () => {
+      beforeEach(() => {
+        require('react-native').Platform.OS = 'android';
+      });
+
+      it('calls the native wrapper with the correct args and undefined dangerouslyAllowInsecureHttpRequests', () => {
+        logout({ ...config }, { idToken: '_token_', postLogoutRedirectUrl: '_redirect_' });
+        expect(mockLogout).toHaveBeenCalledWith(
+          config.issuer,
+          '_token_',
+          '_redirect_',
+          config.serviceConfiguration,
+          config.additionalParameters,
+          false
+        );
+      });
+
+      it('calls the native wrapper with the correct args and dangerouslyAllowInsecureHttpRequests set to `true`', () => {
+        logout(
+          { ...config, dangerouslyAllowInsecureHttpRequests: true },
+          { idToken: '_token_', postLogoutRedirectUrl: '_redirect_' }
+        );
+        expect(mockLogout).toHaveBeenCalledWith(
+          config.issuer,
+          '_token_',
+          '_redirect_',
+          config.serviceConfiguration,
+          config.additionalParameters,
+          true
+        );
+      });
+
+      it('calls the native wrapper with the correct args and dangerouslyAllowInsecureHttpRequests set to `false`', () => {
+        logout(
+          { ...config, dangerouslyAllowInsecureHttpRequests: false },
+          { idToken: '_token_', postLogoutRedirectUrl: '_redirect_' }
+        );
+        expect(mockLogout).toHaveBeenCalledWith(
+          config.issuer,
+          '_token_',
+          '_redirect_',
+          config.serviceConfiguration,
+          config.additionalParameters,
+          false
+        );
       });
     });
   });
