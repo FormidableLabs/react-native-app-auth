@@ -802,7 +802,9 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         if (additionalParametersMap != null) {
             if (additionalParametersMap.containsKey("state")) {
                 endSessionRequestBuilder.setState(additionalParametersMap.get("state"));
+                additionalParametersMap.remove("state");
             }
+            endSessionRequestBuilder.setAdditionalParameters(additionalParametersMap);
         }
 
         EndSessionRequest endSessionRequest = endSessionRequestBuilder.build();
