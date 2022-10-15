@@ -207,6 +207,8 @@ export const authorize = ({
   customHeaders,
   additionalHeaders,
   skipCodeExchange = false,
+  iosCustomBrowser = null,
+  androidAllowCustomBrowsers = null,
   connectionTimeoutSeconds,
 }) => {
   validateIssuerOrServiceConfigurationEndpoints(issuer, serviceConfiguration);
@@ -235,12 +237,14 @@ export const authorize = ({
     nativeMethodArguments.push(clientAuthMethod);
     nativeMethodArguments.push(dangerouslyAllowInsecureHttpRequests);
     nativeMethodArguments.push(customHeaders);
+    nativeMethodArguments.push(androidAllowCustomBrowsers);
   }
 
   if (Platform.OS === 'ios') {
     nativeMethodArguments.push(additionalHeaders);
     nativeMethodArguments.push(useNonce);
     nativeMethodArguments.push(usePKCE);
+    nativeMethodArguments.push(iosCustomBrowser);
   }
 
   return RNAppAuth.authorize(...nativeMethodArguments);
@@ -259,6 +263,8 @@ export const refresh = (
     dangerouslyAllowInsecureHttpRequests = false,
     customHeaders,
     additionalHeaders,
+    iosCustomBrowser = null,
+    androidAllowCustomBrowsers = null,
     connectionTimeoutSeconds,
   },
   { refreshToken }
@@ -288,10 +294,12 @@ export const refresh = (
     nativeMethodArguments.push(clientAuthMethod);
     nativeMethodArguments.push(dangerouslyAllowInsecureHttpRequests);
     nativeMethodArguments.push(customHeaders);
+    nativeMethodArguments.push(androidAllowCustomBrowsers);
   }
 
   if (Platform.OS === 'ios') {
     nativeMethodArguments.push(additionalHeaders);
+    nativeMethodArguments.push(iosCustomBrowser);
   }
 
   return RNAppAuth.refresh(...nativeMethodArguments);
@@ -347,6 +355,8 @@ export const logout = (
     serviceConfiguration,
     additionalParameters,
     dangerouslyAllowInsecureHttpRequests = false,
+    iosCustomBrowser = null,
+    androidAllowCustomBrowsers = null,
   },
   { idToken, postLogoutRedirectUrl }
 ) => {
@@ -364,6 +374,11 @@ export const logout = (
 
   if (Platform.OS === 'android') {
     nativeMethodArguments.push(dangerouslyAllowInsecureHttpRequests);
+    nativeMethodArguments.push(androidAllowCustomBrowsers);
+  }
+
+  if (Platform.OS === 'ios') {
+    nativeMethodArguments.push(iosCustomBrowser);
   }
 
   return RNAppAuth.logout(...nativeMethodArguments);

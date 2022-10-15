@@ -136,6 +136,8 @@ with optional overrides.
 - **useNonce** - (`boolean`) (default: true) optionally allows not sending the nonce parameter, to support non-compliant providers
 - **usePKCE** - (`boolean`) (default: true) optionally allows not sending the code_challenge parameter and skipping PKCE code verification, to support non-compliant providers.
 - **skipCodeExchange** - (`boolean`) (default: false) just return the authorization response, instead of automatically exchanging the authorization code. This is useful if this exchange needs to be done manually (not client-side)
+- **iosCustomBrowser** - (`string`) (default: undefined) _IOS_ override the used browser for authorization, used to open an external browser. If no value is provided, the `SFAuthenticationSession` or `SFSafariViewController` are used.
+- **androidAllowCustomBrowsers** - (`string[]`) (default: undefined) _ANDROID_ override the used browser for authorization. If no value is provided, all browsers are allowed.
 - **connectionTimeoutSeconds** - (`number`) configure the request timeout interval in seconds. This must be a positive number. The default values are 60 seconds on iOS and 15 seconds on Android.
 
 #### result
@@ -351,7 +353,7 @@ Make `AppDelegate` conform to `RNAppAuthAuthorizationFlowManager` with the follo
 + @property(nonatomic, weak)id<RNAppAuthAuthorizationFlowManagerDelegate>authorizationFlowManagerDelegate;
 ```
 
-Add the following code to `AppDelegate.m` (to support iOS <= 10 and React Navigation deep linking)
+Add the following code to `AppDelegate.m` (to support iOS <= 10, React Navigation deep linking and overriding browser behavior in the authorization process)
 
 ```diff
 + - (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<NSString *, id> *) options {
