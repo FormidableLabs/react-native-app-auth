@@ -210,6 +210,7 @@ export const authorize = ({
   iosCustomBrowser = null,
   androidAllowCustomBrowsers = null,
   connectionTimeoutSeconds,
+  iosPrefersEphemeralSession = false,
 }) => {
   validateIssuerOrServiceConfigurationEndpoints(issuer, serviceConfiguration);
   validateClientId(clientId);
@@ -245,6 +246,7 @@ export const authorize = ({
     nativeMethodArguments.push(useNonce);
     nativeMethodArguments.push(usePKCE);
     nativeMethodArguments.push(iosCustomBrowser);
+    nativeMethodArguments.push(iosPrefersEphemeralSession);
   }
 
   return RNAppAuth.authorize(...nativeMethodArguments);
@@ -356,6 +358,7 @@ export const logout = (
     additionalParameters,
     dangerouslyAllowInsecureHttpRequests = false,
     iosCustomBrowser = null,
+    iosPrefersEphemeralSession = false,
     androidAllowCustomBrowsers = null,
   },
   { idToken, postLogoutRedirectUrl }
@@ -379,6 +382,7 @@ export const logout = (
 
   if (Platform.OS === 'ios') {
     nativeMethodArguments.push(iosCustomBrowser);
+    nativeMethodArguments.push(iosPrefersEphemeralSession);
   }
 
   return RNAppAuth.logout(...nativeMethodArguments);

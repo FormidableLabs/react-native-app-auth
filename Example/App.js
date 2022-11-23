@@ -71,6 +71,7 @@ const App = () => {
         const newAuthState = await authorize({
           ...config,
           connectionTimeoutSeconds: 5,
+          iosPrefersEphemeralSession: true
         });
 
         setAuthState({

@@ -61,6 +61,7 @@ describe('AppAuth', () => {
     connectionTimeoutSeconds: TIMEOUT_SEC,
     skipCodeExchange: false,
     iosCustomBrowser: 'safari',
+    iosPrefersEphemeralSession: true,
     androidAllowCustomBrowsers: ['chrome'],
   };
 
@@ -533,7 +534,8 @@ describe('AppAuth', () => {
         config.additionalHeaders,
         config.useNonce,
         config.usePKCE,
-        config.iosCustomBrowser
+        config.iosCustomBrowser,
+        config.iosPrefersEphemeralSession
       );
     });
 
@@ -562,7 +564,8 @@ describe('AppAuth', () => {
         null,
         true,
         true,
-        null
+        null,
+        false
       );
     });
 
@@ -587,7 +590,8 @@ describe('AppAuth', () => {
             config.additionalHeaders,
             config.useNonce,
             config.usePKCE,
-            config.iosCustomBrowser
+            config.iosCustomBrowser,
+            config.iosPrefersEphemeralSession
           );
         });
       });
@@ -609,7 +613,8 @@ describe('AppAuth', () => {
             additionalHeaders,
             config.useNonce,
             config.usePKCE,
-            config.iosCustomBrowser
+            config.iosCustomBrowser,
+            config.iosPrefersEphemeralSession
           );
         });
 
@@ -641,7 +646,8 @@ describe('AppAuth', () => {
             config.additionalHeaders,
             true,
             true,
-            config.iosCustomBrowser
+            config.iosCustomBrowser,
+            config.iosPrefersEphemeralSession
           );
         });
 
@@ -660,7 +666,8 @@ describe('AppAuth', () => {
             config.additionalHeaders,
             false,
             true,
-            config.iosCustomBrowser
+            config.iosCustomBrowser,
+            config.iosPrefersEphemeralSession
           );
         });
       });
@@ -681,7 +688,8 @@ describe('AppAuth', () => {
             config.additionalHeaders,
             config.useNonce,
             true,
-            config.iosCustomBrowser
+            config.iosCustomBrowser,
+            config.iosPrefersEphemeralSession
           );
         });
 
@@ -700,7 +708,8 @@ describe('AppAuth', () => {
             config.additionalHeaders,
             config.useNonce,
             false,
-            config.iosCustomBrowser
+            config.iosCustomBrowser,
+            config.iosPrefersEphemeralSession
           );
         });
       });
@@ -1120,7 +1129,8 @@ describe('AppAuth', () => {
           '_redirect_',
           config.serviceConfiguration,
           config.additionalParameters,
-          config.iosCustomBrowser
+          config.iosCustomBrowser,
+          config.iosPrefersEphemeralSession
         );
       });
     });
