@@ -34,6 +34,8 @@ static NSUInteger const kStateSizeBytes = 32;
  */
 static NSUInteger const kCodeVerifierBytes = 32;
 
+
+
 RCT_EXPORT_MODULE()
 
 RCT_REMAP_METHOD(register,
@@ -98,6 +100,7 @@ RCT_REMAP_METHOD(authorize,
                  useNonce: (BOOL *) useNonce
                  usePKCE: (BOOL *) usePKCE
                  iosCustomBrowser: (NSString *) iosCustomBrowser
+                 prefersEphemeralSession: (BOOL *) prefersEphemeralSession
                  resolve: (RCTPromiseResolveBlock) resolve
                  reject: (RCTPromiseRejectBlock)  reject)
 {
@@ -116,6 +119,7 @@ RCT_REMAP_METHOD(authorize,
                     additionalParameters: additionalParameters
                     skipCodeExchange: skipCodeExchange
                         iosCustomBrowser: iosCustomBrowser
+                 prefersEphemeralSession: prefersEphemeralSession
                                  resolve: resolve
                                   reject: reject];
     } else {
@@ -136,6 +140,7 @@ RCT_REMAP_METHOD(authorize,
                                                                             additionalParameters: additionalParameters
                                                                                 skipCodeExchange: skipCodeExchange
                                                                                 iosCustomBrowser: iosCustomBrowser
+                                                                         prefersEphemeralSession: prefersEphemeralSession
                                                                                          resolve: resolve
                                                                                           reject: reject];
                                                             }];
@@ -199,6 +204,7 @@ RCT_REMAP_METHOD(logout,
                  serviceConfiguration: (NSDictionary *_Nullable) serviceConfiguration
                  additionalParameters: (NSDictionary *_Nullable) additionalParameters
                  iosCustomBrowser: (NSString *) iosCustomBrowser
+                 prefersEphemeralSession: (BOOL *) prefersEphemeralSession
                  resolve:(RCTPromiseResolveBlock) resolve
                  reject: (RCTPromiseRejectBlock)  reject)
 {
@@ -209,6 +215,7 @@ RCT_REMAP_METHOD(logout,
                 postLogoutRedirectURL: postLogoutRedirectURL
                  additionalParameters: additionalParameters
                      iosCustomBrowser: iosCustomBrowser
+              prefersEphemeralSession: prefersEphemeralSession
                               resolve: resolve
                                reject: reject];
 
@@ -224,6 +231,7 @@ RCT_REMAP_METHOD(logout,
                                                                             postLogoutRedirectURL: postLogoutRedirectURL
                                                                              additionalParameters: additionalParameters
                                                                                  iosCustomBrowser: iosCustomBrowser
+                                                                          prefersEphemeralSession: prefersEphemeralSession
                                                                                           resolve: resolve
                                                                                            reject: reject];
                                                         }];
@@ -322,6 +330,7 @@ RCT_REMAP_METHOD(logout,
               additionalParameters: (NSDictionary *_Nullable) additionalParameters
               skipCodeExchange: (BOOL) skipCodeExchange
                   iosCustomBrowser: (NSString *) iosCustomBrowser
+           prefersEphemeralSession: (BOOL *) prefersEphemeralSession
                            resolve: (RCTPromiseResolveBlock) resolve
                             reject: (RCTPromiseRejectBlock)  reject
 {
@@ -383,9 +392,16 @@ RCT_REMAP_METHOD(logout,
                                                                  externalUserAgent:externalUserAgent
                                                                           callback:callback];
         } else {
-            _currentSession = [OIDAuthorizationService presentAuthorizationRequest:request
+            if (@available(iOS 13, *)) {
+                _currentSession = [OIDAuthorizationService presentAuthorizationRequest:request
+                                                          presentingViewController:presentingViewController
+                                                           prefersEphemeralSession:prefersEphemeralSession
+                                                                          callback:callback];
+            } else {
+                _currentSession = [OIDAuthorizationService presentAuthorizationRequest:request
                                                           presentingViewController:presentingViewController
                                                                           callback:callback];
+            }
         }
     } else {
         
@@ -408,10 +424,16 @@ RCT_REMAP_METHOD(logout,
                                                                    [self getErrorMessage: error], error);
                                                         }
                                                     };
-            
-            _currentSession = [OIDAuthState authStateByPresentingAuthorizationRequest:request
-                                                             presentingViewController:presentingViewController
-                                                                             callback:callback];
+            if (@available(iOS 13, *)) {
+                _currentSession = [OIDAuthState authStateByPresentingAuthorizationRequest:request
+                                                                 presentingViewController:presentingViewController
+                                                                  prefersEphemeralSession:prefersEphemeralSession
+                                                                                 callback:callback];
+            } else {
+                _currentSession = [OIDAuthState authStateByPresentingAuthorizationRequest:request
+                                                                 presentingViewController:presentingViewController
+                                                                                 callback:callback];
+            }
         }
     }
 }
@@ -458,6 +480,7 @@ RCT_REMAP_METHOD(logout,
               postLogoutRedirectURL: (NSString *) postLogoutRedirectURL
                additionalParameters: (NSDictionary *_Nullable) additionalParameters
                    iosCustomBrowser: (NSString *) iosCustomBrowser
+            prefersEphemeralSession: (BOOL *) prefersEphemeralSession
                             resolve: (RCTPromiseResolveBlock) resolve
                              reject: (RCTPromiseRejectBlock) reject {
 
@@ -482,7 +505,8 @@ RCT_REMAP_METHOD(logout,
 
     UIViewController *presentingViewController = appDelegate.window.rootViewController.view.window ? appDelegate.window.rootViewController : appDelegate.window.rootViewController.presentedViewController;
     
-    id<OIDExternalUserAgent> externalUserAgent = iosCustomBrowser != nil ? [self getCustomBrowser: iosCustomBrowser] : [self getExternalUserAgentWithPresentingViewController:presentingViewController];
+    id<OIDExternalUserAgent> externalUserAgent = iosCustomBrowser != nil ? [self getCustomBrowser: iosCustomBrowser] : [self getExternalUserAgentWithPresentingViewController:presentingViewController
+                                                                                                                                                      prefersEphemeralSession:prefersEphemeralSession];
 
     _currentSession = [OIDAuthorizationService presentEndSessionRequest: endSessionRequest
                                                       externalUserAgent: externalUserAgent
@@ -695,12 +719,20 @@ RCT_REMAP_METHOD(logout,
 }
 
 - (id<OIDExternalUserAgent>)getExternalUserAgentWithPresentingViewController: (UIViewController *)presentingViewController
+                                                     prefersEphemeralSession: (BOOL *) prefersEphemeralSession
 {
   id<OIDExternalUserAgent> externalUserAgent;
   #if TARGET_OS_MACCATALYST
     externalUserAgent = [[OIDExternalUserAgentCatalyst alloc] initWithPresentingViewController:presentingViewController];
   #elif TARGET_OS_IOS
-    externalUserAgent = [[OIDExternalUserAgentIOS alloc] initWithPresentingViewController:presentingViewController];
+    if (@available(iOS 13, *)) {
+        externalUserAgent = [[OIDExternalUserAgentIOS alloc] initWithPresentingViewController:
+                             presentingViewController
+                             prefersEphemeralSession:prefersEphemeralSession];
+    } else {
+        externalUserAgent = [[OIDExternalUserAgentIOS alloc] initWithPresentingViewController:
+                             presentingViewController];
+    }
   #elif TARGET_OS_OSX
     externalUserAgent = [[OIDExternalUserAgentMac alloc] init];
   #endif

@@ -80,12 +80,21 @@ export type AuthConfiguration = BaseAuthConfiguration & {
   warmAndPrefetchChrome?: boolean;
   skipCodeExchange?: boolean;
   iosCustomBrowser?: 'safari' | 'chrome' | 'opera' | 'firefox';
-  androidAllowCustomBrowsers?: ('chrome' | 'chromeCustomTab' | 'firefox' | 'firefoxCustomTab' | 'samsung' | 'samsungCustomTab')[]
+  androidAllowCustomBrowsers?: (
+    | 'chrome'
+    | 'chromeCustomTab'
+    | 'firefox'
+    | 'firefoxCustomTab'
+    | 'samsung'
+    | 'samsungCustomTab'
+  )[];
+  iosPrefersEphemeralSession?: boolean;
 };
 
 export type EndSessionConfiguration = BaseAuthConfiguration & {
   additionalParameters?: { [name: string]: string };
   dangerouslyAllowInsecureHttpRequests?: boolean;
+  iosPrefersEphemeralSession?: boolean;
 };
 
 export interface AuthorizeResult {
