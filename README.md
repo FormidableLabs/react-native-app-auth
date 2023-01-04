@@ -1,5 +1,5 @@
 <a href="https://formidable.com/open-source/" target="_blank">
-  <img alt="React Native App Auth — Formidable, We build the modern web" src="./react-native-app-auth-Hero.png" />
+  <img alt="React Native App Auth — Formidable, We build the modern web" src="https://raw.githubusercontent.com/FormidableLabs/react-native-app-auth/main/react-native-app-auth-Hero.png" />
 </a>
 <p align="center">
 <strong>React native bridge for AppAuth - an SDK for communicating with OAuth2 providers</strong>
