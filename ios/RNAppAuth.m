@@ -348,7 +348,7 @@ RCT_REMAP_METHOD(logout,
                                                      scope:[OIDScopeUtilities scopesWithArray:scopes]
                                                redirectURL:[NSURL URLWithString:redirectUrl]
                                               responseType:OIDResponseTypeCode
-                                                     state: additionalParameters[@"state"] ? nil : [[self class] generateState]
+                                                     state: additionalParameters[@"state"] ? additionalParameters[@"state"] : [[self class] generateState]
                                                      nonce:nonce
                                               codeVerifier:codeVerifier
                                              codeChallenge:codeChallenge
