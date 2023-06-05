@@ -370,11 +370,12 @@ RCT_REMAP_METHOD(logout,
     }];
 
     UIViewController *presentingViewController = appDelegate.window.rootViewController.view.window ? appDelegate.window.rootViewController : appDelegate.window.rootViewController.presentedViewController;
-    #if TARGET_OS_MACCATALYST
+
+#if TARGET_OS_MACCATALYST
     id<OIDExternalUserAgent> externalUserAgent = nil;
-    #else
+#elif TARGET_OS_IOS
     id<OIDExternalUserAgent> externalUserAgent = iosCustomBrowser != nil ? [self getCustomBrowser: iosCustomBrowser] : nil;
-    #endif
+#endif
     
     OIDAuthorizationCallback callback = ^(OIDAuthorizationResponse *_Nullable authorizationResponse, NSError *_Nullable error) {
                                                    typeof(self) strongSelf = weakSelf;
@@ -408,7 +409,13 @@ RCT_REMAP_METHOD(logout,
             }
         }
     } else {
-        OIDAuthStateAuthorizationCallback callback = ^(OIDAuthState *_Nullable authState,
+        
+        if(externalUserAgent != nil) {
+            _currentSession = [OIDAuthorizationService presentAuthorizationRequest:request
+                                                                    externalUserAgent:externalUserAgent
+                                                                             callback:callback];
+        } else {
+            OIDAuthStateAuthorizationCallback callback = ^(OIDAuthState *_Nullable authState,
                                                                 NSError *_Nullable error) {
                                                         typeof(self) strongSelf = weakSelf;
                                                         strongSelf->_currentSession = nil;
@@ -422,12 +429,6 @@ RCT_REMAP_METHOD(logout,
                                                                    [self getErrorMessage: error], error);
                                                         }
                                                     };
-
-        if(externalUserAgent != nil) {
-            _currentSession = [OIDAuthState authStateByPresentingAuthorizationRequest:request
-                                                                    externalUserAgent:externalUserAgent
-                                                                             callback:callback];
-        } else {
             if (@available(iOS 13, *)) {
                 _currentSession = [OIDAuthState authStateByPresentingAuthorizationRequest:request
                                                                  presentingViewController:presentingViewController
@@ -508,12 +509,13 @@ RCT_REMAP_METHOD(logout,
     }];
 
     UIViewController *presentingViewController = appDelegate.window.rootViewController.view.window ? appDelegate.window.rootViewController : appDelegate.window.rootViewController.presentedViewController;
-    #if TARGET_OS_MACCATALYST
+
+#if TARGET_OS_MACCATALYST
     id<OIDExternalUserAgent> externalUserAgent = nil;
-    #else
+#elif TARGET_OS_IOS
     id<OIDExternalUserAgent> externalUserAgent = iosCustomBrowser != nil ? [self getCustomBrowser: iosCustomBrowser] : [self getExternalUserAgentWithPresentingViewController:presentingViewController
-                                                                                                                                                      prefersEphemeralSession:prefersEphemeralSession];
-    #endif
+                                                                                                                                    prefersEphemeralSession:prefersEphemeralSession];
+#endif
     
     _currentSession = [OIDAuthorizationService presentEndSessionRequest: endSessionRequest
                                                       externalUserAgent: externalUserAgent
