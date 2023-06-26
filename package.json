@@ -70,7 +70,10 @@
     "react-native-base64": "0.0.2"
   },
   "jest": {
-    "preset": "react-native"
+    "preset": "react-native",
+    "transformIgnorePatterns": [
+      "!node_modules/"
+    ]
   },
   "husky": {
     "hooks": {
