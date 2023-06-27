@@ -372,60 +372,56 @@ RCT_REMAP_METHOD(logout,
     UIViewController *presentingViewController = appDelegate.window.rootViewController.view.window ? appDelegate.window.rootViewController : appDelegate.window.rootViewController.presentedViewController;
     id<OIDExternalUserAgent> externalUserAgent = iosCustomBrowser != nil ? [self getCustomBrowser: iosCustomBrowser] : nil;
 
-    OIDAuthStateAuthorizationCallback callback = ^(OIDAuthState *_Nullable authState, NSError *_Nullable error) {
-                                                   typeof(self) strongSelf = weakSelf;
-                                                   strongSelf->_currentSession = nil;
-                                                   [UIApplication.sharedApplication endBackgroundTask:rnAppAuthTaskId];
-                                                   rnAppAuthTaskId = UIBackgroundTaskInvalid;
-                                                   if (authState) {
-                                                       resolve([self formatResponse:authState.lastTokenResponse
-                                                           withAuthResponse:authState.lastAuthorizationResponse]);
-                                                   } else {
-                                                       reject([self getErrorCode: error defaultCode:@"authentication_failed"],
-                                                              [self getErrorMessage: error], error);
-                                                   }
-                                               };
-
-
     if (skipCodeExchange) {
+        OIDAuthorizationCallback callback = ^(OIDAuthorizationResponse *_Nullable authorizationResponse, NSError *_Nullable error) {
+                                                           typeof(self) strongSelf = weakSelf;
+                                                           strongSelf->_currentSession = nil;
+                                                           [UIApplication.sharedApplication endBackgroundTask:rnAppAuthTaskId];
+                                                           rnAppAuthTaskId = UIBackgroundTaskInvalid;
+                                                           if (authorizationResponse) {
+                                                               resolve([self formatAuthorizationResponse:authorizationResponse withCodeVerifier:codeVerifier]);
+                                                           } else {
+                                                               reject([self getErrorCode: error defaultCode:@"authentication_failed"],
+                                                                      [self getErrorMessage: error], error);
+                                                           }
+                                                       };
 
         if(externalUserAgent != nil) {
-            _currentSession = [OIDAuthState authStateByPresentingAuthorizationRequest:request
+            _currentSession = [OIDAuthorizationService presentAuthorizationRequest:request
                                                                  externalUserAgent:externalUserAgent
                                                                           callback:callback];
         } else {
             if (@available(iOS 13, *)) {
-                _currentSession = [OIDAuthState authStateByPresentingAuthorizationRequest:request
+                _currentSession = [OIDAuthorizationService presentAuthorizationRequest:request
                                                           presentingViewController:presentingViewController
                                                            prefersEphemeralSession:prefersEphemeralSession
                                                                           callback:callback];
             } else {
-                _currentSession = [OIDAuthState authStateByPresentingAuthorizationRequest:request
+                _currentSession = [OIDAuthorizationService presentAuthorizationRequest:request
                                                           presentingViewController:presentingViewController
                                                                           callback:callback];
             }
         }
     } else {
-
+         OIDAuthStateAuthorizationCallback callback = ^(OIDAuthState *_Nullable authState,
+                                                                    NSError *_Nullable error) {
+                                                            typeof(self) strongSelf = weakSelf;
+                                                            strongSelf->_currentSession = nil;
+                                                            [UIApplication.sharedApplication endBackgroundTask:rnAppAuthTaskId];
+                                                            rnAppAuthTaskId = UIBackgroundTaskInvalid;
+                                                            if (authState) {
+                                                                resolve([self formatResponse:authState.lastTokenResponse
+                                                                    withAuthResponse:authState.lastAuthorizationResponse]);
+                                                            } else {
+                                                                reject([self getErrorCode: error defaultCode:@"authentication_failed"],
+                                                                       [self getErrorMessage: error], error);
+                                                            }
+                                                        };
         if(externalUserAgent != nil) {
             _currentSession = [OIDAuthState authStateByPresentingAuthorizationRequest:request
                                                                     externalUserAgent:externalUserAgent
                                                                              callback:callback];
         } else {
-            OIDAuthStateAuthorizationCallback callback = ^(OIDAuthState *_Nullable authState,
-                                                                NSError *_Nullable error) {
-                                                        typeof(self) strongSelf = weakSelf;
-                                                        strongSelf->_currentSession = nil;
-                                                        [UIApplication.sharedApplication endBackgroundTask:rnAppAuthTaskId];
-                                                        rnAppAuthTaskId = UIBackgroundTaskInvalid;
-                                                        if (authState) {
-                                                            resolve([self formatResponse:authState.lastTokenResponse
-                                                                withAuthResponse:authState.lastAuthorizationResponse]);
-                                                        } else {
-                                                            reject([self getErrorCode: error defaultCode:@"authentication_failed"],
-                                                                   [self getErrorMessage: error], error);
-                                                        }
-                                                    };
             if (@available(iOS 13, *)) {
                 _currentSession = [OIDAuthState authStateByPresentingAuthorizationRequest:request
                                                                  presentingViewController:presentingViewController
