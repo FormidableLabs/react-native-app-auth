@@ -10,8 +10,8 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "react": "16.13.1",
-    "react-native": "0.63.2",
+    "react": "17.0.2",
+    "react-native": "0.68.7",
     "react-native-app-auth": "link:../"
   },
   "devDependencies": {
