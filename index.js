@@ -207,7 +207,10 @@ export const authorize = ({
   customHeaders,
   additionalHeaders,
   skipCodeExchange = false,
+  iosCustomBrowser = null,
+  androidAllowCustomBrowsers = null,
   connectionTimeoutSeconds,
+  iosPrefersEphemeralSession = false,
 }) => {
   validateIssuerOrServiceConfigurationEndpoints(issuer, serviceConfiguration);
   validateClientId(clientId);
@@ -235,12 +238,15 @@ export const authorize = ({
     nativeMethodArguments.push(clientAuthMethod);
     nativeMethodArguments.push(dangerouslyAllowInsecureHttpRequests);
     nativeMethodArguments.push(customHeaders);
+    nativeMethodArguments.push(androidAllowCustomBrowsers);
   }
 
   if (Platform.OS === 'ios') {
     nativeMethodArguments.push(additionalHeaders);
     nativeMethodArguments.push(useNonce);
     nativeMethodArguments.push(usePKCE);
+    nativeMethodArguments.push(iosCustomBrowser);
+    nativeMethodArguments.push(iosPrefersEphemeralSession);
   }
 
   return RNAppAuth.authorize(...nativeMethodArguments);
@@ -259,6 +265,8 @@ export const refresh = (
     dangerouslyAllowInsecureHttpRequests = false,
     customHeaders,
     additionalHeaders,
+    iosCustomBrowser = null,
+    androidAllowCustomBrowsers = null,
     connectionTimeoutSeconds,
   },
   { refreshToken }
@@ -288,10 +296,12 @@ export const refresh = (
     nativeMethodArguments.push(clientAuthMethod);
     nativeMethodArguments.push(dangerouslyAllowInsecureHttpRequests);
     nativeMethodArguments.push(customHeaders);
+    nativeMethodArguments.push(androidAllowCustomBrowsers);
   }
 
   if (Platform.OS === 'ios') {
     nativeMethodArguments.push(additionalHeaders);
+    nativeMethodArguments.push(iosCustomBrowser);
   }
 
   return RNAppAuth.refresh(...nativeMethodArguments);
@@ -347,6 +357,9 @@ export const logout = (
     serviceConfiguration,
     additionalParameters,
     dangerouslyAllowInsecureHttpRequests = false,
+    iosCustomBrowser = null,
+    iosPrefersEphemeralSession = false,
+    androidAllowCustomBrowsers = null,
   },
   { idToken, postLogoutRedirectUrl }
 ) => {
@@ -364,6 +377,12 @@ export const logout = (
 
   if (Platform.OS === 'android') {
     nativeMethodArguments.push(dangerouslyAllowInsecureHttpRequests);
+    nativeMethodArguments.push(androidAllowCustomBrowsers);
+  }
+
+  if (Platform.OS === 'ios') {
+    nativeMethodArguments.push(iosCustomBrowser);
+    nativeMethodArguments.push(iosPrefersEphemeralSession);
   }
 
   return RNAppAuth.logout(...nativeMethodArguments);

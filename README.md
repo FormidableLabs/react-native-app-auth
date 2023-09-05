@@ -1,5 +1,6 @@
-<p align="center"><img src="https://raw.githubusercontent.com/FormidableLabs/react-native-app-auth/main/docs/react-native-app-auth-logo.png" width=224></p>
-<h2 align="center">React Native App Auth</h2>
+<a href="https://formidable.com/open-source/" target="_blank">
+  <img alt="React Native App Auth — Formidable, We build the modern web" src="https://raw.githubusercontent.com/FormidableLabs/react-native-app-auth/main/react-native-app-auth-Hero.png" />
+</a>
 <p align="center">
 <strong>React native bridge for AppAuth - an SDK for communicating with OAuth2 providers</strong>
 <br><br>
@@ -33,6 +34,7 @@ These providers are OpenID compliant, which means you can use [autodiscovery](ht
 - [Keycloak](http://www.keycloak.org/) ([Example configuration](./docs/config-examples/keycloak.md))
 - [Azure Active Directory](https://docs.microsoft.com/en-us/azure/active-directory) ([Example configuration](./docs/config-examples/azure-active-directory.md))
 - [AWS Cognito](https://eu-west-1.console.aws.amazon.com/cognito) ([Example configuration](./docs/config-examples/aws-cognito.md))
+- [Asgardeo](https://asgardeo.io) ([Example configuration](./docs/config-examples/asgardeo.md))
 
 ### Tested OAuth2 providers
 
@@ -136,6 +138,9 @@ with optional overrides.
 - **useNonce** - (`boolean`) (default: true) optionally allows not sending the nonce parameter, to support non-compliant providers
 - **usePKCE** - (`boolean`) (default: true) optionally allows not sending the code_challenge parameter and skipping PKCE code verification, to support non-compliant providers.
 - **skipCodeExchange** - (`boolean`) (default: false) just return the authorization response, instead of automatically exchanging the authorization code. This is useful if this exchange needs to be done manually (not client-side)
+- **iosCustomBrowser** - (`string`) (default: undefined) _IOS_ override the used browser for authorization, used to open an external browser. If no value is provided, the `SFAuthenticationSession` or `SFSafariViewController` are used.
+- **iosPrefersEphemeralSession** - (`boolean`) (default: `false`) _IOS_ indicates whether the session should ask the browser for a private authentication session.
+- **androidAllowCustomBrowsers** - (`string[]`) (default: undefined) _ANDROID_ override the used browser for authorization. If no value is provided, all browsers are allowed.
 - **connectionTimeoutSeconds** - (`number`) configure the request timeout interval in seconds. This must be a positive number. The default values are 60 seconds on iOS and 15 seconds on Android.
 
 #### result
@@ -351,7 +356,7 @@ Make `AppDelegate` conform to `RNAppAuthAuthorizationFlowManager` with the follo
 + @property(nonatomic, weak)id<RNAppAuthAuthorizationFlowManagerDelegate>authorizationFlowManagerDelegate;
 ```
 
-Add the following code to `AppDelegate.m` (to support iOS <= 10 and React Navigation deep linking)
+Add the following code to `AppDelegate.m` (to support iOS <= 10, React Navigation deep linking and overriding browser behavior in the authorization process)
 
 ```diff
 + - (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<NSString *, id> *) options {
@@ -469,7 +474,7 @@ Values are in the `code` field of the rejected Error object.
 - `registration_failed` - could not register
 - `browser_not_found` (Android only) - no suitable browser installed
 
-#### Note about client secrets
+## Note about client secrets
 
 Some authentication providers, including examples cited below, require you to provide a client secret. The authors of the AppAuth library
 
@@ -477,11 +482,15 @@ Some authentication providers, including examples cited below, require you to pr
 
 Having said this, in some cases using client secrets is unavoidable. In these cases, a `clientSecret` parameter can be provided to `authorize`/`refresh` calls when performing a token request.
 
-#### Token Storage
+## Token Storage
 
 Recommendations on secure token storage can be found [here](./docs/token-storage.md).
 
-#### Maintenance Status
+## Contributing
+
+Please see our [contributing guide](./.github/CONTRIBUTING.md).
+
+## Maintenance Status
 
 **Active:** Formidable is actively working on this project, and we expect to continue for work for the foreseeable future. Bug reports, feature requests and pull requests are welcome.
 

@@ -25,6 +25,7 @@ import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.ReadableType;
 
 import com.rnappauth.utils.MapUtil;
+import com.rnappauth.utils.MutableBrowserAllowList;
 import com.rnappauth.utils.UnsafeConnectionBuilder;
 import com.rnappauth.utils.RegistrationResponseFactory;
 import com.rnappauth.utils.TokenResponseFactory;
@@ -46,6 +47,9 @@ import net.openid.appauth.RegistrationResponse;
 import net.openid.appauth.ResponseTypeValues;
 import net.openid.appauth.TokenResponse;
 import net.openid.appauth.TokenRequest;
+import net.openid.appauth.browser.AnyBrowserMatcher;
+import net.openid.appauth.browser.BrowserMatcher;
+import net.openid.appauth.browser.VersionedBrowserMatcher;
 import net.openid.appauth.EndSessionRequest;
 import net.openid.appauth.EndSessionResponse;
 import net.openid.appauth.connectivity.ConnectionBuilder;
@@ -164,7 +168,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     ) {
         this.parseHeaderMap(headers);
         final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests, this.registrationRequestHeaders, connectionTimeoutMillis);
-        final AppAuthConfiguration appAuthConfiguration = this.createAppAuthConfiguration(builder, dangerouslyAllowInsecureHttpRequests);
+        final AppAuthConfiguration appAuthConfiguration = this.createAppAuthConfiguration(builder, dangerouslyAllowInsecureHttpRequests, null);
         final HashMap<String, String> additionalParametersMap = MapUtil.readableMapToHashMap(additionalParameters);
 
         // when serviceConfiguration is provided, we don't need to hit up the OpenID well-known id endpoint
@@ -233,11 +237,12 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final String clientAuthMethod,
             final boolean dangerouslyAllowInsecureHttpRequests,
             final ReadableMap headers,
+            final ReadableArray androidAllowCustomBrowsers,
             final Promise promise
     ) {
         this.parseHeaderMap(headers);
         final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests, this.authorizationRequestHeaders, connectionTimeoutMillis);
-        final AppAuthConfiguration appAuthConfiguration = this.createAppAuthConfiguration(builder, dangerouslyAllowInsecureHttpRequests);
+        final AppAuthConfiguration appAuthConfiguration = this.createAppAuthConfiguration(builder, dangerouslyAllowInsecureHttpRequests, androidAllowCustomBrowsers);
         final HashMap<String, String> additionalParametersMap = MapUtil.readableMapToHashMap(additionalParameters);
 
         // store args in private fields for later use in onActivityResult handler
@@ -325,11 +330,12 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final String clientAuthMethod,
             final boolean dangerouslyAllowInsecureHttpRequests,
             final ReadableMap headers,
+            final ReadableArray androidAllowCustomBrowsers,
             final Promise promise
     ) {
         this.parseHeaderMap(headers);
         final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests, this.tokenRequestHeaders, connectionTimeoutMillis);
-        final AppAuthConfiguration appAuthConfiguration = createAppAuthConfiguration(builder, dangerouslyAllowInsecureHttpRequests);
+        final AppAuthConfiguration appAuthConfiguration = createAppAuthConfiguration(builder, dangerouslyAllowInsecureHttpRequests, androidAllowCustomBrowsers);
         final HashMap<String, String> additionalParametersMap = MapUtil.readableMapToHashMap(additionalParameters);
 
         if (clientSecret != null) {
@@ -409,10 +415,11 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final ReadableMap serviceConfiguration,
             final ReadableMap additionalParameters,
             final boolean dangerouslyAllowInsecureHttpRequests,
+            final ReadableArray androidAllowCustomBrowsers,
             final Promise promise
     ) {
         final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests, null);
-        final AppAuthConfiguration appAuthConfiguration = this.createAppAuthConfiguration(builder, dangerouslyAllowInsecureHttpRequests);
+        final AppAuthConfiguration appAuthConfiguration = this.createAppAuthConfiguration(builder, dangerouslyAllowInsecureHttpRequests, androidAllowCustomBrowsers);
         final HashMap<String, String> additionalParametersMap = MapUtil.readableMapToHashMap(additionalParameters);
 
         this.promise = promise;
@@ -507,7 +514,8 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final Promise authorizePromise = this.promise;
             final AppAuthConfiguration configuration = createAppAuthConfiguration(
                     createConnectionBuilder(this.dangerouslyAllowInsecureHttpRequests, this.tokenRequestHeaders),
-                    this.dangerouslyAllowInsecureHttpRequests
+                    this.dangerouslyAllowInsecureHttpRequests,
+                    null
             );
 
             AuthorizationService authService = new AuthorizationService(this.reactContext, configuration);
@@ -885,10 +893,12 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
      */
     private AppAuthConfiguration createAppAuthConfiguration(
             ConnectionBuilder connectionBuilder,
-            Boolean skipIssuerHttpsCheck
+            Boolean skipIssuerHttpsCheck,
+            ReadableArray androidAllowCustomBrowsers
     ) {
         return new AppAuthConfiguration
                 .Builder()
+                .setBrowserMatcher(getBrowserAllowList(androidAllowCustomBrowsers))
                 .setConnectionBuilder(connectionBuilder)
                 .setSkipIssuerHttpsCheck(skipIssuerHttpsCheck)
                 .build();
@@ -1017,6 +1027,50 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         if (issuer != null) {
             mServiceConfigurations.put(issuer, serviceConfiguration);
         }
+    }
+
+    private BrowserMatcher getBrowserAllowList(ReadableArray androidAllowCustomBrowsers) {
+        if(androidAllowCustomBrowsers == null || androidAllowCustomBrowsers.size() == 0) {
+            return AnyBrowserMatcher.INSTANCE;
+        }
+
+        MutableBrowserAllowList browserMatchers = new MutableBrowserAllowList();
+
+        for(int i = 0; i < androidAllowCustomBrowsers.size(); i++) {
+            String browser = androidAllowCustomBrowsers.getString(i);
+
+            if(browser == null) {
+                continue;
+            }
+
+            switch (browser) {
+                case "chrome": {
+                    browserMatchers.add(VersionedBrowserMatcher.CHROME_BROWSER);
+                    break;
+                }
+                case "chromeCustomTab": {
+                    browserMatchers.add(VersionedBrowserMatcher.CHROME_CUSTOM_TAB);
+                    break;
+                }
+                case "firefox": {
+                    browserMatchers.add(VersionedBrowserMatcher.FIREFOX_BROWSER);
+                    break;
+                }
+                case "firefoxCustomTab": {
+                    browserMatchers.add(VersionedBrowserMatcher.FIREFOX_CUSTOM_TAB);
+                    break;
+                }
+                case "samsung": {
+                    browserMatchers.add(VersionedBrowserMatcher.SAMSUNG_BROWSER);
+                    break;
+                }
+                case "samsungCustomTab": {
+                    browserMatchers.add(VersionedBrowserMatcher.SAMSUNG_CUSTOM_TAB);
+                    break;
+                }
+            }
+        }
+        return browserMatchers;
     }
 
     @Override
