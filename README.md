@@ -473,7 +473,7 @@ Values are in the `code` field of the rejected Error object.
 - `registration_failed` - could not register
 - `browser_not_found` (Android only) - no suitable browser installed
 
-#### Note about client secrets
+## Note about client secrets
 
 Some authentication providers, including examples cited below, require you to provide a client secret. The authors of the AppAuth library
 
@@ -481,11 +481,15 @@ Some authentication providers, including examples cited below, require you to pr
 
 Having said this, in some cases using client secrets is unavoidable. In these cases, a `clientSecret` parameter can be provided to `authorize`/`refresh` calls when performing a token request.
 
-#### Token Storage
+## Token Storage
 
 Recommendations on secure token storage can be found [here](./docs/token-storage.md).
 
-#### Maintenance Status
+## Contributing
+
+Please see our [contributing guide](./.github/CONTRIBUTING.md).
+
+## Maintenance Status
 
 **Active:** Formidable is actively working on this project, and we expect to continue for work for the foreseeable future. Bug reports, feature requests and pull requests are welcome.
 
