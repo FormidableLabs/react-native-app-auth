@@ -34,6 +34,7 @@ These providers are OpenID compliant, which means you can use [autodiscovery](ht
 - [Keycloak](http://www.keycloak.org/) ([Example configuration](./docs/config-examples/keycloak.md))
 - [Azure Active Directory](https://docs.microsoft.com/en-us/azure/active-directory) ([Example configuration](./docs/config-examples/azure-active-directory.md))
 - [AWS Cognito](https://eu-west-1.console.aws.amazon.com/cognito) ([Example configuration](./docs/config-examples/aws-cognito.md))
+- [Asgardeo](https://asgardeo.io) ([Example configuration](./docs/config-examples/asgardeo.md))
 
 ### Tested OAuth2 providers
 
