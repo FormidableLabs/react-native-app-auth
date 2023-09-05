@@ -410,7 +410,7 @@ class AppDelegate: UIApplicationDelegate, RNAppAuthAuthorizationFlowManager { //
       _ app: UIApplication,
       open url: URL,
       options: [UIApplicationOpenURLOptionsKey: Any] = [:]) -> Bool {
-      return authorizationFlowManagerDelegate?.resumeExternalUserAgentFlowWithURL(with: url) ?? false
+      return authorizationFlowManagerDelegate?.resumeExternalUserAgentFlow(with: url) ?? false
   }
 }
 ```
