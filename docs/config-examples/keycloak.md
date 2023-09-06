@@ -8,7 +8,7 @@ If you use [JHipster](http://www.jhipster.tech/)'s default Keycloak Docker image
 const config = {
   issuer: 'http://localhost:9080/auth/realms/jhipster',
   clientId: 'web_app',
-  redirectUrl: '<YOUR_REDIRECT_SCHEME>:/callback'
+  redirectUrl: '<YOUR_REDIRECT_SCHEME>:/callback',
   scopes: ['openid', 'profile']
 };
 
