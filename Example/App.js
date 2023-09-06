@@ -18,16 +18,16 @@ import {
 
 const configs = {
   identityserver: {
-    issuer: 'https://demo.identityserver.io',
+    issuer: 'https://demo.duendesoftware.com',
     clientId: 'interactive.public',
     redirectUrl: 'io.identityserver.demo:/oauthredirect',
     additionalParameters: {},
     scopes: ['openid', 'profile', 'email', 'offline_access'],
 
     // serviceConfiguration: {
-    //   authorizationEndpoint: 'https://demo.identityserver.io/connect/authorize',
-    //   tokenEndpoint: 'https://demo.identityserver.io/connect/token',
-    //   revocationEndpoint: 'https://demo.identityserver.io/connect/revoke'
+    //   authorizationEndpoint: 'https://demo.duendesoftware.com/connect/authorize',
+    //   tokenEndpoint: 'https://demo.duendesoftware.com/connect/token',
+    //   revocationEndpoint: 'https://demo.duendesoftware.com/connect/revoke'
     // }
   },
   auth0: {
@@ -71,6 +71,7 @@ const App = () => {
         const newAuthState = await authorize({
           ...config,
           connectionTimeoutSeconds: 5,
+          iosPrefersEphemeralSession: true
         });
 
         setAuthState({
