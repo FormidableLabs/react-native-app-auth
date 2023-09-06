@@ -1,5 +1,5 @@
 import React, {useState, useCallback, useMemo} from 'react';
-import {UIManager, Alert} from 'react-native';
+import {Alert} from 'react-native';
 import {
   authorize,
   refresh,
@@ -64,27 +64,24 @@ const App = () => {
     });
   }, []);
 
-  const handleAuthorize = useCallback(
-    async provider => {
-      try {
-        const config = configs[provider];
-        const newAuthState = await authorize({
-          ...config,
-          connectionTimeoutSeconds: 5,
-          iosPrefersEphemeralSession: true
-        });
+  const handleAuthorize = useCallback(async provider => {
+    try {
+      const config = configs[provider];
+      const newAuthState = await authorize({
+        ...config,
+        connectionTimeoutSeconds: 5,
+        iosPrefersEphemeralSession: true,
+      });
 
-        setAuthState({
-          hasLoggedInOnce: true,
-          provider: provider,
-          ...newAuthState,
-        });
-      } catch (error) {
-        Alert.alert('Failed to log in', error.message);
-      }
-    },
-    [authState],
-  );
+      setAuthState({
+        hasLoggedInOnce: true,
+        provider: provider,
+        ...newAuthState,
+      });
+    } catch (error) {
+      Alert.alert('Failed to log in', error.message);
+    }
+  }, []);
 
   const handleRefresh = useCallback(async () => {
     try {
