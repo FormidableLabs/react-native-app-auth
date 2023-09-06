@@ -100,7 +100,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final ReadableArray scopes,
             final ReadableMap serviceConfiguration,
             final boolean dangerouslyAllowInsecureHttpRequests,
-            final ReadableMap headers,
+            final ReadableMap customHeaders,
             final Double connectionTimeoutMillis,
             final Promise promise
     ) {
@@ -108,7 +108,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             warmChromeCustomTab(reactContext, issuer);
         }
 
-        this.parseHeaderMap(headers);
+        this.parseHeaderMap(customHeaders);
         final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests, this.authorizationRequestHeaders, connectionTimeoutMillis);
         final CountDownLatch fetchConfigurationLatch = new CountDownLatch(1);
 
@@ -165,10 +165,10 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final ReadableMap serviceConfiguration,
             final Double connectionTimeoutMillis,
             final boolean dangerouslyAllowInsecureHttpRequests,
-            final ReadableMap headers,
+            final ReadableMap customHeaders,
             final Promise promise
     ) {
-        this.parseHeaderMap(headers);
+        this.parseHeaderMap(customHeaders);
         final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests, this.registrationRequestHeaders, connectionTimeoutMillis);
         final AppAuthConfiguration appAuthConfiguration = this.createAppAuthConfiguration(builder, dangerouslyAllowInsecureHttpRequests, null);
         final HashMap<String, String> additionalParametersMap = MapUtil.readableMapToHashMap(additionalParameters);
@@ -238,11 +238,11 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final Boolean usePKCE,
             final String clientAuthMethod,
             final boolean dangerouslyAllowInsecureHttpRequests,
-            final ReadableMap headers,
+            final ReadableMap customHeaders,
             final ReadableArray androidAllowCustomBrowsers,
             final Promise promise
     ) {
-        this.parseHeaderMap(headers);
+        this.parseHeaderMap(customHeaders);
         final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests, this.authorizationRequestHeaders, connectionTimeoutMillis);
         final AppAuthConfiguration appAuthConfiguration = this.createAppAuthConfiguration(builder, dangerouslyAllowInsecureHttpRequests, androidAllowCustomBrowsers);
         final HashMap<String, String> additionalParametersMap = MapUtil.readableMapToHashMap(additionalParameters);
@@ -331,11 +331,11 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final Double connectionTimeoutMillis,
             final String clientAuthMethod,
             final boolean dangerouslyAllowInsecureHttpRequests,
-            final ReadableMap headers,
+            final ReadableMap customHeaders,
             final ReadableArray androidAllowCustomBrowsers,
             final Promise promise
     ) {
-        this.parseHeaderMap(headers);
+        this.parseHeaderMap(customHeaders);
         final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests, this.tokenRequestHeaders, connectionTimeoutMillis);
         final AppAuthConfiguration appAuthConfiguration = createAppAuthConfiguration(builder, dangerouslyAllowInsecureHttpRequests, androidAllowCustomBrowsers);
         final HashMap<String, String> additionalParametersMap = MapUtil.readableMapToHashMap(additionalParameters);
