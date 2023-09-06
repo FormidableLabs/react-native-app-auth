@@ -46,8 +46,8 @@ RCT_REMAP_METHOD(register,
                  subjectType: (NSString *) subjectType
                  tokenEndpointAuthMethod: (NSString *) tokenEndpointAuthMethod
                  additionalParameters: (NSDictionary *_Nullable) additionalParameters
-                 connectionTimeoutSeconds: (double) connectionTimeoutSeconds
                  serviceConfiguration: (NSDictionary *_Nullable) serviceConfiguration
+                 connectionTimeoutSeconds: (double) connectionTimeoutSeconds
                  additionalHeaders: (NSDictionary *_Nullable) additionalHeaders
                  resolve: (RCTPromiseResolveBlock) resolve
                  reject: (RCTPromiseRejectBlock)  reject)
