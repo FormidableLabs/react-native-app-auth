@@ -21,7 +21,7 @@ This library _should_ support any OAuth provider that implements the
 
 We only support the [Authorization Code Flow](https://oauth.net/2/grant-types/authorization-code/).
 
-### Tested OpenID providers
+## Tested OpenID providers
 
 These providers are OpenID compliant, which means you can use [autodiscovery](https://openid.net/specs/openid-connect-discovery-1_0.html).
 
@@ -36,7 +36,7 @@ These providers are OpenID compliant, which means you can use [autodiscovery](ht
 - [AWS Cognito](https://eu-west-1.console.aws.amazon.com/cognito) ([Example configuration](./docs/config-examples/aws-cognito.md))
 - [Asgardeo](https://asgardeo.io) ([Example configuration](./docs/config-examples/asgardeo.md))
 
-### Tested OAuth2 providers
+## Tested OAuth2 providers
 
 These providers implement the OAuth2 spec, but are not OpenID providers, which means you must configure the authorization and token endpoints yourself.
 
@@ -262,8 +262,13 @@ This is the result from the auth server
 ## Getting started
 
 ```sh
+yarn add react-native-app-auth
+```
+Or
+```sh
 npm install react-native-app-auth --save
 ```
+
 
 ## Setup
 
@@ -275,7 +280,7 @@ To setup the iOS project, you need to perform three steps:
 2. [Register redirect URL scheme](#register-redirect-url-scheme)
 3. [Define openURL callback in AppDelegate](#define-openurl-callback-in-appdelegate)
 
-##### Install native dependencies
+#### Install native dependencies
 
 This library depends on the native [AppAuth-ios](https://github.com/openid/AppAuth-iOS) project. To
 keep the React Native library agnostic of your dependency management method, the native libraries
@@ -314,7 +319,7 @@ AppAuth supports three options for dependency management.
     4. Add `AppAuth-iOS/Source` to your search paths of your target ("Build Settings -> "Header Search
        Paths").
 
-##### Register redirect URL scheme
+#### Register redirect URL scheme
 
 If you intend to support iOS 10 and older, you need to define the supported redirect URL schemes in
 your `Info.plist` as follows:
@@ -338,7 +343,7 @@ your `Info.plist` as follows:
   beginning of your OAuth Redirect URL, up to the scheme separator (`:`) character. E.g. if your redirect uri
   is `com.myapp://oauth`, then the url scheme will is `com.myapp`.
 
-##### Define openURL callback in AppDelegate
+#### Define openURL callback in AppDelegate
 
 You need to retain the auth session, in order to continue the
 authorization flow from the redirect. Follow these steps:
@@ -346,6 +351,54 @@ authorization flow from the redirect. Follow these steps:
 `RNAppAuth` will call on the given app's delegate via `[UIApplication sharedApplication].delegate`.
 Furthermore, `RNAppAuth` expects the delegate instance to conform to the protocol `RNAppAuthAuthorizationFlowManager`.
 Make `AppDelegate` conform to `RNAppAuthAuthorizationFlowManager` with the following changes to `AppDelegate.h`:
+
+##### For react-native >= 0.68
+Example setup can be see in the [Example app](./Example/ios)
+
+```diff
++ #import <React/RCTLinkingManager.h>
++ #import "RNAppAuthAuthorizationFlowManager.h"
+
+- @interface AppDelegate : RCTAppDelegate
++ @interface AppDelegate : RCTAppDelegate <RNAppAuthAuthorizationFlowManager>
+
++ @property(nonatomic, weak) id<RNAppAuthAuthorizationFlowManagerDelegate> authorizationFlowManagerDelegate;
+```
+
+Add the following code to `AppDelegate.mm` to support React Navigation deep linking and overriding browser behavior in the authorization process
+
+```diff
++ - (BOOL) application: (UIApplication *)application
++              openURL: (NSURL *)url
++              options: (NSDictionary<UIApplicationOpenURLOptionsKey, id> *) options
++ {
++   if ([self.authorizationFlowManagerDelegate resumeExternalUserAgentFlowWithURL:url]) {
++     return YES;
++   }
++   return [RCTLinkingManager application:application openURL:url options:options];
++ }
+```
+
+If you want to support universal links, add the following to `AppDelegate.mm` under `continueUserActivity`
+
+```diff
++ - (BOOL) application: (UIApplication *) application
++ continueUserActivity: (nonnull NSUserActivity *)userActivity
++   restorationHandler: (nonnull void (^)(NSArray<id<UIUserActivityRestoring>> * _Nullable))restorationHandler
++ {
++   if ([userActivity.activityType isEqualToString:NSUserActivityTypeBrowsingWeb]) {
++     if (self.authorizationFlowManagerDelegate) {
++       BOOL resumableAuth = [self.authorizationFlowManagerDelegate resumeExternalUserAgentFlowWithURL:userActivity.webpageURL];
++       if (resumableAuth) {
++         return YES;
++       }
++     }
++   }
++   return [RCTLinkingManager application:application continueUserActivity:userActivity restorationHandler:restorationHandler];
++ }
+```
+
+##### For react-native < 0.68
 
 ```diff
 + #import "RNAppAuthAuthorizationFlowManager.h"
