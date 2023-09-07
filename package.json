@@ -1,6 +1,6 @@
 {
   "name": "react-native-app-auth",
-  "version": "7.0.0-rc2",
+  "version": "7.0.0",
   "description": "React Native bridge for AppAuth for supporting any OAuth 2 provider",
   "main": "index.js",
   "types": "index.d.ts",
