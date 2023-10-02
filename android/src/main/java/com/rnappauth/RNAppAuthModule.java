@@ -240,6 +240,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final boolean dangerouslyAllowInsecureHttpRequests,
             final ReadableMap customHeaders,
             final ReadableArray androidAllowCustomBrowsers,
+            final boolean androidTrustedWebActivity,
             final Promise promise
     ) {
         this.parseHeaderMap(customHeaders);
@@ -269,7 +270,8 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                         redirectUrl,
                         useNonce,
                         usePKCE,
-                        additionalParametersMap
+                        additionalParametersMap,
+                        androidTrustedWebActivity
                 );
             } catch (ActivityNotFoundException e) {
                 promise.reject("browser_not_found", e.getMessage());
@@ -300,7 +302,8 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                         redirectUrl,
                                         useNonce,
                                         usePKCE,
-                                        additionalParametersMap
+                                        additionalParametersMap,
+                                        androidTrustedWebActivity
                                 );
                             } catch (ActivityNotFoundException e) {
                                 promise.reject("browser_not_found", e.getMessage());
@@ -642,7 +645,8 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final String redirectUrl,
             final Boolean useNonce,
             final Boolean usePKCE,
-            final Map<String, String> additionalParametersMap
+            final Map<String, String> additionalParametersMap,
+            final Boolean androidTrustedWebActivity
     ) {
 
         String scopesString = null;
@@ -717,7 +721,10 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
             CustomTabsIntent.Builder intentBuilder = authService.createCustomTabsIntentBuilder();
             CustomTabsIntent customTabsIntent = intentBuilder.build();
-            customTabsIntent.intent.putExtra(TrustedWebUtils.EXTRA_LAUNCH_AS_TRUSTED_WEB_ACTIVITY, true);
+
+            if (androidTrustedWebActivity) {
+                customTabsIntent.intent.putExtra(TrustedWebUtils.EXTRA_LAUNCH_AS_TRUSTED_WEB_ACTIVITY, true);
+            }
 
             Intent authIntent = authService.getAuthorizationRequestIntent(authRequest, customTabsIntent);
 
