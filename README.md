@@ -141,6 +141,7 @@ with optional overrides.
 - **iosCustomBrowser** - (`string`) (default: undefined) _IOS_ override the used browser for authorization, used to open an external browser. If no value is provided, the `SFAuthenticationSession` or `SFSafariViewController` are used.
 - **iosPrefersEphemeralSession** - (`boolean`) (default: `false`) _IOS_ indicates whether the session should ask the browser for a private authentication session.
 - **androidAllowCustomBrowsers** - (`string[]`) (default: undefined) _ANDROID_ override the used browser for authorization. If no value is provided, all browsers are allowed.
+- **androidTrustedWebActivity** - (`boolean`) (default: false) _ANDROID_ Use [`EXTRA_LAUNCH_AS_TRUSTED_WEB_ACTIVITY`](https://developer.chrome.com/docs/android/trusted-web-activity/) when opening web view.
 - **connectionTimeoutSeconds** - (`number`) configure the request timeout interval in seconds. This must be a positive number. The default values are 60 seconds on iOS and 15 seconds on Android.
 
 #### result
