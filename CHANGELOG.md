@@ -1,5 +1,11 @@
 # react-native-app-auth
 
+## 7.1.0
+
+### Minor Changes
+
+- Added `androidTrustedWebActivity` config to opt-in to EXTRA_LAUNCH_AS_TRUSTED_WEB_ACTIVITY ([#908](https://github.com/FormidableLabs/react-native-app-auth/pull/908))
+
 ## 7.0.0
 
 ### Minor Changes
