@@ -47,6 +47,7 @@
     "react-native": ">=0.63.0"
   },
   "devDependencies": {
+    "@expo/config-plugins": "^7.2.5",
     "@svitejs/changesets-changelog-github-compact": "^0.1.1",
     "babel-eslint": "10.0.3",
     "eslint": "6.8.0",

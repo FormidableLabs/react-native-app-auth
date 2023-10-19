@@ -434,6 +434,19 @@ If you want to support universal links, add the following to `AppDelegate.m` und
 + }
 ```
 
+##### For Expo projects
+
+Add the following line to your [config plugins declaration](https://docs.expo.dev/config-plugins/introduction/) in the
+`app.json` file at the root of the Expo project (can be `app.config.js` or `app.config.ts` if you are using dynamic config):
+
+```json
+{
+  "expo": {
+    "plugins": ["react-native-app-auth/plugin"]
+  }
+}
+```
+
 #### Integration of the library with a Swift iOS project
 
 The approach mentioned should work with Swift. In this case one should make `AppDelegate` conform to `RNAppAuthAuthorizationFlowManager`. Note that this is not tested/guaranteed by the maintainers.
