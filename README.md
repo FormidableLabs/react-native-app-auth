@@ -35,6 +35,7 @@ These providers are OpenID compliant, which means you can use [autodiscovery](ht
 - [Azure Active Directory](https://docs.microsoft.com/en-us/azure/active-directory) ([Example configuration](./docs/config-examples/azure-active-directory.md))
 - [AWS Cognito](https://eu-west-1.console.aws.amazon.com/cognito) ([Example configuration](./docs/config-examples/aws-cognito.md))
 - [Asgardeo](https://asgardeo.io) ([Example configuration](./docs/config-examples/asgardeo.md))
+- [Microsoft](https://learn.microsoft.com/en-us/entra/identity-platform/v2-protocols-oidc) ([Example configuration](./docs/config-examples/microsoft.md))
 
 ## Tested OAuth2 providers
 
