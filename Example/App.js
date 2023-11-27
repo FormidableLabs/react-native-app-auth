@@ -31,18 +31,30 @@ const configs = {
     // }
   },
   auth0: {
-    // From https://openidconnect.net/
-    issuer: 'https://samples.auth0.com',
-    clientId: 'kbyuFDidLLm280LIwVFiazOqjO3ty8KH',
-    redirectUrl: 'https://openidconnect.net/callback',
-    additionalParameters: {},
-    scopes: ['openid', 'profile', 'email', 'phone', 'address'],
+    issuer: 'https://demo.duendesoftware.com',
 
-    // serviceConfiguration: {
-    //   authorizationEndpoint: 'https://samples.auth0.com/authorize',
-    //   tokenEndpoint: 'https://samples.auth0.com/oauth/token',
-    //   revocationEndpoint: 'https://samples.auth0.com/oauth/revoke'
-    // }
+    clientId: '23RFP5',
+    clientSecret: '3c72a622ee8c73cc24caa063fdf3567f',
+    redirectUrl: 'http://localhost',
+    scopes: [
+      'activity',
+      'heartrate',
+      'location',
+      'nutrition',
+      'oxygen_saturation',
+      'profile',
+      'respiratory_rate',
+      'settings',
+      'sleep',
+      'social',
+      'temperature',
+      'weight',
+    ],
+    serviceConfiguration: {
+      authorizationEndpoint: 'https://www.fitbit.com/oauth2/authorize',
+      tokenEndpoint: 'https://api.fitbit.com/oauth2/token',
+      revocationEndpoint: 'https://api.fitbit.com/oauth2/revoke',
+    },
   },
 };
 
