@@ -1035,7 +1035,12 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         if (ex.getLocalizedMessage() == null) {
             promise.reject(fallbackErrorCode, ex.error, ex);
         } else {
-            promise.reject(ex.error != null ? ex.error: fallbackErrorCode, ex.getLocalizedMessage(), ex);
+          String message = ex.getLocalizedMessage();
+          if(ex.getCause() != null) {
+            message += " - Cause: " + ex.getCause().getLocalizedMessage();
+          }
+
+          promise.reject(ex.error != null ? ex.error: fallbackErrorCode, message, ex);
         }
     }
 
