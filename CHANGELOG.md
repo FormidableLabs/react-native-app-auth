@@ -1,5 +1,11 @@
 # react-native-app-auth
 
+## 7.1.1
+
+### Patch Changes
+
+- Fix Android crash with NullPointerException ([`a437123`](https://github.com/FormidableLabs/react-native-app-auth/commit/a4371235f37894e2aede6645efef95cf26e4143f))
+
 ## 7.1.0
 
 ### Minor Changes
