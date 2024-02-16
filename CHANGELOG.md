@@ -1,5 +1,11 @@
 # react-native-app-auth
 
+## 7.1.2
+
+### Patch Changes
+
+- Fix iosCustomBrowser not exchanging token ([`cb3b70a`](https://github.com/FormidableLabs/react-native-app-auth/commit/cb3b70a24cc02f46c72805a933ece66726e72213))
+
 ## 7.1.1
 
 ### Patch Changes
