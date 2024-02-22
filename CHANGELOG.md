@@ -1,5 +1,11 @@
 # react-native-app-auth
 
+## 7.1.3
+
+### Patch Changes
+
+- Moves '@changesets/cli' from dependencies to devDependencies, so that it isn't downloaded for react-native-app-auth package users ([#945](https://github.com/FormidableLabs/react-native-app-auth/pull/945))
+
 ## 7.1.2
 
 ### Patch Changes
