@@ -1,8 +1,8 @@
 # Keycloak
 
-Keycloak [does not specify a revocation endpoint](http://keycloak-user.88327.x6.nabble.com/keycloak-user-Revoking-an-OAuth-Token-td3041.html) so revoke functionality doesn't work.
+Keycloak versions [prior to May 2020](https://github.com/keycloak/keycloak/pull/7106) do not specify a revocation endpoint so revoke functionality doesn't work. If you require the ability to call `revoke` you'll need to ensure you're on a modern version of Keycloak.
 
-If you use [JHipster](http://www.jhipster.tech/)'s default Keycloak Docker image, everything will work with the following settings, except for revoke.
+If you use [JHipster](http://www.jhipster.tech/)'s default Keycloak Docker image, everything will work with the following settings.
 
 ```js
 const config = {
