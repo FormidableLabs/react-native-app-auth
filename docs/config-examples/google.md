@@ -23,3 +23,8 @@ await revoke(config, {
   tokenToRevoke: refreshedState.refreshToken
 });
 ```
+
+
+### Note for Android
+- You need to check custom URI scheme under APIs & Services -> Credentials -> OAuth 2.0 Client IDs -> Your Client Name -> Advanced Settings
+- It may take 5 minutes to a few hours for settings to take effect.
