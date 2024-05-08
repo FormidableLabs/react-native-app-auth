@@ -474,6 +474,7 @@ class AppDelegate: UIApplicationDelegate, RNAppAuthAuthorizationFlowManager { //
 
 **Note:** for RN >= 0.57, you will get a warning about compile being obsolete. To get rid of this warning, use [patch-package](https://github.com/ds300/patch-package) to replace compile with implementation [as in this PR](https://github.com/FormidableLabs/react-native-app-auth/pull/242) - we're not deploying this right now, because it would break the build for RN < 57.
 
+#### Add redirect scheme
 To setup the Android project, you need to add redirect scheme manifest placeholder:
 
 To [capture the authorization redirect](https://github.com/openid/AppAuth-android#capturing-the-authorization-redirect),
@@ -493,6 +494,36 @@ The scheme is the beginning of your OAuth Redirect URL, up to the scheme separat
 is `com.myapp://oauth`, then the url scheme will is `com.myapp`. The scheme must be in lowercase.
 
 NOTE: When integrating with [React Navigation deep linking](https://reactnavigation.org/docs/deep-linking/#set-up-with-bare-react-native-projects), be sure to make this scheme (and the scheme in the config's redirectUrl) unique from the scheme defined in the deep linking intent-filter. E.g. if the scheme in your intent-filter is set to `com.myapp`, then update the above scheme/redirectUrl to be `com.myapp.auth` [as seen here](https://github.com/FormidableLabs/react-native-app-auth/issues/494#issuecomment-797394994).
+
+#### Allow permission to access the network state
+You need to add the `ACCESS_NETWORK_STATE` permission to your `AndroidManifest.xml` file. Here's how you can do it:
+
+1. Open your `AndroidManifest.xml` file located in the `android/app/src/main` directory of your React Native project. 
+2. Add the following line inside the `<manifest>` element, just before the `<application>` element:
+
+```xml
+<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+```
+Your manifest should look something like this:
+
+```xml
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.yourpackagename">
+
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+
+    <application
+        android:name=".MainApplication"
+        android:label="@string/app_name"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:allowBackup="false"
+        android:theme="@style/AppTheme">
+        ...
+    </application>
+</manifest>
+```
 
 ## Usage
 
@@ -526,6 +557,7 @@ Values are in the `code` field of the rejected Error object.
 - `service_configuration_fetch_error` - could not fetch the service configuration
 - `authentication_failed` - user authentication failed
 - `token_refresh_failed` - could not exchange the refresh token for a new JWT
+- `network_error` (Android only) - unable to connect to internet
 - `registration_failed` - could not register
 - `browser_not_found` (Android only) - no suitable browser installed
 

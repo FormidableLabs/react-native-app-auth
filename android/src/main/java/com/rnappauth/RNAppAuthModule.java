@@ -5,6 +5,8 @@ import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.content.ActivityNotFoundException;
@@ -174,6 +176,13 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                 dangerouslyAllowInsecureHttpRequests, null);
         final HashMap<String, String> additionalParametersMap = MapUtil.readableMapToHashMap(additionalParameters);
 
+        // Check if the device is connected to a network
+        if (!isNetworkConnected()) {
+            // If not connected, reject the promise with a network_error status and message
+            promise.reject("network_error", "No network connectivity");
+            return;
+        }
+
         // when serviceConfiguration is provided, we don't need to hit up the OpenID
         // well-known id endpoint
         if (serviceConfiguration != null || hasServiceConfiguration(issuer)) {
@@ -250,6 +259,13 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         final AppAuthConfiguration appAuthConfiguration = this.createAppAuthConfiguration(builder,
                 dangerouslyAllowInsecureHttpRequests, androidAllowCustomBrowsers);
         final HashMap<String, String> additionalParametersMap = MapUtil.readableMapToHashMap(additionalParameters);
+
+        // Check if the device is connected to a network
+        if (!isNetworkConnected()) {
+            // If not connected, reject the promise with a network_error status and message
+            promise.reject("network_error", "No network connectivity");
+            return;
+        }
 
         // store args in private fields for later use in onActivityResult handler
         this.promise = promise;
@@ -352,6 +368,13 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         this.dangerouslyAllowInsecureHttpRequests = dangerouslyAllowInsecureHttpRequests;
         this.additionalParametersMap = additionalParametersMap;
 
+        // Check if the device is connected to a network
+        if (!isNetworkConnected()) {
+            // If not connected, reject the promise with a network_error status and message
+            promise.reject("network_error", "No network connectivity");
+            return;
+        }
+
         // when serviceConfiguration is provided, we don't need to hit up the OpenID
         // well-known id endpoint
         if (serviceConfiguration != null || hasServiceConfiguration(issuer)) {
@@ -428,6 +451,13 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         final AppAuthConfiguration appAuthConfiguration = this.createAppAuthConfiguration(builder,
                 dangerouslyAllowInsecureHttpRequests, androidAllowCustomBrowsers);
         final HashMap<String, String> additionalParametersMap = MapUtil.readableMapToHashMap(additionalParameters);
+
+        // Check if the device is connected to a network
+        if (!isNetworkConnected()) {
+            // If not connected, reject the promise with a network_error status and message
+            promise.reject("network_error", "No network connectivity");
+            return;
+        }
 
         this.promise = promise;
 
@@ -588,6 +618,22 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             throw e;
         }
     }
+    }
+
+    /**
+     * Checks if the device is currently connected to a network.
+     *
+     * @return true if the device is connected to a network, false otherwise.
+     */
+    private boolean isNetworkConnected() {
+        // Get the ConnectivityManager service from the context
+        ConnectivityManager connectivityManager = (ConnectivityManager) getReactApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        
+        // Get the active network information
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+        
+        // Return true if the networkInfo is not null and the device is connected to a network, false otherwise
+        return networkInfo != null && networkInfo.isConnected();
     }
 
     /*
