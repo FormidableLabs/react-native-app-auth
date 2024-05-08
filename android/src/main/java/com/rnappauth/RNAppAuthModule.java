@@ -452,6 +452,8 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                 dangerouslyAllowInsecureHttpRequests, androidAllowCustomBrowsers);
         final HashMap<String, String> additionalParametersMap = MapUtil.readableMapToHashMap(additionalParameters);
 
+        this.promise = promise;
+
         // Check if the device is connected to a network
         if (!isNetworkConnected()) {
             // If not connected, reject the promise with a network_error status and message
@@ -459,7 +461,6 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             return;
         }
 
-        this.promise = promise;
 
         if (serviceConfiguration != null || hasServiceConfiguration(issuer)) {
             try {
