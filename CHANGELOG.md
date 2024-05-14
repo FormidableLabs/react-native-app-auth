@@ -1,5 +1,11 @@
 # react-native-app-auth
 
+## 7.2.0
+
+### Minor Changes
+
+- Updated the minimum version of AppAuth-iOS to 1.7.3 to meet the package's requirement, which includes the necessary privacy manifest. ([#971](https://github.com/FormidableLabs/react-native-app-auth/pull/971))
+
 ## 7.1.3
 
 ### Patch Changes
