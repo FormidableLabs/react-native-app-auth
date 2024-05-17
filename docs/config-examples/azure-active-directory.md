@@ -56,3 +56,5 @@ const refreshedState = await refresh(config, {
 ```
 
 **Important** When you add your app in the azure portal and are given a `redirectUrl` to use, make sure you add a trailing slash when you add it to your config - e.g. `msauth.BUNDLEID://auth/` - failure to add that causes it to fail in IOS.
+
+**Logout:** To properly implement the `logout` functionality, please refer to the necessary requirements outlined in [this comment](https://github.com/FormidableLabs/react-native-app-auth/issues/715#issuecomment-1057444218).
