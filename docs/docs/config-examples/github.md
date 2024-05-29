@@ -10,13 +10,12 @@ const config = {
   clientId: '<client-id>',
   clientSecret: '<client-secret>',
   scopes: ['identity'],
-  additionalHeaders: { 'Accept': 'application/json' },
+  additionalHeaders: { Accept: 'application/json' },
   serviceConfiguration: {
     authorizationEndpoint: 'https://github.com/login/oauth/authorize',
     tokenEndpoint: 'https://github.com/login/oauth/access_token',
-    revocationEndpoint:
-      'https://github.com/settings/connections/applications/<client-id>'
-  }
+    revocationEndpoint: 'https://github.com/settings/connections/applications/<client-id>',
+  },
 };
 
 // Log in to get an authentication token

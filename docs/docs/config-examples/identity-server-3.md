@@ -10,7 +10,7 @@ const config = {
   clientId: 'your-client-id',
   clientSecret: 'your-client-secret',
   redirectUrl: 'com.your.app.name:/oauthredirect',
-  scopes: ['openid', 'profile', 'offline_access']
+  scopes: ['openid', 'profile', 'offline_access'],
 };
 
 // Log in to get an authentication token
@@ -24,7 +24,7 @@ const refreshedState = await refresh(config, {
 // Revoke token, note that Identity Server expects a client id on revoke
 await revoke(config, {
   tokenToRevoke: refreshedState.refreshToken,
-  sendClientId: true
+  sendClientId: true,
 });
 ```
 

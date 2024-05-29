@@ -9,7 +9,7 @@ const config = {
   issuer: 'http://localhost:9080/auth/realms/jhipster',
   clientId: 'web_app',
   redirectUrl: '<YOUR_REDIRECT_SCHEME>:/callback',
-  scopes: ['openid', 'profile']
+  scopes: ['openid', 'profile'],
 };
 
 // Log in to get an authentication token

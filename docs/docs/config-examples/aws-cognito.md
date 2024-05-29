@@ -18,8 +18,8 @@ const config = {
   serviceConfiguration: {
     authorizationEndpoint: '<YOUR_DOMAIN_NAME>/oauth2/authorize',
     tokenEndpoint: '<YOUR_DOMAIN_NAME>/oauth2/token',
-    revocationEndpoint: '<YOUR_DOMAIN_NAME>/oauth2/revoke'
-  }
+    revocationEndpoint: '<YOUR_DOMAIN_NAME>/oauth2/revoke',
+  },
 };
 
 // Log in to get an authentication token
@@ -32,6 +32,6 @@ const refreshedState = await refresh(config, {
 
 // Revoke token
 await revoke(config, {
-  tokenToRevoke: refreshedState.refreshToken
+  tokenToRevoke: refreshedState.refreshToken,
 });
 ```

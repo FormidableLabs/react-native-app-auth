@@ -4,8 +4,8 @@ Uber provides an OAuth 2.0 endpoint for logging in with a Uber user's credential
 
 Please note:
 
-* Uber does not provide a OIDC discovery endpoint, so `serviceConfiguration` is used instead.
-* Uber OAuth requires a [client secret](#note-about-client-secrets).
+- Uber does not provide a OIDC discovery endpoint, so `serviceConfiguration` is used instead.
+- Uber OAuth requires a [client secret](#note-about-client-secrets).
 
 ```js
 const config = {
@@ -16,8 +16,8 @@ const config = {
   serviceConfiguration: {
     authorizationEndpoint: 'https://login.uber.com/oauth/v2/authorize',
     tokenEndpoint: 'https://login.uber.com/oauth/v2/token',
-    revocationEndpoint: 'https://login.uber.com/oauth/v2/revoke'
-  }
+    revocationEndpoint: 'https://login.uber.com/oauth/v2/revoke',
+  },
 };
 
 // Log in to get an authentication token
@@ -30,6 +30,6 @@ const refreshedState = await refresh(config, {
 
 // Revoke token
 await revoke(config, {
-  tokenToRevoke: refreshedState.refreshToken
+  tokenToRevoke: refreshedState.refreshToken,
 });
 ```

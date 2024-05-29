@@ -15,7 +15,7 @@ const config = {
   issuer: 'https://{yourOktaDomain}.com/oauth2/default',
   clientId: '{clientId}',
   redirectUrl: 'com.{yourReversedOktaDomain}:/callback',
-  scopes: ['openid', 'profile']
+  scopes: ['openid', 'profile'],
 };
 
 // Log in to get an authentication token
@@ -28,12 +28,12 @@ const refreshedState = await refresh(config, {
 
 // Revoke token
 await revoke(config, {
-  tokenToRevoke: refreshedState.refreshToken
+  tokenToRevoke: refreshedState.refreshToken,
 });
 
 // End session
 await logout(config, {
   idToken: authState.idToken,
-  postLogoutRedirectUrl: 'com.{yourReversedOktaDomain}:/logout'
+  postLogoutRedirectUrl: 'com.{yourReversedOktaDomain}:/logout',
 });
 ```

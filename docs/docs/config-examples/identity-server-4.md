@@ -12,7 +12,7 @@ const config = {
   issuer: 'https://demo.identityserver.io',
   clientId: 'native.code',
   redirectUrl: 'io.identityserver.demo:/oauthredirect',
-  scopes: ['openid', 'profile', 'offline_access']
+  scopes: ['openid', 'profile', 'offline_access'],
 };
 
 // Log in to get an authentication token
@@ -26,7 +26,7 @@ const refreshedState = await refresh(config, {
 // Revoke token, note that Identity Server expects a client id on revoke
 await revoke(config, {
   tokenToRevoke: refreshedState.refreshToken,
-  sendClientId: true
+  sendClientId: true,
 });
 ```
 

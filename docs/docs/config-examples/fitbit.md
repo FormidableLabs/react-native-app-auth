@@ -4,8 +4,8 @@ Fitbit provides an OAuth 2.0 endpoint for logging in with a Fitbit user's creden
 
 Please note:
 
-* Fitbit does not provide a OIDC discovery endpoint, so `serviceConfiguration` is used instead.
-* Fitbit OAuth requires a [client secret](#note-about-client-secrets).
+- Fitbit does not provide a OIDC discovery endpoint, so `serviceConfiguration` is used instead.
+- Fitbit OAuth requires a [client secret](#note-about-client-secrets).
 
 ```js
 const config = {
@@ -16,8 +16,8 @@ const config = {
   serviceConfiguration: {
     authorizationEndpoint: 'https://www.fitbit.com/oauth2/authorize',
     tokenEndpoint: 'https://api.fitbit.com/oauth2/token',
-    revocationEndpoint: 'https://api.fitbit.com/oauth2/revoke'
-  }
+    revocationEndpoint: 'https://api.fitbit.com/oauth2/revoke',
+  },
 };
 
 // Log in to get an authentication token
@@ -31,6 +31,6 @@ const refreshedState = await refresh(config, {
 // Revoke token
 await revoke(config, {
   tokenToRevoke: refreshedState.refreshToken,
-  includeBasicAuth: true
+  includeBasicAuth: true,
 });
 ```

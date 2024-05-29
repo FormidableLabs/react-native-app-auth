@@ -1,10 +1,11 @@
-## Microsoft
+# Microsoft
 
 1. Supplying "issuer" fails, because Microsoft returns `issuer` with the literal string `https://login.microsoftonline.com/{tenantid}/v2.0` when `https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration` is queried.. We need to manually specify `serviceConfiguration`.
 
 2. `REDIRECT_URL` varies based on platform:
+
    - iOS: msauth.com.example.app://auth/
-   - Android: com.example.app://msauth/<SIGNATURE_HASH>/
+   - Android: com.example.app://msauth/`<SIGNATURE_HASH>`/
 
 3. Microsoft does not have. revocationEndpoint.
 

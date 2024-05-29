@@ -12,8 +12,8 @@ See the [Azure docs on requesting an access token](https://docs.microsoft.com/en
 
 Please Note:
 
-* `Scopes` is ignored.
-* `additionalParameters.resource` may be required based on the tenant settings.
+- `Scopes` is ignored.
+- `additionalParameters.resource` may be required based on the tenant settings.
 
 ```js
 const config = {
@@ -21,8 +21,8 @@ const config = {
   clientId: 'your-client-id',
   redirectUrl: 'com.myapp://oauth/redirect/',
   additionalParameters: {
-    resource: 'your-resource'
-  }
+    resource: 'your-resource',
+  },
 };
 
 // Log in to get an authentication token
@@ -43,7 +43,7 @@ const config = {
   issuer: 'https://login.microsoftonline.com/your-tenant-id/v2.0',
   clientId: 'your-client-id',
   redirectUrl: 'com.myapp://oauth/redirect/',
-  scopes: ['openid', 'profile', 'email', 'offline_access']
+  scopes: ['openid', 'profile', 'email', 'offline_access'],
 };
 
 // Log in to get an authentication token

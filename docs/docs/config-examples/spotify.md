@@ -23,7 +23,7 @@ const authState = await authorize(config);
 
 ## Managing Client Secrets
 
-In order to avoid storing the `clientSecret` in the client, Spotify has published a token exchange package that can be used to move this step to the backend: 
+In order to avoid storing the `clientSecret` in the client, Spotify has published a token exchange package that can be used to move this step to the backend:
 https://github.com/bih/spotify-token-swap-service
 
 The tokenEndpoint should then point to whereever you are hosting this server, and be sure to remove the secret from your app:
@@ -41,6 +41,3 @@ const config = {
 
 const authState = await authorize(config);
 ```
-
-
-
