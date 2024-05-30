@@ -6,7 +6,7 @@ const config: Config = {
   tagline: 'React native bridge for AppAuth - an SDK for communicating with OAuth2 providers.',
   favicon: 'img/nearform-icon.svg',
   url: 'https://commerce.nearform.com/',
-  baseUrl: '/open-source/react-native-app-auth/',
+  baseUrl: '/open-source/react-native-app-auth',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   i18n: {
@@ -20,9 +20,7 @@ const config: Config = {
       {
         docs: {
           sidebarPath: './sidebars.ts',
-          editUrl: 'https://github.com/FormidableLabs/react-native-app-auth/tree/main',
         },
-        blog: false,
         theme: {
           customCss: './src/css/custom.css',
         },
@@ -35,6 +33,7 @@ const config: Config = {
       /** @type {import("@easyops-cn/docusaurus-search-local").PluginOptions} */
       {
         hashed: true,
+        indexBlog: false,
       },
     ],
   ],

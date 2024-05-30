@@ -5,7 +5,7 @@ Fitbit provides an OAuth 2.0 endpoint for logging in with a Fitbit user's creden
 Please note:
 
 - Fitbit does not provide a OIDC discovery endpoint, so `serviceConfiguration` is used instead.
-- Fitbit OAuth requires a [client secret](#note-about-client-secrets).
+- Fitbit OAuth requires a [client secret](/docs/client-secrets).
 
 ```js
 const config = {

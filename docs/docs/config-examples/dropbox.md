@@ -5,7 +5,7 @@ Dropbox provides an OAuth 2.0 endpoint for logging in with a Dropbox user's cred
 Please note:
 
 - Dropbox does not provide a OIDC discovery endpoint, so `serviceConfiguration` is used instead.
-- Dropbox OAuth requires a [client secret](#note-about-client-secrets).
+- Dropbox OAuth requires a [client secret](/docs/client-secrets).
 - Dropbox access tokens are short lived and will expire after a short period of time. To update your access token a separate call needs to be made to [/oauth2/token](https://www.dropbox.com/developers/documentation/http/documentation#oauth2-token) to obtain a new access token.
 
 ```js

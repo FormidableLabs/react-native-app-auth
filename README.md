@@ -1,5 +1,5 @@
 <a href="https://formidable.com/open-source/" target="_blank">
-  <img alt="React Native App Auth — Formidable, We build the modern web" src="https://raw.githubusercontent.com/FormidableLabs/react-native-app-auth/main/react-native-app-auth-Hero.png" />
+  <img alt="React Native App Auth — Formidable, We build the modern web" src="https://oss.nearform.com/api/banner?text=react+native+app+auth" />
 </a>
 <p align="center">
 <strong>React native bridge for AppAuth - an SDK for communicating with OAuth2 providers</strong>
@@ -123,7 +123,7 @@ with optional overrides.
   - **registrationEndpoint** - (`string`) fully formed url to your OAuth/OpenID Connect registration endpoint. Only necessary for servers that require client registration.
   - **endSessionEndpoint** - (`string`) fully formed url to your OpenID Connect end session endpoint. If you want to be able to end a user's session and no `issuer` is specified, this field is mandatory.
 - **clientId** - (`string`) _REQUIRED_ your client id on the auth server
-- **clientSecret** - (`string`) client secret to pass to token exchange requests. :warning: Read more about [client secrets](#note-about-client-secrets)
+- **clientSecret** - (`string`) client secret to pass to token exchange requests. :warning: Read more about [client secrets](/docs/client-secrets)
 - **redirectUrl** - (`string`) _REQUIRED_ the url that links back to your app with the auth code
 - **scopes** - (`array<string>`) the scopes for your token, e.g. `['email', 'offline_access']`.
 - **additionalParameters** - (`object`) additional parameters that will be passed in the authorization request.
@@ -547,6 +547,6 @@ Please see our [contributing guide](./.github/CONTRIBUTING.md).
 
 ## Maintenance Status
 
-**Active:** Formidable is actively working on this project, and we expect to continue for work for the foreseeable future. Bug reports, feature requests and pull requests are welcome.
+**Active:** Nearform is actively working on this project, and we expect to continue for work for the foreseeable future. Bug reports, feature requests and pull requests are welcome.
 
 [maintenance-image]: https://img.shields.io/badge/maintenance-active-green.svg

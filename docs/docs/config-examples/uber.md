@@ -5,7 +5,7 @@ Uber provides an OAuth 2.0 endpoint for logging in with a Uber user's credential
 Please note:
 
 - Uber does not provide a OIDC discovery endpoint, so `serviceConfiguration` is used instead.
-- Uber OAuth requires a [client secret](#note-about-client-secrets).
+- Uber OAuth requires a [client secret](/docs/client-secrets).
 
 ```js
 const config = {
