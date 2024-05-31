@@ -6,7 +6,6 @@ import { LandingHero } from '../components/landing/landing-hero';
 import { LandingBanner } from '../components/landing/landing-banner';
 import { LandingFeaturedProjects } from '../components/landing/landing-featured-projects';
 import { LandingFeatures } from '../components/landing/landing-features';
-import { uber, google, okta } from '../components/landing/landing-images';
 
 export default function Home(): JSX.Element {
   const { siteConfig } = useDocusaurusContext();
@@ -33,26 +32,11 @@ export default function Home(): JSX.Element {
       <LandingFeatures
         cta={{
           link: '/open-source/react-native-app-auth/docs/category/config-examples',
-          text: 'Explore more providers',
+          text: 'Explore tested providers',
         }}
-        heading="Major OpenID and OAuth Providers Supported"
-        list={[
-          {
-            imgSrc: okta,
-            alt: 'okta',
-            title: 'Okta',
-          },
-          {
-            imgSrc: google,
-            alt: 'google',
-            title: 'Google',
-          },
-          {
-            imgSrc: uber,
-            alt: 'uber',
-            title: 'Uber',
-          },
-        ]}
+        heading="OAuth"
+        description="Supports most OpenID and OAuth providers that implement the OAuth2 spec."
+        list={[]}
       />
       <LandingBanner
         showDivider

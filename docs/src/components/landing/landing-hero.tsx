@@ -24,7 +24,7 @@ export const LandingHero = ({
         <div className="flex-col md:flex-row flex justify-between gap-16 lg:gap-24 mx-auto">
           <div className="self-center md:self-left">
             <ProjectBadge
-              color="#F9F7F3"
+              color="#5ABDEE"
               abbreviation="Re"
               description="React Native App Auth"
               className="h-[320px] w-[320px]"
