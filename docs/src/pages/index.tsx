@@ -19,7 +19,7 @@ export default function Home(): JSX.Element {
           navItems={[
             { link: '/open-source/react-native-app-auth/docs', title: 'Documentation' },
             {
-              link: '/open-source/react-native-app-auth/docs/category/config-examples',
+              link: '/open-source/react-native-app-auth/docs/category/providers',
               title: 'Examples',
             },
             {
@@ -31,7 +31,7 @@ export default function Home(): JSX.Element {
       </div>
       <LandingFeatures
         cta={{
-          link: '/open-source/react-native-app-auth/docs/category/config-examples',
+          link: '/open-source/react-native-app-auth/docs/category/providers',
           text: 'Explore tested providers',
         }}
         heading="OAuth"
