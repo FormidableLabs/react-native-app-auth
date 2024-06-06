@@ -338,6 +338,9 @@ RCT_REMAP_METHOD(logout,
     NSString *codeVerifier = usePKCE ? [[self class] generateCodeVerifier] : nil;
     NSString *codeChallenge = usePKCE ? [[self class] codeChallengeS256ForVerifier:codeVerifier] : nil;
     NSString *nonce =  useNonce ? additionalParameters[@"nonce"]? additionalParameters[@"nonce"]:  [[self class] generateState] : nil ;
+    
+    NSMutableDictionary* mutableDict = [additionalParameters mutableCopy];
+    [mutableDict removeObjectForKey:@"state"];
 
     // builds authentication request
     OIDAuthorizationRequest *request =
@@ -353,7 +356,7 @@ RCT_REMAP_METHOD(logout,
                                               codeVerifier:codeVerifier
                                              codeChallenge:codeChallenge
                                       codeChallengeMethod: usePKCE ? OIDOAuthorizationRequestCodeChallengeMethodS256 : nil
-                                      additionalParameters:additionalParameters];
+                                      additionalParameters:[mutableDict copy]];
 
     // performs authentication request
     id<UIApplicationDelegate, RNAppAuthAuthorizationFlowManager> appDelegate = (id<UIApplicationDelegate, RNAppAuthAuthorizationFlowManager>)[UIApplication sharedApplication].delegate;
