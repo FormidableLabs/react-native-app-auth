@@ -29,33 +29,33 @@ We only support the [Authorization Code Flow](https://oauth.net/2/grant-types/au
 
 These providers are OpenID compliant, which means you can use [autodiscovery](https://openid.net/specs/openid-connect-discovery-1_0.html).
 
-- [Identity Server4](https://demo.identityserver.io/) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/identity-server-4.md))
-- [Identity Server3](https://github.com/IdentityServer/IdentityServer3.md) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/identity-server-3.md))
-- [FusionAuth](https://fusionauth.io) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/fusionauth.md))
+- [Identity Server4](https://demo.identityserver.io/) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/identity-server-4))
+- [Identity Server3](https://github.com/IdentityServer/IdentityServer3.md) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/identity-server-3))
+- [FusionAuth](https://fusionauth.io) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/fusionauth))
 - [Google](https://developers.google.com/identity/protocols/OAuth2)
-  ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/google.md))
-- [Okta](https://developer.okta.com) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/okta.md))
-- [Keycloak](http://www.keycloak.org/) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/keycloak.md))
-- [Azure Active Directory](https://docs.microsoft.com/en-us/azure/active-directory) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/azure-active-directory.md))
-- [AWS Cognito](https://eu-west-1.console.aws.amazon.com/cognito) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/aws-cognito.md))
-- [Asgardeo](https://asgardeo.io) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/asgardeo.md))
-- [Microsoft](https://learn.microsoft.com/en-us/entra/identity-platform/v2-protocols-oidc) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/microsoft.md))
+  ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/google))
+- [Okta](https://developer.okta.com) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/okta))
+- [Keycloak](http://www.keycloak.org/) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/keycloak))
+- [Azure Active Directory](https://docs.microsoft.com/en-us/azure/active-directory) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/azure-active-directory))
+- [AWS Cognito](https://eu-west-1.console.aws.amazon.com/cognito) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/aws-cognito))
+- [Asgardeo](https://asgardeo.io) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/asgardeo))
+- [Microsoft](https://learn.microsoft.com/en-us/entra/identity-platform/v2-protocols-oidc) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/microsoft))
 
 ## Tested OAuth2 providers
 
 These providers implement the OAuth2 spec, but are not OpenID providers, which means you must configure the authorization and token endpoints yourself.
 
-- [Uber](https://developer.uber.com/docs/deliveries/guides/three-legged-oauth.md) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/uber.md))
-- [Fitbit](https://dev.fitbit.com/build/reference/web-api/oauth2/) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/fitbit.md))
-- [Dropbox](https://www.dropbox.com/developers/reference/oauth-guide) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/dropbox.md))
-- [Reddit](https://github.com/reddit-archive/reddit/wiki/oauth2) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/reddit.md))
-- [Coinbase](https://developers.coinbase.com/docs/wallet/coinbase-connect/integrating) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/coinbase.md))
-- [GitHub](https://developer.github.com/apps/building-oauth-apps/authorizing-oauth-apps/) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/github.md))
-- [Slack](https://api.slack.com/authentication/oauth-v2) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/slack.md))
-- [Strava](https://developers.strava.com/docs/authentication) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/strava.md))
-- [Spotify](https://developer.spotify.com/documentation/general/guides/authorization-guide/) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/spotify.md))
-- [Unsplash](https://unsplash.com/documentation) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/unsplash.md))
-- [Imgur](https://apidocs.imgur.com) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/imgur.md))
+- [Uber](https://developer.uber.com/docs/deliveries/guides/three-legged-oauth.md) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/uber))
+- [Fitbit](https://dev.fitbit.com/build/reference/web-api/oauth2/) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/fitbit))
+- [Dropbox](https://www.dropbox.com/developers/reference/oauth-guide) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/dropbox))
+- [Reddit](https://github.com/reddit-archive/reddit/wiki/oauth2) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/reddit))
+- [Coinbase](https://developers.coinbase.com/docs/wallet/coinbase-connect/integrating) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/coinbase))
+- [GitHub](https://developer.github.com/apps/building-oauth-apps/authorizing-oauth-apps/) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/github))
+- [Slack](https://api.slack.com/authentication/oauth-v2) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/slack))
+- [Strava](https://developers.strava.com/docs/authentication) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/strava))
+- [Spotify](https://developer.spotify.com/documentation/general/guides/authorization-guide/) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/spotify))
+- [Unsplash](https://unsplash.com/documentation) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/unsplash))
+- [Imgur](https://apidocs.imgur.com) ([Example configuration](https://commerce.nearform.com/open-source/react-native-app-auth/docs/providers/imgur))
 
 ## Why you may want to use this library
 
