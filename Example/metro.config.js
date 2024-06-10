@@ -5,7 +5,6 @@ const path = require('path');
 const packagePath = path.resolve(
   path.join(__dirname, '..', 'packages', 'react-native-app-auth'),
 );
-console.log({packagePath});
 
 const extraNodeModules = {
   'react-native-app-auth': packagePath,
