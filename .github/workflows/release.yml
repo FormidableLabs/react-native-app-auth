@@ -3,9 +3,9 @@ on:
   push:
     branches:
       - main
+
 jobs:
   release:
-    name: Release
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -15,11 +15,15 @@ jobs:
       deployments: write
       packages: write
       pull-requests: write
+
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 18
+          cache: 'yarn'
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile

@@ -1,19 +1,22 @@
 const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
 
+const path = require('path');
+
+const packagePath = path.resolve(
+  path.join(__dirname, '..', 'packages', 'react-native-app-auth'),
+);
+
+const extraNodeModules = {
+  'react-native-app-auth': packagePath,
+};
+const watchFolders = [packagePath];
+
 /**
  * Metro configuration
  * https://facebook.github.io/metro/docs/configuration
  *
  * @type {import('metro-config').MetroConfig}
  */
-
-const path = require('path');
-
-const extraNodeModules = {
-  'react-native-app-auth': path.resolve(path.join(__dirname, '..')),
-};
-const watchFolders = [path.resolve(path.join(__dirname, '..'))];
-
 const config = {
   resolver: {
     extraNodeModules: new Proxy(extraNodeModules, {
