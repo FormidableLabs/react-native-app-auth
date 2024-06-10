@@ -1,5 +1,5 @@
-<a href="https://formidable.com/open-source/" target="_blank">
-  <img alt="React Native App Auth — Formidable, We build the modern web" src="https://oss.nearform.com/api/banner?text=react+native+app+auth" />
+<a href="https://commerce.nearform.com/open-source/" target="_blank">
+  <img alt="React Native App Auth" src="https://oss.nearform.com/api/banner?text=react+native+app+auth" />
 </a>
 <p align="center">
   <strong>React native bridge for AppAuth - an SDK for communicating with OAuth2 providers</strong>
