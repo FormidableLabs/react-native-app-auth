@@ -32,6 +32,7 @@
     "appauth"
   ],
   "license": "MIT",
+  "author": "Nearform Commerce (https://commerce.nearform.com)",
   "peerDependencies": {
     "react-native": ">=0.63.0"
   },
