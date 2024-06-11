@@ -24,9 +24,21 @@
   "scripts": {
     "changeset": "changeset",
     "lint": "yarn workspace react-native-app-auth lint",
-    "test": "yarn workspace react-native-app-auth test"
+    "test": "yarn workspace react-native-app-auth test",
+    "start:demo:android": "yarn workspace rnaa-demo android",
+    "start:demo:ios": "yarn workspace rnaa-demo ios"
   },
-  "workspaces": [
-    "packages/*"
-  ]
+  "workspaces": {
+    "packages": [
+      "packages/*",
+      "examples/*"
+    ],
+    "nohoist": [
+      "**/react-native",
+      "**/react-native/**",
+      "**/@react-native",
+      "**/@react-native/**",
+      "**/react-native-app-auth/**"
+    ]
+  }
 }
