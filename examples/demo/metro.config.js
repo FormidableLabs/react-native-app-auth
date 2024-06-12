@@ -3,7 +3,7 @@ const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
 const path = require('path');
 
 const packagePath = path.resolve(
-  path.join(__dirname, '..', 'packages', 'react-native-app-auth'),
+  path.join(process.cwd(), '..', '..', 'packages', 'react-native-app-auth'),
 );
 
 const extraNodeModules = {
@@ -23,8 +23,9 @@ const config = {
       get: (target, name) =>
         name in target
           ? target[name]
-          : path.join(process.cwd(), `node_modules/${name}`),
+          : path.join(process.cwd(), '..', '..', 'node_modules', name),
     }),
+    unstable_enableSymlinks: true,
   },
   watchFolders,
 };
