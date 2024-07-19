@@ -49,27 +49,31 @@ export default function Home(): JSX.Element {
         heading="Other Open Source from Nearform_Commerce"
         projects={[
           {
-            name: 'nuka',
-            link: 'https://commerce.nearform.com/open-source/nuka-carousel',
-            description:
-              'Small, fast and accessibility-first React carousel library with easily customizable UI and behavior to fit your brand and site.',
-          },
-          {
-            name: 'spectacle',
-            link: 'https://commerce.nearform.com/open-source/spectacle',
-            description:
-              'A React.js based library for creating sleek presentations using JSX syntax with the ability to live demo your code!',
-          },
-          {
-            name: 'envy',
-            link: 'https://github.com/FormidableLabs/envy',
-            description:
-              'Envy will trace the network calls from every application in your stack and allow you to view them in a central place.',
-          },
-          {
             name: 'victory',
-            link: 'https://commerce.nearform.com/open-source/victory/',
-            description: 'React.js components for modular charting and data visualization.',
+            title: 'Victory Native',
+            link: 'https://commerce.nearform.com/open-source/victory-native/',
+            description: 'A charting library for React Native with a focus on performance and customization.',
+          },
+          {
+            name: 'owl',
+            title: 'React Native Owl',
+            link: 'https://commerce.nearform.com/open-source/react-native-owl/',
+            description:
+              'Visual Regression Testing for React Native',
+          },
+          {
+            name: 'urql',
+            title:'URQL',
+            link: 'https://commerce.nearform.com/open-source/urql',
+            description:
+              'The highly customizable and versatile GraphQL client for React, Svelte, Vue, or plain JavaScript, with which you add on features like normalized caching as you grow.',
+          },
+          {
+            name: 'groqd',
+            title: 'GROQD',
+            link: 'https://commerce.nearform.com/open-source/groqd',
+            description:
+              'Typesafe Query Builder for GROQ, Sanity\'s open-source query language',
           },
         ]}
       />
