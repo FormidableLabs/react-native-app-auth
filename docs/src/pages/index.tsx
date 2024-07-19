@@ -56,7 +56,7 @@ export default function Home(): JSX.Element {
           },
           {
             name: 'owl',
-            title: 'React Native OWL',
+            title: 'React Native Owl',
             link: 'https://commerce.nearform.com/open-source/react-native-owl/',
             description:
               'Visual Regression Testing for React Native',
