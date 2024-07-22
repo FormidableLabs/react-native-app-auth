@@ -50,6 +50,8 @@
     "nohoist": [
       "**/react-native",
       "**/react-native/**",
+      "**/react-native-macos",
+      "**/react-native-macos/**",
       "**/@react-native",
       "**/@react-native/**",
       "**/react-native-app-auth/**"

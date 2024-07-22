@@ -2,25 +2,39 @@
 
 ![Demo](demo.gif)
 
-## Running the iOS app
+## Running the example apps
 
 After cloning the repository, run the following:
 
 ```sh
 cd react-native-app-auth/Example
 yarn
-(cd ios && pod install)
-npx react-native run-ios
-```
+# Install the pods for the iOS example app
+cd ios && pod install
+# Install the pods for the macOS example app
+cd macos && pod install
 
-## Running the Android app
+# From here on, you'll need two terminals.
 
-After cloning the repository, run the following:
+# [In terminal A]
+# Start the Metro bundler
+yarn start
 
-```sh
-cd react-native-app-auth/Example
-yarn
-npx react-native run-android
+# [In terminal B]
+# Run the iOS app
+yarn ios
+
+# or:
+# Run the Android app
+yarn android
+
+# or:
+# Run the macOS app (after setting `applePlatform = "macos"` in metro.config.js)
+#
+# Note that we do not currently support running the macOS demo simultaneously
+# with iOS or Android apps, as we use the `applePlatform = "macos"` flag to
+# force Metro to resolve react-native-macos instead of react-native.
+yarn macos
 ```
 
 ### Notes
