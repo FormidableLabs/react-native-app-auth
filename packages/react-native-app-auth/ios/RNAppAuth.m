@@ -24,7 +24,9 @@
     return dispatch_get_main_queue();
 }
 
-UIBackgroundTaskIdentifier rnAppAuthTaskId;
+#if TARGET_OS_IOS || TARGET_OS_MACCATALYST
+  UIBackgroundTaskIdentifier rnAppAuthTaskId;
+#endif
 
 /*! @brief Number of random bytes generated for the @ state.
  */
@@ -356,7 +358,11 @@ RCT_REMAP_METHOD(logout,
                                       additionalParameters:additionalParameters];
 
     // performs authentication request
+#if TARGET_OS_IOS || TARGET_OS_MACCATALYST
     id<UIApplicationDelegate, RNAppAuthAuthorizationFlowManager> appDelegate = (id<UIApplicationDelegate, RNAppAuthAuthorizationFlowManager>)[UIApplication sharedApplication].delegate;
+#elif TARGET_OS_OSX
+    id<NSApplicationDelegate, RNAppAuthAuthorizationFlowManager> appDelegate = (id<NSApplicationDelegate, RNAppAuthAuthorizationFlowManager>)[NSApplication sharedApplication].delegate;
+#endif
     if (![[appDelegate class] conformsToProtocol:@protocol(RNAppAuthAuthorizationFlowManager)]) {
         [NSException raise:@"RNAppAuth Missing protocol conformance"
                     format:@"%@ does not conform to RNAppAuthAuthorizationFlowManager", appDelegate];
@@ -364,24 +370,39 @@ RCT_REMAP_METHOD(logout,
     appDelegate.authorizationFlowManagerDelegate = self;
     __weak typeof(self) weakSelf = self;
 
+#if TARGET_OS_IOS || TARGET_OS_MACCATALYST
     rnAppAuthTaskId = [UIApplication.sharedApplication beginBackgroundTaskWithExpirationHandler:^{
         [UIApplication.sharedApplication endBackgroundTask:rnAppAuthTaskId];
         rnAppAuthTaskId = UIBackgroundTaskInvalid;
     }];
 
     UIViewController *presentingViewController = appDelegate.window.rootViewController.view.window ? appDelegate.window.rootViewController : appDelegate.window.rootViewController.presentedViewController;
+#elif TARGET_OS_OSX
+    NSWindow *presentingWindow = [NSApplication sharedApplication].mainWindow;
+    if(!presentingWindow){
+        reject(@"authentication_failed", @"Unable to get the main window to present an authorization request. Try authenticating again with the main window open.", nil);
+        return;
+    }
+#endif
 
 #if TARGET_OS_MACCATALYST
     id<OIDExternalUserAgent> externalUserAgent = nil;
 #elif TARGET_OS_IOS
     id<OIDExternalUserAgent> externalUserAgent = iosCustomBrowser != nil ? [self getCustomBrowser: iosCustomBrowser] : nil;
+#elif TARGET_OS_OSX
+    id<OIDExternalUserAgent> externalUserAgent = nil;
 #endif
     
     OIDAuthorizationCallback callback = ^(OIDAuthorizationResponse *_Nullable authorizationResponse, NSError *_Nullable error) {
                                                    typeof(self) strongSelf = weakSelf;
                                                    strongSelf->_currentSession = nil;
+#if TARGET_OS_IOS || TARGET_OS_MACCATALYST
                                                    [UIApplication.sharedApplication endBackgroundTask:rnAppAuthTaskId];
                                                    rnAppAuthTaskId = UIBackgroundTaskInvalid;
+#elif TARGET_OS_OSX
+                                                   // Brings this app to the foreground.
+                                                   [[NSRunningApplication currentApplication] activateWithOptions:(NSApplicationActivateAllWindows)];
+#endif
                                                    if (authorizationResponse) {
                                                        resolve([self formatAuthorizationResponse:authorizationResponse withCodeVerifier:codeVerifier]);
                                                    } else {
@@ -397,6 +418,7 @@ RCT_REMAP_METHOD(logout,
                                                                  externalUserAgent:externalUserAgent
                                                                           callback:callback];
         } else {
+#if TARGET_OS_IOS || TARGET_OS_MACCATALYST
             if (@available(iOS 13, *)) {
                 _currentSession = [OIDAuthorizationService presentAuthorizationRequest:request
                                                           presentingViewController:presentingViewController
@@ -407,6 +429,12 @@ RCT_REMAP_METHOD(logout,
                                                           presentingViewController:presentingViewController
                                                                           callback:callback];
             }
+#elif TARGET_OS_OSX
+                _currentSession = [OIDAuthorizationService presentAuthorizationRequest:request
+                                                           presentingWindow:presentingWindow
+                                                           prefersEphemeralSession:prefersEphemeralSession
+                                                           callback:callback];
+#endif
         }
     } else {
         OIDAuthStateAuthorizationCallback callback = ^(
@@ -415,8 +443,13 @@ RCT_REMAP_METHOD(logout,
                                                        ) {
                                                            typeof(self) strongSelf = weakSelf;
                                                            strongSelf->_currentSession = nil;
+#if TARGET_OS_IOS || TARGET_OS_MACCATALYST
                                                            [UIApplication.sharedApplication endBackgroundTask:rnAppAuthTaskId];
                                                            rnAppAuthTaskId = UIBackgroundTaskInvalid;
+#elif TARGET_OS_OSX
+                                                           // Brings this app to the foreground.
+                                                           [[NSRunningApplication currentApplication] activateWithOptions:(NSApplicationActivateAllWindows)];
+#endif
                                                            if (authState) {
                                                                resolve([self formatResponse:authState.lastTokenResponse
                                                                            withAuthResponse:authState.lastAuthorizationResponse]);
@@ -433,6 +466,7 @@ RCT_REMAP_METHOD(logout,
         } else {
             
             
+#if TARGET_OS_IOS || TARGET_OS_MACCATALYST
             if (@available(iOS 13, *)) {
                 _currentSession = [OIDAuthState authStateByPresentingAuthorizationRequest:request
                                                                  presentingViewController:presentingViewController
@@ -443,6 +477,11 @@ RCT_REMAP_METHOD(logout,
                                                                  presentingViewController:presentingViewController
                                                                                  callback:callback];
             }
+#elif TARGET_OS_OSX
+                _currentSession = [OIDAuthState authStateByPresentingAuthorizationRequest:request
+                                                                         presentingWindow:presentingWindow
+                                                                                 callback:callback];
+#endif
         }
     }
 }
@@ -499,7 +538,11 @@ RCT_REMAP_METHOD(logout,
                                     postLogoutRedirectURL: [NSURL URLWithString:postLogoutRedirectURL]
                                      additionalParameters: additionalParameters];
 
+#if TARGET_OS_IOS || TARGET_OS_MACCATALYST
     id<UIApplicationDelegate, RNAppAuthAuthorizationFlowManager> appDelegate = (id<UIApplicationDelegate, RNAppAuthAuthorizationFlowManager>)[UIApplication sharedApplication].delegate;
+#elif TARGET_OS_OSX
+    id<NSApplicationDelegate, RNAppAuthAuthorizationFlowManager> appDelegate = (id<NSApplicationDelegate, RNAppAuthAuthorizationFlowManager>)[NSApplication sharedApplication].delegate;
+#endif
     if (![[appDelegate class] conformsToProtocol:@protocol(RNAppAuthAuthorizationFlowManager)]) {
         [NSException raise:@"RNAppAuth Missing protocol conformance"
                     format:@"%@ does not conform to RNAppAuthAuthorizationFlowManager", appDelegate];
@@ -507,18 +550,28 @@ RCT_REMAP_METHOD(logout,
     appDelegate.authorizationFlowManagerDelegate = self;
     __weak typeof(self) weakSelf = self;
 
+#if TARGET_OS_IOS || TARGET_OS_MACCATALYST
     rnAppAuthTaskId = [UIApplication.sharedApplication beginBackgroundTaskWithExpirationHandler:^{
         [UIApplication.sharedApplication endBackgroundTask:rnAppAuthTaskId];
         rnAppAuthTaskId = UIBackgroundTaskInvalid;
     }];
 
     UIViewController *presentingViewController = appDelegate.window.rootViewController.view.window ? appDelegate.window.rootViewController : appDelegate.window.rootViewController.presentedViewController;
+#elif TARGET_OS_OSX
+    NSWindow *presentingWindow = [NSApplication sharedApplication].mainWindow;
+    if(!presentingWindow){
+        reject(@"authentication_failed", @"Unable to get the main window to present an authorization request. Try authenticating again with the main window open.", nil);
+        return;
+    }
+#endif
 
 #if TARGET_OS_MACCATALYST
     id<OIDExternalUserAgent> externalUserAgent = nil;
 #elif TARGET_OS_IOS
     id<OIDExternalUserAgent> externalUserAgent = iosCustomBrowser != nil ? [self getCustomBrowser: iosCustomBrowser] : [self getExternalUserAgentWithPresentingViewController:presentingViewController
                                                                                                                                     prefersEphemeralSession:prefersEphemeralSession];
+#elif TARGET_OS_OSX
+    id<OIDExternalUserAgent> externalUserAgent = nil;
 #endif
     
     _currentSession = [OIDAuthorizationService presentEndSessionRequest: endSessionRequest
@@ -526,8 +579,13 @@ RCT_REMAP_METHOD(logout,
                                              callback: ^(OIDEndSessionResponse *_Nullable response, NSError *_Nullable error) {
                                                           typeof(self) strongSelf = weakSelf;
                                                           strongSelf->_currentSession = nil;
+#if TARGET_OS_IOS || TARGET_OS_MACCATALYST
                                                           [UIApplication.sharedApplication endBackgroundTask:rnAppAuthTaskId];
                                                           rnAppAuthTaskId = UIBackgroundTaskInvalid;
+#elif TARGET_OS_OSX
+                                                          // Brings this app to the foreground.
+                                                          [[NSRunningApplication currentApplication] activateWithOptions:(NSApplicationActivateAllWindows)];
+#endif
                                                           if (response) {
                                                               resolve([self formatEndSessionResponse:response]);
                                                           } else {
@@ -694,10 +752,10 @@ RCT_REMAP_METHOD(logout,
     return defaultCode;
 }
 
-#if !TARGET_OS_MACCATALYST
+#if TARGET_OS_IOS
 - (id<OIDExternalUserAgent>)getCustomBrowser: (NSString *) browserType {
     typedef id<OIDExternalUserAgent> (^BrowserBlock)(void);
-    
+
     NSDictionary *browsers = @{
         @"safari":
             ^{
@@ -733,8 +791,13 @@ RCT_REMAP_METHOD(logout,
     }
 }
 
+#if TARGET_OS_IOS || TARGET_OS_MACCATALYST
 - (id<OIDExternalUserAgent>)getExternalUserAgentWithPresentingViewController: (UIViewController *)presentingViewController
                                                      prefersEphemeralSession: (BOOL) prefersEphemeralSession
+#elif TARGET_OS_OSX
+- (id<OIDExternalUserAgent>)getExternalUserAgentWithPresentingWindow: (NSWindow *)presentingWindow
+                                             prefersEphemeralSession: (BOOL) prefersEphemeralSession
+#endif
 {
   id<OIDExternalUserAgent> externalUserAgent;
   #if TARGET_OS_MACCATALYST
@@ -749,7 +812,11 @@ RCT_REMAP_METHOD(logout,
                              presentingViewController];
     }
   #elif TARGET_OS_OSX
-    externalUserAgent = [[OIDExternalUserAgentMac alloc] init];
+    if (@available(macOS 10.15, *)) {
+        externalUserAgent = [[OIDExternalUserAgentMac alloc] initWithPresentingWindow:presentingWindow];
+    } else {
+        externalUserAgent = [[OIDExternalUserAgentMac alloc] init];
+    }
   #endif
   return externalUserAgent;
 }
