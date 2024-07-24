@@ -6,10 +6,13 @@ const packagePath = path.resolve(
   path.join(process.cwd(), '..', '..', 'packages', 'react-native-app-auth'),
 );
 
+const projectRoot = __dirname;
+const monorepoRoot = path.resolve(projectRoot, '../..');
+
 const extraNodeModules = {
   'react-native-app-auth': packagePath,
 };
-const watchFolders = [packagePath];
+const watchFolders = [monorepoRoot, packagePath];
 
 /**
  * Metro configuration
@@ -29,5 +32,10 @@ const config = {
   },
   watchFolders,
 };
+
+config.resolver.nodeModulesPaths = [
+  path.resolve(projectRoot, 'node_modules'),
+  path.resolve(monorepoRoot, 'node_modules'),
+];
 
 module.exports = mergeConfig(getDefaultConfig(__dirname), config);
