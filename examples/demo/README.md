@@ -29,11 +29,7 @@ yarn ios
 yarn android
 
 # or:
-# Run the macOS app (after setting `applePlatform = "macos"` in metro.config.js)
-#
-# Note that we do not currently support running the macOS demo simultaneously
-# with iOS or Android apps, as we use the `applePlatform = "macos"` flag to
-# force Metro to resolve react-native-macos instead of react-native.
+# Run the macOS app
 yarn macos
 ```
 
