@@ -1,4 +1,24 @@
 {
-  "name": "Example",
-  "displayName": "Example"
+  "name": "ReactNativeAppAuthExample",
+  "displayName": "ReactNativeAppAuthExample",
+  "components": [
+    {
+      "appKey": "ReactNativeAppAuthExample",
+      "displayName": "ReactNativeAppAuthExample"
+    }
+  ],
+  "resources": {
+    "android": [
+      "dist/res",
+      "dist/main.android.jsbundle"
+    ],
+    "ios": [
+      "dist/assets",
+      "dist/main.ios.jsbundle"
+    ],
+    "macos": [
+      "dist/assets",
+      "dist/main.macos.jsbundle"
+    ]
+  }
 }

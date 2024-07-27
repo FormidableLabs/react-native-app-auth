@@ -8,6 +8,9 @@ module.exports = {
   // sourceDir explicitly for each platform avoids that.
   // https://github.com/react-native-community/cli/blob/98d17296ca84769b25b54893f598476e46a539d7/packages/cli-platform-apple/src/config/findPodfilePath.ts#L60
   project: {
+    android: {
+      sourceDir: "./android",
+    },
     ios: {
       sourceDir: "./ios",
     },
