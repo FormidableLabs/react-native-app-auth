@@ -24,7 +24,7 @@
     return dispatch_get_main_queue();
 }
 
-#if TARGET_OS_IOS || TARGET_OS_MACCATALYST
+#if TARGET_OS_IPHONE
   UIBackgroundTaskIdentifier rnAppAuthTaskId;
 #endif
 
@@ -358,7 +358,7 @@ RCT_REMAP_METHOD(logout,
                                       additionalParameters:additionalParameters];
 
     // performs authentication request
-#if TARGET_OS_IOS || TARGET_OS_MACCATALYST
+#if TARGET_OS_IPHONE
     id<UIApplicationDelegate, RNAppAuthAuthorizationFlowManager> appDelegate = (id<UIApplicationDelegate, RNAppAuthAuthorizationFlowManager>)[UIApplication sharedApplication].delegate;
 #elif TARGET_OS_OSX
     id<NSApplicationDelegate, RNAppAuthAuthorizationFlowManager> appDelegate = (id<NSApplicationDelegate, RNAppAuthAuthorizationFlowManager>)[NSApplication sharedApplication].delegate;
@@ -370,7 +370,7 @@ RCT_REMAP_METHOD(logout,
     appDelegate.authorizationFlowManagerDelegate = self;
     __weak typeof(self) weakSelf = self;
 
-#if TARGET_OS_IOS || TARGET_OS_MACCATALYST
+#if TARGET_OS_IPHONE
     rnAppAuthTaskId = [UIApplication.sharedApplication beginBackgroundTaskWithExpirationHandler:^{
         [UIApplication.sharedApplication endBackgroundTask:rnAppAuthTaskId];
         rnAppAuthTaskId = UIBackgroundTaskInvalid;
@@ -385,18 +385,16 @@ RCT_REMAP_METHOD(logout,
     }
 #endif
 
-#if TARGET_OS_MACCATALYST
-    id<OIDExternalUserAgent> externalUserAgent = nil;
-#elif TARGET_OS_IOS
+#if TARGET_OS_IOS && !TARGET_OS_MACCATALYST
     id<OIDExternalUserAgent> externalUserAgent = iosCustomBrowser != nil ? [self getCustomBrowser: iosCustomBrowser] : nil;
-#elif TARGET_OS_OSX
+#elif TARGET_OS_IPHONE || TARGET_OS_OSX
     id<OIDExternalUserAgent> externalUserAgent = nil;
 #endif
     
     OIDAuthorizationCallback callback = ^(OIDAuthorizationResponse *_Nullable authorizationResponse, NSError *_Nullable error) {
                                                    typeof(self) strongSelf = weakSelf;
                                                    strongSelf->_currentSession = nil;
-#if TARGET_OS_IOS || TARGET_OS_MACCATALYST
+#if TARGET_OS_IPHONE
                                                    [UIApplication.sharedApplication endBackgroundTask:rnAppAuthTaskId];
                                                    rnAppAuthTaskId = UIBackgroundTaskInvalid;
 #elif TARGET_OS_OSX
@@ -418,7 +416,7 @@ RCT_REMAP_METHOD(logout,
                                                                  externalUserAgent:externalUserAgent
                                                                           callback:callback];
         } else {
-#if TARGET_OS_IOS || TARGET_OS_MACCATALYST
+#if TARGET_OS_IPHONE
             if (@available(iOS 13, *)) {
                 _currentSession = [OIDAuthorizationService presentAuthorizationRequest:request
                                                           presentingViewController:presentingViewController
@@ -443,7 +441,7 @@ RCT_REMAP_METHOD(logout,
                                                        ) {
                                                            typeof(self) strongSelf = weakSelf;
                                                            strongSelf->_currentSession = nil;
-#if TARGET_OS_IOS || TARGET_OS_MACCATALYST
+#if TARGET_OS_IPHONE
                                                            [UIApplication.sharedApplication endBackgroundTask:rnAppAuthTaskId];
                                                            rnAppAuthTaskId = UIBackgroundTaskInvalid;
 #elif TARGET_OS_OSX
@@ -466,7 +464,7 @@ RCT_REMAP_METHOD(logout,
         } else {
             
             
-#if TARGET_OS_IOS || TARGET_OS_MACCATALYST
+#if TARGET_OS_IPHONE
             if (@available(iOS 13, *)) {
                 _currentSession = [OIDAuthState authStateByPresentingAuthorizationRequest:request
                                                                  presentingViewController:presentingViewController
@@ -538,7 +536,7 @@ RCT_REMAP_METHOD(logout,
                                     postLogoutRedirectURL: [NSURL URLWithString:postLogoutRedirectURL]
                                      additionalParameters: additionalParameters];
 
-#if TARGET_OS_IOS || TARGET_OS_MACCATALYST
+#if TARGET_OS_IPHONE
     id<UIApplicationDelegate, RNAppAuthAuthorizationFlowManager> appDelegate = (id<UIApplicationDelegate, RNAppAuthAuthorizationFlowManager>)[UIApplication sharedApplication].delegate;
 #elif TARGET_OS_OSX
     id<NSApplicationDelegate, RNAppAuthAuthorizationFlowManager> appDelegate = (id<NSApplicationDelegate, RNAppAuthAuthorizationFlowManager>)[NSApplication sharedApplication].delegate;
@@ -550,7 +548,7 @@ RCT_REMAP_METHOD(logout,
     appDelegate.authorizationFlowManagerDelegate = self;
     __weak typeof(self) weakSelf = self;
 
-#if TARGET_OS_IOS || TARGET_OS_MACCATALYST
+#if TARGET_OS_IPHONE
     rnAppAuthTaskId = [UIApplication.sharedApplication beginBackgroundTaskWithExpirationHandler:^{
         [UIApplication.sharedApplication endBackgroundTask:rnAppAuthTaskId];
         rnAppAuthTaskId = UIBackgroundTaskInvalid;
@@ -565,9 +563,7 @@ RCT_REMAP_METHOD(logout,
     }
 #endif
 
-#if TARGET_OS_MACCATALYST
-    id<OIDExternalUserAgent> externalUserAgent = nil;
-#elif TARGET_OS_IOS
+#if TARGET_OS_IOS && !TARGET_OS_MACCATALYST
     id<OIDExternalUserAgent> externalUserAgent = iosCustomBrowser != nil ? [self getCustomBrowser: iosCustomBrowser] : [self getExternalUserAgentWithPresentingViewController:presentingViewController
                                                                                                                                     prefersEphemeralSession:prefersEphemeralSession];
 #elif TARGET_OS_OSX
@@ -579,7 +575,7 @@ RCT_REMAP_METHOD(logout,
                                              callback: ^(OIDEndSessionResponse *_Nullable response, NSError *_Nullable error) {
                                                           typeof(self) strongSelf = weakSelf;
                                                           strongSelf->_currentSession = nil;
-#if TARGET_OS_IOS || TARGET_OS_MACCATALYST
+#if TARGET_OS_IPHONE
                                                           [UIApplication.sharedApplication endBackgroundTask:rnAppAuthTaskId];
                                                           rnAppAuthTaskId = UIBackgroundTaskInvalid;
 #elif TARGET_OS_OSX
@@ -752,7 +748,7 @@ RCT_REMAP_METHOD(logout,
     return defaultCode;
 }
 
-#if TARGET_OS_IOS
+#if TARGET_OS_IOS && !TARGET_OS_MACCATALYST
 - (id<OIDExternalUserAgent>)getCustomBrowser: (NSString *) browserType {
     typedef id<OIDExternalUserAgent> (^BrowserBlock)(void);
 
@@ -791,7 +787,7 @@ RCT_REMAP_METHOD(logout,
     }
 }
 
-#if TARGET_OS_IOS || TARGET_OS_MACCATALYST
+#if TARGET_OS_IPHONE
 - (id<OIDExternalUserAgent>)getExternalUserAgentWithPresentingViewController: (UIViewController *)presentingViewController
                                                      prefersEphemeralSession: (BOOL) prefersEphemeralSession
 #elif TARGET_OS_OSX
@@ -802,7 +798,7 @@ RCT_REMAP_METHOD(logout,
   id<OIDExternalUserAgent> externalUserAgent;
   #if TARGET_OS_MACCATALYST
     externalUserAgent = [[OIDExternalUserAgentCatalyst alloc] initWithPresentingViewController:presentingViewController];
-  #elif TARGET_OS_IOS
+  #elif TARGET_OS_IPHONE
     if (@available(iOS 13, *)) {
         externalUserAgent = [[OIDExternalUserAgentIOS alloc] initWithPresentingViewController:
                              presentingViewController
