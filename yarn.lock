@@ -2655,6 +2655,43 @@
     invariant "^2.2.4"
     nullthrows "^1.1.1"
 
+"@rnx-kit/console@^1.0.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@rnx-kit/console/-/console-1.1.0.tgz#86364f8e6c68b01e9493730276c0d8109a80cd41"
+  integrity sha512-N+zFhTSXroiK4eL26vs61Pmtl7wzTPAKLd4JKw9/fk5cNAHUscCXF/uclzuYN61Ye5AwygIvcwbm9wv4Jfa92A==
+
+"@rnx-kit/metro-config@^1.3.15":
+  version "1.3.15"
+  resolved "https://registry.yarnpkg.com/@rnx-kit/metro-config/-/metro-config-1.3.15.tgz#357243579d7c96f9931a037864f5c58c0ce3a1cb"
+  integrity sha512-6papm4cc6uho39M7E4spxGec4jI0wLUSbvAEho0zITYgGc/U2xNnMHT37hDO4HyZoz72P8BwxsPgGfxa74+epw==
+  dependencies:
+    "@rnx-kit/console" "^1.0.0"
+    "@rnx-kit/tools-node" "^2.0.0"
+    "@rnx-kit/tools-react-native" "^1.3.4"
+    "@rnx-kit/tools-workspaces" "^0.1.3"
+
+"@rnx-kit/tools-node@^2.0.0", "@rnx-kit/tools-node@^2.0.1":
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/@rnx-kit/tools-node/-/tools-node-2.1.1.tgz#550016458ec8b67d21949efeafdb4ba2870d5e69"
+  integrity sha512-jZC/pmeM3fv4LwpkVWlLyv5dOh6haUw/dBaDC0e5zkfehkIdLtRhVwz4l7iH9MW/i4I9OySoc+2DtDpX7KZyZA==
+
+"@rnx-kit/tools-react-native@^1.3.4":
+  version "1.3.5"
+  resolved "https://registry.yarnpkg.com/@rnx-kit/tools-react-native/-/tools-react-native-1.3.5.tgz#57a0dd7056c55a23d311515def44b292bc6aa4fd"
+  integrity sha512-fc+3hxdlicW3GEhI0Umjj+rnVLSLuxVJoGvUBwWvcaCnlNaaTssBjhd7xSvlfLDrgtuXxhBruA76wdDdZI8tiQ==
+  dependencies:
+    "@rnx-kit/tools-node" "^2.0.1"
+
+"@rnx-kit/tools-workspaces@^0.1.3":
+  version "0.1.6"
+  resolved "https://registry.yarnpkg.com/@rnx-kit/tools-workspaces/-/tools-workspaces-0.1.6.tgz#94e5fb72c9857cf4a00d27e931b7ca5a362b4695"
+  integrity sha512-af5CYnc1dtnMIAl2u0U1QHUCGgLNN9ZQkYCAtQOHPxxgF5yX2Cr9jrXLZ9M+/h/eSVbK0ETjJWbNbPoiUSW/7w==
+  dependencies:
+    fast-glob "^3.2.7"
+    find-up "^5.0.0"
+    read-yaml-file "^2.1.0"
+    strip-json-comments "^3.1.1"
+
 "@sideway/address@^4.1.5":
   version "4.1.5"
   resolved "https://registry.yarnpkg.com/@sideway/address/-/address-4.1.5.tgz#4bc149a0076623ced99ca8208ba780d65a99b9d5"
@@ -5244,7 +5281,7 @@ fast-diff@^1.1.2:
   resolved "https://registry.yarnpkg.com/fast-diff/-/fast-diff-1.3.0.tgz#ece407fa550a64d638536cd727e129c61616e0f0"
   integrity sha512-VxPP4NqbUjj6MaAOafWeUn2cXWLcCtljklUtZf0Ind4XQ+QPtmA0b18zZy0jIQx+ExRVCR/ZQpBmik5lXshNsw==
 
-fast-glob@^3.2.9:
+fast-glob@^3.2.7, fast-glob@^3.2.9:
   version "3.3.2"
   resolved "https://registry.yarnpkg.com/fast-glob/-/fast-glob-3.3.2.tgz#a904501e57cfdd2ffcded45e99a54fef55e46129"
   integrity sha512-oX2ruAFQwf/Orj8m737Y5adxDQO0LAB7/S5MnxCdTNDd4p6BsyIVsv9JQsATbTSq8KHRpLwIHbVlUNatxd+1Ow==
@@ -7307,7 +7344,7 @@ js-yaml@^3.13.0, js-yaml@^3.13.1, js-yaml@^3.6.1:
     argparse "^1.0.7"
     esprima "^4.0.0"
 
-js-yaml@^4.1.0:
+js-yaml@^4.0.0, js-yaml@^4.1.0:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-4.1.0.tgz#c1fb65f8f5017901cdd2c951864ba18458a10602"
   integrity sha512-wpxZs9NoxZaJESJGIZTyDEaYpl0FKSA+FB9aJiyemKhMwkxQg63h4T1KJgUGHpTqPDNRcmmYLugrRjJlBtWvRA==
@@ -9799,6 +9836,12 @@ react-is@^17.0.1:
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-17.0.2.tgz#e691d4a8e9c789365655539ab372762b0efb54f0"
   integrity sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==
 
+"react-native-app-auth@link:packages/react-native-app-auth":
+  version "7.2.0"
+  dependencies:
+    invariant "2.2.4"
+    react-native-base64 "0.0.2"
+
 react-native-base64@0.0.2:
   version "0.0.2"
   resolved "https://registry.yarnpkg.com/react-native-base64/-/react-native-base64-0.0.2.tgz#c28463c2c6779ac3ec5fdd12979ebc8c5f9b410a"
@@ -10009,6 +10052,14 @@ read-yaml-file@^1.1.0:
     js-yaml "^3.6.1"
     pify "^4.0.1"
     strip-bom "^3.0.0"
+
+read-yaml-file@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/read-yaml-file/-/read-yaml-file-2.1.0.tgz#c5866712db9ef5343b4d02c2413bada53c41c4a9"
+  integrity sha512-UkRNRIwnhG+y7hpqnycCL/xbTk7+ia9VuVTC0S+zVbwd65DI9eUpRMfsWIGrCWxTU/mi+JW8cHQCrv+zfCbEPQ==
+  dependencies:
+    js-yaml "^4.0.0"
+    strip-bom "^4.0.0"
 
 readable-stream@^2.0.1, readable-stream@^2.2.2, readable-stream@~2.3.6:
   version "2.3.8"
