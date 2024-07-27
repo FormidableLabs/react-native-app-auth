@@ -1024,16 +1024,6 @@ PODS:
     - React-jsi (= 0.73.33)
     - React-logger (= 0.73.33)
     - React-perflogger (= 0.73.33)
-  - ReactNativeHost (0.4.11):
-    - glog
-    - RCT-Folly (= 2022.05.16.00)
-    - React-Core
-    - React-cxxreact
-    - ReactCommon/turbomodule/core
-  - ReactTestApp-DevSupport (3.8.13):
-    - React-Core
-    - React-jsi
-  - ReactTestApp-Resources (1.0.0-dev)
   - SocketRocket (0.7.0)
   - Yoga (1.14.0)
 
@@ -1088,9 +1078,6 @@ DEPENDENCIES:
   - React-runtimescheduler (from `../node_modules/react-native-macos/ReactCommon/react/renderer/runtimescheduler`)
   - React-utils (from `../node_modules/react-native-macos/ReactCommon/react/utils`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native-macos/ReactCommon`)
-  - "ReactNativeHost (from `../node_modules/@rnx-kit/react-native-host`)"
-  - ReactTestApp-DevSupport (from `../node_modules/react-native-test-app`)
-  - ReactTestApp-Resources (from `..`)
   - SocketRocket (from `../node_modules/react-native-macos/third-party-podspecs/SocketRocket.podspec`)
   - Yoga (from `../node_modules/react-native-macos/ReactCommon/yoga`)
 
@@ -1195,12 +1182,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-macos/ReactCommon/react/utils"
   ReactCommon:
     :path: "../node_modules/react-native-macos/ReactCommon"
-  ReactNativeHost:
-    :path: "../node_modules/@rnx-kit/react-native-host"
-  ReactTestApp-DevSupport:
-    :path: "../node_modules/react-native-test-app"
-  ReactTestApp-Resources:
-    :path: ".."
   SocketRocket:
     :podspec: "../node_modules/react-native-macos/third-party-podspecs/SocketRocket.podspec"
   Yoga:
@@ -1256,12 +1237,9 @@ SPEC CHECKSUMS:
   React-runtimescheduler: 68e2b8754cceaaa8b443d62018d4c9c0aa4e0741
   React-utils: 46cc84b17edde38232668073688b2ed621a3d171
   ReactCommon: 0b6b092708b879557708b378a09729fc29900918
-  ReactNativeHost: 02d9df701ce3f7b6560f95315df4bab38b660f58
-  ReactTestApp-DevSupport: 3e70f318cd4976282a93e3648a558294b8251854
-  ReactTestApp-Resources: 9d83e280b173ba2ee053b8135730dff60f9ab674
   SocketRocket: f6c6249082c011e6de2de60ed641ef8bbe0cfac9
   Yoga: 0981416dc6fbb2dec0c45125877c6f1251e4fc09
 
-PODFILE CHECKSUM: 239268e537103ba5129a3ecfa593525ee99d4b09
+PODFILE CHECKSUM: d4949b5e0512a07cb420463cc40d2d367b022a37
 
 COCOAPODS: 1.14.3
