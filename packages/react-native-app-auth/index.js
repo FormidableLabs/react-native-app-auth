@@ -4,29 +4,31 @@ import base64 from 'react-native-base64';
 
 const { RNAppAuth } = NativeModules;
 
-const validateIssuerOrServiceConfigurationEndpoints = (issuer, serviceConfiguration) =>
+const validateIssuer = issuer => typeof issuer === 'string' && issuer.length;
+const validateIssuerOrServiceConfigurationEndpoints = (issuer, serviceConfiguration) => {
   invariant(
-    typeof issuer === 'string' ||
+    validateIssuer(issuer) ||
       (serviceConfiguration &&
         typeof serviceConfiguration.authorizationEndpoint === 'string' &&
         typeof serviceConfiguration.tokenEndpoint === 'string'),
     'Config error: you must provide either an issuer or a service endpoints'
   );
+};
 const validateIssuerOrServiceConfigurationRegistrationEndpoint = (issuer, serviceConfiguration) =>
   invariant(
-    typeof issuer === 'string' ||
+    validateIssuer(issuer) ||
       (serviceConfiguration && typeof serviceConfiguration.registrationEndpoint === 'string'),
     'Config error: you must provide either an issuer or a registration endpoint'
   );
 const validateIssuerOrServiceConfigurationRevocationEndpoint = (issuer, serviceConfiguration) =>
   invariant(
-    typeof issuer === 'string' ||
+    validateIssuer(issuer) ||
       (serviceConfiguration && typeof serviceConfiguration.revocationEndpoint === 'string'),
     'Config error: you must provide either an issuer or a revocation endpoint'
   );
 const validateIssuerOrServiceConfigurationEndSessionEndpoint = (issuer, serviceConfiguration) =>
   invariant(
-    typeof issuer === 'string' ||
+    validateIssuer(issuer) ||
       (serviceConfiguration && typeof serviceConfiguration.endSessionEndpoint === 'string'),
     'Config error: you must provide either an issuer or an end session endpoint'
   );
