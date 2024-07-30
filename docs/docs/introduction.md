@@ -218,7 +218,7 @@ Steps:
 // etc...
 ```
 
-2. `AppDelegate.swift` should implement the `RNAppAuthorizationFlowManager` protocol and have a handler for url deep linking. The result should look something like this:
+2. `AppDelegate.swift` should implement the `RNAppAuthAuthorizationFlowManager` protocol and have a handler for url deep linking. The result should look something like this:
 
 ```swift
 @UIApplicationMain
