@@ -21,6 +21,8 @@
             <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
       </activity>
+      <!-- In order to support multiple possible android redirects: https://github.com/FormidableLabs/react-native-app-auth/issues/495#issuecomment-650797187 -->
+      <!-- https://github.com/openid/AppAuth-Android/blob/27b62d5da94023941db545b70036a742a52b7070/README.md#capturing-the-authorization-redirect -->
       <activity
           android:exported="true"
           android:name="net.openid.appauth.RedirectUriReceiverActivity"
