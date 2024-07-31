@@ -31,7 +31,7 @@ See specific example [configurations for your provider](/docs/category/providers
   - **endSessionEndpoint** - (`string`) fully formed url to your OpenID Connect end session endpoint. If you want to be able to end a user's session and no `issuer` is specified, this field is mandatory.
 - **clientId** - (`string`) _REQUIRED_ your client id on the auth server
 - **clientSecret** - (`string`) client secret to pass to token exchange requests. :warning: Read more about [client secrets](/docs/client-secrets)
-- **redirectUrl** - (`string`) _REQUIRED_ the url that links back to your app with the auth code
+- **redirectUrl** - (`string`) _REQUIRED_ the url that links back to your app with the auth code. Depending on your [provider](/docs/category/providers), you may find that you need to add a trailing slash to your redirect URL.
 - **scopes** - (`array<string>`) the scopes for your token, e.g. `['email', 'offline_access']`.
 - **additionalParameters** - (`object`) additional parameters that will be passed in the authorization request.
   Must be string values! E.g. setting `additionalParameters: { hello: 'world', foo: 'bar' }` would add
