@@ -91,7 +91,9 @@ export const DEFAULT_TIMEOUT_ANDROID = 15;
 
 const convertTimeoutForPlatform = (
   platform,
-  connectionTimeout = Platform.OS === 'ios' ? DEFAULT_TIMEOUT_IOS : DEFAULT_TIMEOUT_ANDROID
+  connectionTimeout = Platform.OS === 'ios' || Platform.OS === 'macos'
+    ? DEFAULT_TIMEOUT_IOS
+    : DEFAULT_TIMEOUT_ANDROID
 ) => (platform === 'android' ? connectionTimeout * SECOND_IN_MS : connectionTimeout);
 
 export const prefetchConfiguration = async ({
@@ -187,7 +189,7 @@ export const register = ({
     nativeMethodArguments.push(customHeaders);
   }
 
-  if (Platform.OS === 'ios') {
+  if (Platform.OS === 'ios' || Platform.OS === 'macos') {
     nativeMethodArguments.push(additionalHeaders);
   }
 
@@ -245,11 +247,11 @@ export const authorize = ({
     nativeMethodArguments.push(androidTrustedWebActivity);
   }
 
-  if (Platform.OS === 'ios') {
+  if (Platform.OS === 'ios' || Platform.OS === 'macos') {
     nativeMethodArguments.push(additionalHeaders);
     nativeMethodArguments.push(useNonce);
     nativeMethodArguments.push(usePKCE);
-    nativeMethodArguments.push(iosCustomBrowser);
+    nativeMethodArguments.push(Platform.OS === 'ios' ? iosCustomBrowser : null);
     nativeMethodArguments.push(iosPrefersEphemeralSession);
   }
 
@@ -303,9 +305,9 @@ export const refresh = (
     nativeMethodArguments.push(androidAllowCustomBrowsers);
   }
 
-  if (Platform.OS === 'ios') {
+  if (Platform.OS === 'ios' || Platform.OS === 'macos') {
     nativeMethodArguments.push(additionalHeaders);
-    nativeMethodArguments.push(iosCustomBrowser);
+    nativeMethodArguments.push(Platform.OS === 'ios' ? iosCustomBrowser : null);
   }
 
   return RNAppAuth.refresh(...nativeMethodArguments);
@@ -384,8 +386,8 @@ export const logout = (
     nativeMethodArguments.push(androidAllowCustomBrowsers);
   }
 
-  if (Platform.OS === 'ios') {
-    nativeMethodArguments.push(iosCustomBrowser);
+  if (Platform.OS === 'ios' || Platform.OS === 'macos') {
+    nativeMethodArguments.push(Platform.OS === 'ios' ? iosCustomBrowser : null);
     nativeMethodArguments.push(iosPrefersEphemeralSession);
   }
 
