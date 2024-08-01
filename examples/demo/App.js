@@ -31,12 +31,11 @@ const configs = {
     // }
   },
   auth0: {
-    // From https://openidconnect.net/
-    issuer: 'https://samples.auth0.com',
-    clientId: 'kbyuFDidLLm280LIwVFiazOqjO3ty8KH',
-    redirectUrl: 'https://openidconnect.net/callback',
+    issuer: 'https://rnaa-demo.eu.auth0.com',
+    clientId: 'VtXdAoGFcYzZ3IJaNy4UIS5RNHhdbKbU',
+    redirectUrl: 'rnaa-demo://oauthredirect',
     additionalParameters: {},
-    scopes: ['openid', 'profile', 'email', 'phone', 'address'],
+    scopes: ['openid', 'profile', 'email', 'offline_access'],
 
     // serviceConfiguration: {
     //   authorizationEndpoint: 'https://samples.auth0.com/authorize',
