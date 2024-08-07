@@ -1,5 +1,15 @@
 # react-native-app-auth
 
+## 8.0.0
+
+### Major Changes
+
+- Breaking change (iOS, Mac Catalyst): The boolean values `useNonce`, `usePCKE`, and `prefersEphemeralSession` are now handled correctly. Previously, they were all being interpreted as `false` regardless of their actual values, but now the intended (`true` or `false`) value is correctly marshalled from JavaScript to native. To preserve behaviour from before this breaking change, explicitly set them all to `false`. ([#1000](https://github.com/FormidableLabs/react-native-app-auth/pull/1000))
+
+### Patch Changes
+
+- fix hard crash if config object was incorrect ([#1010](https://github.com/FormidableLabs/react-native-app-auth/pull/1010))
+
 ## 7.2.0
 
 ### Minor Changes
