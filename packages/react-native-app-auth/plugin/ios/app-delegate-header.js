@@ -20,7 +20,10 @@ const withAppAuthAppDelegateHeader = rootConfig =>
       let contents = fs.readFileSync(headerFilePath, 'utf-8');
 
       // add a new import (unless it already exists)
-      contents = codeModIOs.addObjcImports(contents, ['"RNAppAuthAuthorizationFlowManager.h"']);
+      contents = codeModIOs.addObjcImports(contents, [
+        '"RNAppAuthAuthorizationFlowManager.h"',
+        "<React/RCTLinkingManager.h>", // in reverse order because of the way the code-mod works
+      ]);
 
       // adds a new protocol to the AppDelegate interface (unless it already exists)
       contents = insertProtocolDeclaration({

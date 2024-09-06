@@ -5,8 +5,8 @@ const {
   removeContents,
 } = require('@expo/config-plugins/build/utils/generateCode');
 
-const withAppAuthAppDelegate = rootConfig =>
-  withAppDelegate(rootConfig, config => {
+const withAppAuthAppDelegate = (rootConfig) =>
+  withAppDelegate(rootConfig, (config) => {
     let { contents } = config.modResults;
 
     // generation tags & headers
