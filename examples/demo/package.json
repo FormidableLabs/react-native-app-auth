@@ -14,7 +14,7 @@
     "react": "18.2.0",
     "react-native": "0.72.4",
     "react-native-app-auth": "link:../../packages/react-native-app-auth",
-    "react-native-macos": "~0.73.30"
+    "react-native-macos": "~0.72.21"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

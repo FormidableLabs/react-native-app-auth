@@ -1,7 +1,6 @@
 #import "AppDelegate.h"
 
 #import <React/RCTBundleURLProvider.h>
-#import <React/RCTLinkingManager.h>
 
 @implementation AppDelegate
 
@@ -13,25 +12,6 @@
   self.initialProps = @{};
 
   return [super applicationDidFinishLaunching:notification];
-}
-
-- (void)applicationWillFinishLaunching:(NSNotification *)notification {
-  [[NSAppleEventManager sharedAppleEventManager] setEventHandler:self
-                           andSelector:@selector(getURL:withReplyEvent:)
-                         forEventClass:kInternetEventClass
-                            andEventID:kAEGetURL];
-}
-
-- (void)getURL:(NSAppleEventDescriptor *)event withReplyEvent:(NSAppleEventDescriptor *)reply
-{
-  NSString* urlString = [[event paramDescriptorForKeyword:keyDirectObject] stringValue];
-  NSURL *url = [NSURL URLWithString:urlString];
-
-  if ([self.authorizationFlowManagerDelegate resumeExternalUserAgentFlowWithURL:url]) {
-    return;
-  }
-  
-  [RCTLinkingManager getUrlEventHandler:event withReplyEvent:reply];
 }
 
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge
