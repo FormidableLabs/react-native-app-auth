@@ -291,7 +291,7 @@ PODS:
   - React-jsinspector (0.72.21)
   - React-logger (0.72.21):
     - glog
-  - react-native-app-auth (7.2.0):
+  - react-native-app-auth (8.0.0):
     - AppAuth (>= 1.7.3)
     - React-Core
   - React-NativeModulesApple (0.72.21):
@@ -559,7 +559,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: e1a79a2f2fd320b9cf42667a2ba967e40050ad18
   React-jsinspector: 6851b3495397b5a46e197c5fca264ca2b66a21a6
   React-logger: 2f52e784cd5c26387902d49033f0a9983716b9b4
-  react-native-app-auth: c236808e5f8805f54eca6a2b7d1842af1524de22
+  react-native-app-auth: d037cf90d7fd4caa6f735721f41eb539f3b4befb
   React-NativeModulesApple: 6eae63d910ec5b32343113e6c8d76bfd0580311f
   React-perflogger: 550b7f2d8b6beea416d9a07e8ce72ac64bca8c00
   React-RCTActionSheet: 3a9144f7eb20253530bfc363297e360de1b962a1
