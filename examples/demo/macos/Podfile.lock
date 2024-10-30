@@ -1,4 +1,10 @@
 PODS:
+  - AppAuth (1.7.5):
+    - AppAuth/Core (= 1.7.5)
+    - AppAuth/ExternalUserAgent (= 1.7.5)
+  - AppAuth/Core (1.7.5)
+  - AppAuth/ExternalUserAgent (1.7.5):
+    - AppAuth/Core
   - boost (1.76.0)
   - DoubleConversion (1.1.6)
   - FBLazyVector (0.72.21)
@@ -285,6 +291,9 @@ PODS:
   - React-jsinspector (0.72.21)
   - React-logger (0.72.21):
     - glog
+  - react-native-app-auth (7.2.0):
+    - AppAuth (>= 1.7.3)
+    - React-Core
   - React-NativeModulesApple (0.72.21):
     - React-callinvoker
     - React-Core
@@ -418,6 +427,7 @@ DEPENDENCIES:
   - React-jsiexecutor (from `../node_modules/react-native-macos/ReactCommon/jsiexecutor`)
   - React-jsinspector (from `../node_modules/react-native-macos/ReactCommon/jsinspector`)
   - React-logger (from `../node_modules/react-native-macos/ReactCommon/logger`)
+  - react-native-app-auth (from `../../../node_modules/react-native-app-auth`)
   - React-NativeModulesApple (from `../node_modules/react-native-macos/ReactCommon/react/nativemodule/core/platform/ios`)
   - React-perflogger (from `../node_modules/react-native-macos/ReactCommon/reactperflogger`)
   - React-RCTActionSheet (from `../node_modules/react-native-macos/Libraries/ActionSheetIOS`)
@@ -437,6 +447,10 @@ DEPENDENCIES:
   - ReactCommon/turbomodule/core (from `../node_modules/react-native-macos/ReactCommon`)
   - SocketRocket (from `../node_modules/react-native-macos/third-party-podspecs/SocketRocket.podspec`)
   - Yoga (from `../node_modules/react-native-macos/ReactCommon/yoga`)
+
+SPEC REPOS:
+  trunk:
+    - AppAuth
 
 EXTERNAL SOURCES:
   boost:
@@ -481,6 +495,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-macos/ReactCommon/jsinspector"
   React-logger:
     :path: "../node_modules/react-native-macos/ReactCommon/logger"
+  react-native-app-auth:
+    :path: "../../../node_modules/react-native-app-auth"
   React-NativeModulesApple:
     :path: "../node_modules/react-native-macos/ReactCommon/react/nativemodule/core/platform/ios"
   React-perflogger:
@@ -521,6 +537,7 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-macos/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
+  AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
   boost: dd6670278a62b2597c8aa78da360a2b25563e3f8
   DoubleConversion: b27dc0920d7399c3d0135ef9089b1dc4d0403a2a
   FBLazyVector: b7481904daa422bb038bde88311486a243362c5f
@@ -542,6 +559,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: e1a79a2f2fd320b9cf42667a2ba967e40050ad18
   React-jsinspector: 6851b3495397b5a46e197c5fca264ca2b66a21a6
   React-logger: 2f52e784cd5c26387902d49033f0a9983716b9b4
+  react-native-app-auth: c236808e5f8805f54eca6a2b7d1842af1524de22
   React-NativeModulesApple: 6eae63d910ec5b32343113e6c8d76bfd0580311f
   React-perflogger: 550b7f2d8b6beea416d9a07e8ce72ac64bca8c00
   React-RCTActionSheet: 3a9144f7eb20253530bfc363297e360de1b962a1
