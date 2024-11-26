@@ -1,5 +1,11 @@
 # react-native-app-auth
 
+## 8.0.1
+
+### Patch Changes
+
+- Update AppAuth-iOS to version 1.7.6 ([#1039](https://github.com/FormidableLabs/react-native-app-auth/pull/1039))
+
 ## 8.0.0
 
 ### Major Changes
