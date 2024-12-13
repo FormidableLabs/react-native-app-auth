@@ -9,6 +9,8 @@ You can find detailed instructions on registering a new Entra application [here]
 NOTES:
 
 - Microsoft Entra ID does not have a `revocationEndpoint`.
+- Application ID can be viewed in your Entra application's dashboard.
+- Authorization and Token endpoints can be found under the `Endpoints` link at the top of the page in your Entra application's dashboard.
 
 ```js
 const config = {
