@@ -68,7 +68,7 @@ export type BaseAuthConfiguration = BaseConfiguration & {
 export type AuthConfiguration = BaseAuthConfiguration & {
   clientSecret?: string;
   scopes: string[];
-  claims: object,
+  claims?: object,
   redirectUrl: string;
   additionalParameters?: BuiltInParameters & { [name: string]: string };
   clientAuthMethod?: 'basic' | 'post';
