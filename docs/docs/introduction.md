@@ -10,7 +10,9 @@ Get started by installing the dependencies in your application
 ```sh
 yarn add react-native-app-auth
 ```
+
 Or
+
 ```sh
 npm install react-native-app-auth --save
 ```
@@ -68,11 +70,11 @@ AppAuth supports three options for dependency management.
 
         github "openid/AppAuth-iOS" "master"
 
-    Then run `carthage update --platform iOS`.
+    Then run `carthage update --platform iOS --use-xcframeworks`.
 
-    Drag and drop `AppAuth.framework` from `ios/Carthage/Build/iOS` under `Frameworks` in `Xcode`.
+    Drag and drop `AppAuth.xcframework` from `ios/Carthage/Build` under `Frameworks` in `Xcode`.
 
-    Add a copy files build step for `AppAuth.framework`: open Build Phases on Xcode, add a new "Copy Files" phase, choose "Frameworks" as destination, add `AppAuth.framework` and ensure "Code Sign on Copy" is checked.
+    Add a copy files build step for `AppAuth.xcframework`: open Build Phases on Xcode, add a new "Copy Files" phase, choose "Frameworks" as destination, add `AppAuth.xcframework` and ensure "Code Sign on Copy" is checked.
 
 3.  **Static Library**
 
