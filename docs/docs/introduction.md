@@ -257,3 +257,35 @@ The scheme is the beginning of your OAuth Redirect URL, up to the scheme separat
 is `com.myapp://oauth`, then the url scheme will is `com.myapp`. The scheme must be in lowercase.
 
 NOTE: When integrating with [React Navigation deep linking](https://reactnavigation.org/docs/deep-linking/#set-up-with-bare-react-native-projects), be sure to make this scheme (and the scheme in the config's redirectUrl) unique from the scheme defined in the deep linking intent-filter. E.g. if the scheme in your intent-filter is set to `com.myapp`, then update the above scheme/redirectUrl to be `com.myapp.auth` [as seen here](https://github.com/FormidableLabs/react-native-app-auth/issues/494#issuecomment-797394994).
+
+#### App Links
+
+If your your OAuth Redirect URL is an [App Links](https://developer.android.com/training/app-links), you need to the following code to your `AndroidManifest.xml`:
+
+```
+<activity
+            android:name="net.openid.appauth.RedirectUriReceiverActivity"
+            android:exported="true">
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="https"
+                    android:host=example.domain />
+            </intent-filter>
+        </activity>
+```
+
+where the `host` is the domain of your redirect uri.
+
+You need to add the `manifestPlaceholders` as described in the section above:
+
+```
+android {
+  defaultConfig {
+    manifestPlaceholders = [
+      appAuthRedirectScheme: 'example.domain'
+    ]
+  }
+}
+```
