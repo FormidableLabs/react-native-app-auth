@@ -260,23 +260,23 @@ NOTE: When integrating with [React Navigation deep linking](https://reactnavigat
 
 #### App Links
 
-If your your OAuth Redirect URL is an [App Links](https://developer.android.com/training/app-links), you need to the following code to your `AndroidManifest.xml`:
+If your your OAuth Redirect URL is an [App Links](https://developer.android.com/training/app-links), you need to add the following code to your `AndroidManifest.xml`:
+```xml
 
-```
 <activity
-            android:name="net.openid.appauth.RedirectUriReceiverActivity"
-            android:exported="true">
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:scheme="https"
-                    android:host=example.domain />
-            </intent-filter>
-        </activity>
+  android:name="net.openid.appauth.RedirectUriReceiverActivity"
+  android:exported="true">
+  <intent-filter android:autoVerify="true">
+    <action android:name="android.intent.action.VIEW"/>
+    <category android:name="android.intent.category.DEFAULT"/>
+    <category android:name="android.intent.category.BROWSABLE"/>
+    <data android:scheme="https"
+      android:host=example.domain />
+  </intent-filter>
+</activity>
 ```
 
-where the `host` is the domain of your redirect uri.
+Replace `android:host` with the domain of your redirect uri.
 
 You need to add the `manifestPlaceholders` as described in the section above:
 
