@@ -578,8 +578,10 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                 return;
             }
             final Promise endSessionPromise = this.promise;
-            WritableMap map = EndSessionResponseFactory.endSessionResponseToMap(response);
-            endSessionPromise.resolve(map);
+            if (endSessionPromise != null) {
+                WritableMap map = EndSessionResponseFactory.endSessionResponseToMap(response);
+                endSessionPromise.resolve(map);
+            }
         }
     } catch (Exception e) {
         if(promise != null) {
