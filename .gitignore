@@ -33,6 +33,10 @@ android/gradle/
 android/gradlew
 android/gradlew.bat
 
+# Android/Eclipse
+#
+android/.settings/
+
 # node.js
 #
 node_modules/

@@ -717,6 +717,9 @@ RCT_REMAP_METHOD(logout,
             }
     };
     BrowserBlock browser = browsers[browserType];
+    if (!browser) {
+        return nil;
+    }
     return browser();
 }
 #endif
