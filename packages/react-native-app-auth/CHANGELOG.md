@@ -1,5 +1,11 @@
 # react-native-app-auth
 
+## 8.0.2
+
+### Patch Changes
+
+- #1063 Updated getCustomBrowser: in RNAppAuth.m to explicitly check the return value of browser. If the value is not in the dictionary, it will return nil to trigger an ephemeral session. ([#1064](https://github.com/FormidableLabs/react-native-app-auth/pull/1064))
+
 ## 8.0.1
 
 ### Patch Changes
