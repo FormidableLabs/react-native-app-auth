@@ -517,8 +517,13 @@ RCT_REMAP_METHOD(logout,
 #if TARGET_OS_MACCATALYST
     id<OIDExternalUserAgent> externalUserAgent = nil;
 #elif TARGET_OS_IOS
-    id<OIDExternalUserAgent> externalUserAgent = iosCustomBrowser != nil ? [self getCustomBrowser: iosCustomBrowser] : [self getExternalUserAgentWithPresentingViewController:presentingViewController
-                                                                                                                                    prefersEphemeralSession:prefersEphemeralSession];
+    id<OIDExternalUserAgent> externalUserAgent;
+    if (iosCustomBrowser != nil && ![iosCustomBrowser isEqual:[NSNull null]]) {
+      externalUserAgent = [self getCustomBrowser:iosCustomBrowser];
+    } else {
+      externalUserAgent = [self getExternalUserAgentWithPresentingViewController:presentingViewController
+                                                       prefersEphemeralSession:prefersEphemeralSession];
+    }
 #endif
     
     _currentSession = [OIDAuthorizationService presentEndSessionRequest: endSessionRequest
