@@ -1,5 +1,11 @@
 # react-native-app-auth
 
+## 8.0.3
+
+### Patch Changes
+
+- Update AGP and Android target/compile SDK ([#1024](https://github.com/FormidableLabs/react-native-app-auth/pull/1024))
+
 ## 8.0.2
 
 ### Patch Changes
