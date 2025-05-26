@@ -56,6 +56,28 @@ class AppDelegate: UIResponder, UIApplicationDelegate,
     return false
   }
 
+  func application(
+    _ application: UIApplication,
+    continue userActivity: NSUserActivity,
+    restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void
+  ) -> Bool {
+
+    // Handle Universal-Link–style OAuth redirects first
+    if userActivity.activityType == NSUserActivityTypeBrowsingWeb,
+      let delegate = authorizationFlowManagerDelegate,
+      delegate.resumeExternalUserAgentFlow(with: userActivity.webpageURL)
+    {
+      return true
+    }
+
+    // Fall back to React Native’s own Linking logic
+    return RCTLinkingManager.application(
+      application,
+      continue: userActivity,
+      restorationHandler: restorationHandler
+    )
+  }
+
 }
 
 class ReactNativeDelegate: RCTDefaultReactNativeFactoryDelegate {
