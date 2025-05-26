@@ -107,7 +107,6 @@ const KeyValueLabel: React.FC<KeyValueLabelProps> = ({label, value}) => (
   </View>
 );
 
-// New Row Component
 interface RowProps {
   children: React.ReactNode;
 }
@@ -115,7 +114,6 @@ interface RowProps {
 const Row: React.FC<RowProps> = ({children}) => (
   <View style={styles.row}>{children}</View>
 );
-// End New Row Component
 
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
@@ -196,8 +194,6 @@ function App(): React.JSX.Element {
     }
     return false;
   }, [authState]);
-
-  console.log('>>>>>>>', JSON.stringify(authState, null, 2));
 
   return (
     <SafeAreaView>

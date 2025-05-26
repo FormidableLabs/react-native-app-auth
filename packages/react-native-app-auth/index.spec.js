@@ -22,6 +22,11 @@ jest.mock('react-native', () => ({
   },
 }));
 
+jest.mock('react-native-base64', () => ({
+  encode: jest.fn(),
+  decode: jest.fn(),
+}));
+
 describe('AppAuth', () => {
   let mockRegister;
   let mockAuthorize;
