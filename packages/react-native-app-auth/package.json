@@ -39,7 +39,7 @@
   "devDependencies": {
     "jest": "24.9.0",
     "react": "16.9.0",
-    "react-native": "0.63.0"
+    "react-native": "0.79.2"
   },
   "dependencies": {
     "invariant": "2.2.4",
