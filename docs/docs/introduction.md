@@ -10,7 +10,9 @@ Get started by installing the dependencies in your application
 ```sh
 yarn add react-native-app-auth
 ```
+
 Or
+
 ```sh
 npm install react-native-app-auth --save
 ```
@@ -115,9 +117,79 @@ your `Info.plist` as follows:
 You need to retain the auth session, in order to continue the
 authorization flow from the redirect. Follow these steps:
 
-`RNAppAuth` will call on the given app's delegate via `[UIApplication sharedApplication].delegate`.
-Furthermore, `RNAppAuth` expects the delegate instance to conform to the protocol `RNAppAuthAuthorizationFlowManager`.
-Make `AppDelegate` conform to `RNAppAuthAuthorizationFlowManager` with the following changes to `AppDelegate.h`:
+###### For react-native >= 0.77
+
+As of `react-native@0.77`, the `AppDelegate` template is now written in Swift.
+
+In order to bridge to the existing Objective-C code that this package utilizes, you need to create a bridging header file. To do so:
+
+1. Create a new file in your project called `AppDelegate+RNAppAuth.h`. (It can be called anything, but it must end with `.h`)
+2. Add the following code to the file:
+
+```
+#import "RNAppAuthAuthorizationFlowManager.h"
+```
+
+3. Ensure that your XCode "Build Settings" has the following `Objective-C Bridging Header` path set to the file you just created. For example, it make look something like: `$(SRCROOT)/AppDelegate+RNAppAuth.h`
+
+4. Add the following code to `AppDelegate.swift` to support React Navigation deep linking and overriding browser behavior in the authorization process
+
+```swift
+@main
+class AppDelegate: UIResponder, UIApplicationDelegate,
+  RNAppAuthAuthorizationFlowManager {
+  //... existing code...
+  // Required by RNAppAuthAuthorizationFlowManager protocol
+  public weak var authorizationFlowManagerDelegate:
+    RNAppAuthAuthorizationFlowManagerDelegate?
+  //... existing code...
+
+  // Handle OAuth redirect URL
+  func application(
+    _ app: UIApplication,
+    open url: URL,
+    options: [UIApplication.OpenURLOptionsKey: Any] = [:]
+  ) -> Bool {
+    if let authorizationFlowManagerDelegate = self
+      .authorizationFlowManagerDelegate
+    {
+      if authorizationFlowManagerDelegate.resumeExternalUserAgentFlow(with: url)
+      {
+        return true
+      }
+    }
+    return false
+  }
+}
+```
+
+5. Add the following code to `AppDelegate.swift` to support universal links:
+
+```swift
+
+
+  func application(
+    _ application: UIApplication,
+    continue userActivity: NSUserActivity,
+    restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void
+  ) -> Bool {
+
+    // Handle Universal-Link–style OAuth redirects first
+    if userActivity.activityType == NSUserActivityTypeBrowsingWeb,
+      let delegate = authorizationFlowManagerDelegate,
+      delegate.resumeExternalUserAgentFlow(with: userActivity.webpageURL)
+    {
+      return true
+    }
+
+    // Fall back to React Native’s own Linking logic
+    return RCTLinkingManager.application(
+      application,
+      continue: userActivity,
+      restorationHandler: restorationHandler
+    )
+  }
+```
 
 ##### For react-native >= 0.68
 
@@ -199,44 +271,7 @@ If you want to support universal links, add the following to `AppDelegate.m` und
 + }
 ```
 
-#### Integration of the library with a Swift iOS project
-
-The approach mentioned should work with Swift. In this case one should make `AppDelegate` conform to `RNAppAuthAuthorizationFlowManager`. Note that this is not tested/guaranteed by the maintainers.
-
-Steps:
-
-1. `swift-Bridging-Header.h` should include a reference to `#import "RNAppAuthAuthorizationFlowManager.h`, like so:
-
-```h
-#import <React/RCTBundleURLProvider.h>
-#import <React/RCTRootView.h>
-#import <React/RCTBridgeDelegate.h>
-#import <React/RCTBridge.h>
-#import "RNAppAuthAuthorizationFlowManager.h" // <-- Add this header
-#if DEBUG
-#import <FlipperKit/FlipperClient.h>
-// etc...
-```
-
-2. `AppDelegate.swift` should implement the `RNAppAuthAuthorizationFlowManager` protocol and have a handler for url deep linking. The result should look something like this:
-
-```swift
-@UIApplicationMain
-class AppDelegate: UIApplicationDelegate, RNAppAuthAuthorizationFlowManager { //<-- note the additional RNAppAuthAuthorizationFlowManager protocol
-  public weak var authorizationFlowManagerDelegate: RNAppAuthAuthorizationFlowManagerDelegate? // <-- this property is required by the protocol
-  //"open url" delegate function for managing deep linking needs to call the resumeExternalUserAgentFlowWithURL method
-  func application(
-      _ app: UIApplication,
-      open url: URL,
-      options: [UIApplicationOpenURLOptionsKey: Any] = [:]) -> Bool {
-      return authorizationFlowManagerDelegate?.resumeExternalUserAgentFlow(with: url) ?? false
-  }
-}
-```
-
 ### Android Setup
-
-**Note:** for RN >= 0.57, you will get a warning about compile being obsolete. To get rid of this warning, use [patch-package](https://github.com/ds300/patch-package) to replace compile with implementation [as in this PR](https://github.com/FormidableLabs/react-native-app-auth/pull/242) - we're not deploying this right now, because it would break the build for RN < 57.
 
 To setup the Android project, you need to add redirect scheme manifest placeholder:
 
