@@ -207,6 +207,10 @@ function App(): React.JSX.Element {
           value={authState.accessToken || 'N/A'}
         />
         <KeyValueLabel
+          label="Access Token Expiration Date"
+          value={authState.accessTokenExpirationDate || 'N/A'}
+        />
+        <KeyValueLabel
           label="Refresh Token"
           value={authState.refreshToken || 'N/A'}
         />
