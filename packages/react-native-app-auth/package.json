@@ -37,9 +37,10 @@
     "react-native": ">=0.63.0"
   },
   "devDependencies": {
-    "jest": "24.9.0",
-    "react": "16.9.0",
-    "react-native": "0.63.0"
+    "jest": "^29.6.3",
+    "react": "19.0.0",
+    "react-native": "0.79.2",
+    "@react-native/babel-preset": "0.79.2"
   },
   "dependencies": {
     "invariant": "2.2.4",
