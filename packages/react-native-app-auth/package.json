@@ -11,6 +11,8 @@
   "files": [
     "android",
     "ios",
+    "plugin",
+    "app.plugin.js",
     "index.d.ts",
     "react-native-app-auth.podspec"
   ],
