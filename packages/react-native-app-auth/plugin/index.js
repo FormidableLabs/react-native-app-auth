@@ -17,11 +17,11 @@ const withAppAuth = (config, props) => {
     withBridgingHeader,
     withXcodeBuildSettings,
     withAppAuthAppDelegate,
-    withAppAuthAppDelegateHeader, // 👈 ️this one uses withDangerousMod !
+    withAppAuthAppDelegateHeader,
     [withUrlSchemes, props],
 
     // Android
-    [withAppAuthAppBuildGradle, props], // 👈 ️this one uses withDangerousMod !
+    [withAppAuthAppBuildGradle, props],
   ]);
 };
 
