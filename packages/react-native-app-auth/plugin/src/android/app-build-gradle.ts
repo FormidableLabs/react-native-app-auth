@@ -1,9 +1,10 @@
-const fs = require('fs');
+import * as fs from 'fs';
+import { AndroidConfig, withDangerousMod, ConfigPlugin } from '@expo/config-plugins';
+import { AppAuthProps } from '../types';
 
-const { AndroidConfig, withDangerousMod } = require('@expo/config-plugins');
 const codeModAndroid = require('@expo/config-plugins/build/android/codeMod');
 
-const withAppAuthAppBuildGradle = (rootConfig, props) =>
+export const withAppAuthAppBuildGradle: ConfigPlugin<AppAuthProps | undefined> = (rootConfig, props) =>
   withDangerousMod(rootConfig, [
     'android',
     config => {
@@ -36,5 +37,3 @@ const withAppAuthAppBuildGradle = (rootConfig, props) =>
       return config;
     },
   ]);
-
-module.exports = { withAppAuthAppBuildGradle };

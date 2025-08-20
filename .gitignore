@@ -43,6 +43,10 @@ node_modules/
 npm-debug.log
 yarn-error.log
 
+# TypeScript
+#
+*.tsbuildinfo
+
 # BUCK
 buck-out/
 \.buckd/

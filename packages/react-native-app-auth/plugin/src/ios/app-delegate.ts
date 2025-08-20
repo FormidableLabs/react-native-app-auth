@@ -1,9 +1,9 @@
-const { withAppDelegate } = require('@expo/config-plugins');
+import { withAppDelegate, ConfigPlugin } from '@expo/config-plugins';
+import { isExpo53OrLater } from '../expo-version';
+
 const codeModIOs = require('@expo/config-plugins/build/ios/codeMod');
 
-const { isExpo53OrLater } = require('../expo-version');
-
-const withAppDelegateSwift = rootConfig => {
+const withAppDelegateSwift: ConfigPlugin = rootConfig => {
   return withAppDelegate(rootConfig, config => {
     let { contents } = config.modResults;
 
@@ -35,7 +35,7 @@ const withAppDelegateSwift = rootConfig => {
   });
 };
 
-const withAppAuthAppDelegate = rootConfig => {
+export const withAppAuthAppDelegate: ConfigPlugin = rootConfig => {
   if (isExpo53OrLater(rootConfig)) {
     return withAppDelegateSwift(rootConfig);
   }
@@ -58,8 +58,4 @@ const withAppAuthAppDelegate = rootConfig => {
     config.modResults.contents = contents;
     return config;
   });
-};
-
-module.exports = {
-  withAppAuthAppDelegate,
 };

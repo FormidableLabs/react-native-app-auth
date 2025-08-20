@@ -1,19 +1,19 @@
-const { withPlugins, createRunOncePlugin } = require('@expo/config-plugins');
-
-const packageJson = require('../package.json');
-
-const {
+import { withPlugins, createRunOncePlugin } from '@expo/config-plugins';
+import { AppAuthConfigPlugin, AppAuthProps } from './types';
+import {
   withAppAuthAppDelegate,
   withAppAuthAppDelegateHeader,
   withUrlSchemes,
   withBridgingHeader,
   withXcodeBuildSettings,
-} = require('./ios');
-const { withAppAuthAppBuildGradle } = require('./android');
+} from './ios';
+import { withAppAuthAppBuildGradle } from './android';
 
-const withAppAuth = (config, props) => {
+const packageJson = require('../../package.json');
+
+const withAppAuth: AppAuthConfigPlugin = (config, props) => {
   // Transform redirectUrls configuration to platform-specific format
-  const transformedProps = props?.redirectUrls ? {
+  const transformedProps: AppAuthProps = props?.redirectUrls ? {
     ios: {
       urlScheme: props.redirectUrls[0]?.split('://')[0], // Extract scheme from first URL
     },
@@ -21,7 +21,7 @@ const withAppAuth = (config, props) => {
       appAuthRedirectScheme: props.redirectUrls[0]?.split('://')[0], // Extract scheme from first URL
     },
     ...props,
-  } : props;
+  } : (props || {});
 
   return withPlugins(config, [
     // iOS
@@ -36,4 +36,4 @@ const withAppAuth = (config, props) => {
   ]);
 };
 
-module.exports = createRunOncePlugin(withAppAuth, packageJson.name, packageJson.version);
+export default createRunOncePlugin(withAppAuth, packageJson.name, packageJson.version);

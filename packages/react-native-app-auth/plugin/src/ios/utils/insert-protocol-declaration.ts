@@ -1,9 +1,16 @@
-const insertProtocolDeclaration = ({
+interface InsertProtocolDeclarationParams {
+  source: string;
+  interfaceName: string;
+  protocolName: string;
+  baseClassName?: string;
+}
+
+export const insertProtocolDeclaration = ({
   source,
   interfaceName,
   protocolName,
   baseClassName = 'NSObject',
-}) => {
+}: InsertProtocolDeclarationParams): string => {
   const matchInterfaceDeclarationRegexp = new RegExp(
     `(@interface\\s+${interfaceName}\\s*:\\s*${baseClassName})(\\s*\\<(.*)\\>)?`
   );
@@ -21,8 +28,4 @@ const insertProtocolDeclaration = ({
   }
 
   return source;
-};
-
-module.exports = {
-  insertProtocolDeclaration,
 };

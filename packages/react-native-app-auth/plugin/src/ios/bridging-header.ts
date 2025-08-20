@@ -1,14 +1,17 @@
-const fs = require('fs');
-const path = require('path');
-
-const { withDangerousMod, withXcodeProject } = require('@expo/config-plugins');
-
-const { isExpo53OrLater } = require('../expo-version');
+import * as fs from 'fs';
+import * as path from 'path';
+import { withDangerousMod, withXcodeProject, ConfigPlugin } from '@expo/config-plugins';
+import { isExpo53OrLater } from '../expo-version';
 
 const BRIDGING_HEADER_NAME = 'AppDelegate+RNAppAuth.h';
 const BRIDGING_HEADER_CONTENT = '#import "RNAppAuthAuthorizationFlowManager.h"\n';
 
-const findBridgingHeader = dir => {
+interface ConfigWithBridgingHeader {
+  _createdBridgingHeader?: string;
+  [key: string]: any;
+}
+
+const findBridgingHeader = (dir: string): string | null => {
   const files = fs.readdirSync(dir);
 
   // First check current directory
@@ -31,7 +34,7 @@ const findBridgingHeader = dir => {
   return null;
 };
 
-const withBridgingHeader = rootConfig => {
+export const withBridgingHeader: ConfigPlugin = rootConfig => {
   if (!isExpo53OrLater(rootConfig)) {
     return rootConfig;
   }
@@ -44,7 +47,7 @@ const withBridgingHeader = rootConfig => {
       // Search for existing bridging header in the project and subfolders
       const existingHeaderPath = findBridgingHeader(iosPath);
       const importLine = BRIDGING_HEADER_CONTENT;
-      let headerPath;
+      let headerPath: string;
 
       if (existingHeaderPath) {
         headerPath = existingHeaderPath;
@@ -57,7 +60,7 @@ const withBridgingHeader = rootConfig => {
         // Default to new file if none found
         headerPath = path.join(iosPath, BRIDGING_HEADER_NAME);
         fs.writeFileSync(headerPath, `${importLine}\n`);
-        config._createdBridgingHeader = BRIDGING_HEADER_NAME;
+        (config as ConfigWithBridgingHeader)._createdBridgingHeader = BRIDGING_HEADER_NAME;
       }
 
       return config;
@@ -65,25 +68,20 @@ const withBridgingHeader = rootConfig => {
   ]);
 };
 
-const withXcodeBuildSettings = rootConfig =>
+export const withXcodeBuildSettings: ConfigPlugin = rootConfig =>
   withXcodeProject(rootConfig, config => {
     const project = config.modResults;
     const target = project.getFirstTarget().uuid;
 
     const currentSetting = project.getBuildProperty('SWIFT_OBJC_BRIDGING_HEADER', target);
 
-    if (!currentSetting && config._createdBridgingHeader) {
+    if (!currentSetting && (config as ConfigWithBridgingHeader)._createdBridgingHeader) {
       project.addBuildProperty(
         'SWIFT_OBJC_BRIDGING_HEADER',
-        `$(SRCROOT)/${config._createdBridgingHeader}`,
+        `$(SRCROOT)/${(config as ConfigWithBridgingHeader)._createdBridgingHeader}`,
         target
       );
     }
 
     return config;
   });
-
-module.exports = {
-  withBridgingHeader,
-  withXcodeBuildSettings,
-};
