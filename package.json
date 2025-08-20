@@ -45,7 +45,7 @@
   "workspaces": {
     "packages": [
       "packages/*",
-      "examples/*"
+      "examples/demo"
     ],
     "nohoist": [
       "**/react-native",
