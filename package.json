@@ -22,6 +22,7 @@
   ],
   "license": "MIT",
   "scripts": {
+    "build": "yarn workspace react-native-app-auth build",
     "changeset": "changeset",
     "lint": "yarn workspace react-native-app-auth lint",
     "test": "yarn workspace react-native-app-auth test",

@@ -7,10 +7,10 @@
   "scripts": {
     "test": "jest",
     "lint": "eslint .",
-    "build": "expo-module-scripts build plugin",
-    "clean": "expo-module-scripts clean plugin",
-    "lint:plugin": "expo-module-scripts lint plugin",
-    "test:plugin": "expo-module-scripts test plugin"
+    "build": "expo-module build plugin",
+    "clean": "expo-module clean plugin",
+    "lint:plugin": "expo-module lint plugin",
+    "test:plugin": "expo-module test plugin"
   },
   "files": [
     "android",

@@ -20,6 +20,9 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
+      - name: Build Plugin
+        run: yarn run build
+
       - name: Lint
         run: yarn run lint
       
