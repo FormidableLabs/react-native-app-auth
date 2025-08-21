@@ -1,72 +1,14 @@
 ---
-sidebar_position: 1
-slug: /
+sidebar_position: 2
 ---
 
-# Introduction
+# Manual Setup
 
-Get started by installing the dependencies in your application
+> **💡 Using Expo?** Check out the [Expo Setup Guide](./expo-setup) for a simpler configuration process.
 
-```sh
-yarn add react-native-app-auth
-```
+For React Native projects that don't use Expo, or for advanced configurations, you'll need to manually configure iOS and Android projects.
 
-Or
-
-```sh
-npm install react-native-app-auth --save
-```
-
-## Usage
-
-```javascript
-import { authorize } from 'react-native-app-auth';
-
-// base config
-const config = {
-  issuer: '<YOUR_ISSUER_URL>',
-  clientId: '<YOUR_CLIENT_ID>',
-  redirectUrl: '<YOUR_REDIRECT_URL>',
-  scopes: ['<YOUR_SCOPE_ARRAY>'],
-};
-
-// use the client to make the auth request and receive the authState
-try {
-  const result = await authorize(config);
-  // result includes accessToken, accessTokenExpirationDate and refreshToken
-} catch (error) {
-  console.log(error);
-}
-```
-
-## Expo Setup (SDK 53+)
-
-If you're using **Expo with Continuous Native Generation (CNG)**, you can use our config plugin for automatic setup:
-
-```json
-{
-  "expo": {
-    "plugins": [
-      [
-        "react-native-app-auth",
-        {
-          "redirectUrls": ["com.yourapp.scheme://oauth"]
-        }
-      ]
-    ]
-  }
-}
-```
-
-Then run `expo prebuild` to generate your iOS and Android projects with the correct OAuth URL scheme configuration.
-
-**📖 [Complete Expo Setup Guide →](./usage/expo-setup)**
-
-## Manual Setup
-
-> **💡 Using Expo?** Check out the [Expo Setup Guide](./usage/expo-setup) for a simpler configuration process.
-
-### iOS Setup
+## iOS Setup
 
 To setup the iOS project, you need to perform three steps:
 
@@ -74,7 +16,7 @@ To setup the iOS project, you need to perform three steps:
 2. [Register redirect URL scheme](#register-redirect-url-scheme)
 3. [Define openURL callback in AppDelegate](#define-openurl-callback-in-appdelegate)
 
-#### Install native dependencies
+### Install native dependencies
 
 This library depends on the native [AppAuth-ios](https://github.com/openid/AppAuth-iOS) project. To
 keep the React Native library agnostic of your dependency management method, the native libraries
@@ -113,7 +55,7 @@ AppAuth supports three options for dependency management.
     4. Add `AppAuth-iOS/Source` to your search paths of your target ("Build Settings -> "Header Search
        Paths").
 
-#### Register redirect URL scheme
+### Register redirect URL scheme
 
 If you intend to support iOS 10 and older, you need to define the supported redirect URL schemes in
 your `Info.plist` as follows:
@@ -137,12 +79,12 @@ your `Info.plist` as follows:
   beginning of your OAuth Redirect URL, up to the scheme separator (`:`) character. E.g. if your redirect uri
   is `com.myapp://oauth`, then the url scheme will is `com.myapp`.
 
-#### Define openURL callback in AppDelegate
+### Define openURL callback in AppDelegate
 
 You need to retain the auth session, in order to continue the
 authorization flow from the redirect. Follow these steps:
 
-###### For react-native >= 0.77
+#### For react-native >= 0.77
 
 As of `react-native@0.77`, the `AppDelegate` template is now written in Swift.
 
@@ -207,7 +149,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate,
       return true
     }
 
-    // Fall back to React Native’s own Linking logic
+    // Fall back to React Native's own Linking logic
     return RCTLinkingManager.application(
       application,
       continue: userActivity,
@@ -216,7 +158,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate,
   }
 ```
 
-##### For react-native >= 0.68
+#### For react-native >= 0.68
 
 ```diff
 + #import <React/RCTLinkingManager.h>
@@ -261,7 +203,7 @@ If you want to support universal links, add the following to `AppDelegate.mm` un
 + }
 ```
 
-##### For react-native < 0.68
+#### For react-native < 0.68
 
 ```diff
 + #import "RNAppAuthAuthorizationFlowManager.h"
@@ -296,9 +238,9 @@ If you want to support universal links, add the following to `AppDelegate.m` und
 + }
 ```
 
-### Android Setup
+## Android Setup
 
-> **💡 Using Expo?** Check out the [Expo Setup Guide](./usage/expo-setup) for automatic configuration.
+> **💡 Using Expo?** Check out the [Expo Setup Guide](./expo-setup) for automatic configuration.
 
 To setup the Android project, you need to add redirect scheme manifest placeholder:
 
@@ -320,7 +262,7 @@ is `com.myapp://oauth`, then the url scheme will is `com.myapp`. The scheme must
 
 NOTE: When integrating with [React Navigation deep linking](https://reactnavigation.org/docs/deep-linking/#set-up-with-bare-react-native-projects), be sure to make this scheme (and the scheme in the config's redirectUrl) unique from the scheme defined in the deep linking intent-filter. E.g. if the scheme in your intent-filter is set to `com.myapp`, then update the above scheme/redirectUrl to be `com.myapp.auth` [as seen here](https://github.com/FormidableLabs/react-native-app-auth/issues/494#issuecomment-797394994).
 
-#### App Links
+### App Links
 
 If your OAuth Redirect URL is an [App Links](https://developer.android.com/training/app-links), you need to add the following code to your `AndroidManifest.xml`:
 
