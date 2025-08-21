@@ -32,7 +32,7 @@
         "react-native-app-auth",
         {
           "redirectUrls": [
-            "com.example.expo-cng://oauth"
+            "io.identityserver.demo:/oauthredirect"
           ]
         }
       ]

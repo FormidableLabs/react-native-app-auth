@@ -8,11 +8,9 @@ import { authorize, AuthConfiguration, AuthorizeResult } from 'react-native-app-
 const config: AuthConfiguration = {
   issuer: 'https://demo.duendesoftware.com',
   clientId: 'interactive.public',
-  redirectUrl: 'com.example.expo-cng://oauth',
-  scopes: ['openid', 'profile', 'email', 'api'],
+  redirectUrl: 'io.identityserver.demo:/oauthredirect',
   additionalParameters: {},
-  useNonce: true,
-  usePKCE: true,
+  scopes: ['openid', 'profile', 'email', 'offline_access'] as const,
 };
 
 export default function App() {
