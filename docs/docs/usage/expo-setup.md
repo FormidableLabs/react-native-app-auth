@@ -176,8 +176,8 @@ If you're migrating from manual iOS/Android setup:
 
 ## Limitations
 
-- **Expo SDK 53+ only**: Earlier versions require [manual setup](../introduction#manual-setup)
+- **Expo SDK 53+ only**: Earlier versions require [manual setup](../#manual-setup)
 - **CNG workflow only**: Expo Go is not supported (OAuth requires native configuration)
 - **First-party providers**: Some OAuth providers may require additional native configuration
 
-For advanced use cases or non-Expo projects, see the [Manual Setup Guide](../introduction#manual-setup).
+For advanced use cases or non-Expo projects, see the [Manual Setup Guide](../#manual-setup).
