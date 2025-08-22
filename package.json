@@ -41,7 +41,8 @@
     "eslint-plugin-jest": "23.3.0",
     "eslint-plugin-prettier": "3.1.2",
     "eslint-plugin-promise": "4.2.1",
-    "prettier": "1.19.1"
+    "prettier": "1.19.1",
+    "to-fast-properties": "^4.0.0"
   },
   "workspaces": {
     "packages": [
