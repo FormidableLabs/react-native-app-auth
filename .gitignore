@@ -53,3 +53,10 @@ buck-out/
 *.keystore
 
 Example/yarn.lock
+
+examples/expo-cng/.expo
+examples/expo-cng/ios
+examples/expo-cng/android
+examples/expo-cng/*.tsbuildinfo
+
+
