@@ -22,8 +22,13 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
           cache: 'yarn'
+
+      - name: Upgrade npm for OIDC
+        run: npm i -g npm@^11.5.1
+
+      - run: npm config set registry https://registry.npmjs.org
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
@@ -39,4 +44,3 @@ jobs:
           publish: yarn changeset publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
