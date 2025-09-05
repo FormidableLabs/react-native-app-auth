@@ -7,6 +7,7 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    environment: Production
     permissions:
       contents: write
       id-token: write
