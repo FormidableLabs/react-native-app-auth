@@ -43,9 +43,20 @@ node_modules/
 npm-debug.log
 yarn-error.log
 
+# TypeScript
+#
+*.tsbuildinfo
+
 # BUCK
 buck-out/
 \.buckd/
 *.keystore
 
 Example/yarn.lock
+
+examples/expo-cng/.expo
+examples/expo-cng/ios
+examples/expo-cng/android
+examples/expo-cng/*.tsbuildinfo
+
+
