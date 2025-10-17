@@ -1,5 +1,11 @@
 # react-native-app-auth
 
+## 8.1.0
+
+### Minor Changes
+
+- Add expo config plugin ([#1097](https://github.com/FormidableLabs/react-native-app-auth/pull/1097))
+
 ## 8.0.3
 
 ### Patch Changes
