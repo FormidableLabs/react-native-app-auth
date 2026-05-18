@@ -341,6 +341,7 @@ RCT_REMAP_METHOD(logout,
     
     NSMutableDictionary* mutableDict = [additionalParameters mutableCopy];
     [mutableDict removeObjectForKey:@"state"];
+    [mutableDict removeObjectForKey:@"nonce"];
 
     // builds authentication request
     OIDAuthorizationRequest *request =
