@@ -3,10 +3,11 @@ on:
   push:
     branches:
       - main
+
 jobs:
   release:
-    name: Release
     runs-on: ubuntu-latest
+    environment: Production
     permissions:
       contents: write
       id-token: write
@@ -15,14 +16,26 @@ jobs:
       deployments: write
       packages: write
       pull-requests: write
+
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
+          cache: 'yarn'
+
+      - name: Upgrade npm for OIDC
+        run: npm i -g npm@^11.5.1
+
+      - run: npm config set registry https://registry.npmjs.org
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
+
+      - name: Build Plugin
+        run: yarn run build
 
       - name: Unit Tests
         run: yarn test
@@ -35,4 +48,3 @@ jobs:
           publish: yarn changeset publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

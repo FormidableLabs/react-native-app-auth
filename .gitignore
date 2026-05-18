@@ -33,11 +33,19 @@ android/gradle/
 android/gradlew
 android/gradlew.bat
 
+# Android/Eclipse
+#
+android/.settings/
+
 # node.js
 #
 node_modules/
 npm-debug.log
 yarn-error.log
+
+# TypeScript
+#
+*.tsbuildinfo
 
 # BUCK
 buck-out/
@@ -45,3 +53,10 @@ buck-out/
 *.keystore
 
 Example/yarn.lock
+
+examples/expo-cng/.expo
+examples/expo-cng/ios
+examples/expo-cng/android
+examples/expo-cng/*.tsbuildinfo
+
+

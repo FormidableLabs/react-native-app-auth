@@ -1,0 +1,66 @@
+{
+  "name": "react-native-app-auth",
+  "version": "8.2.0",
+  "description": "React Native bridge for AppAuth for supporting any OAuth 2 provider",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "test": "jest",
+    "lint": "eslint .",
+    "build": "expo-module build plugin",
+    "clean": "expo-module clean plugin",
+    "lint:plugin": "expo-module lint plugin",
+    "test:plugin": "expo-module test plugin"
+  },
+  "files": [
+    "android",
+    "ios",
+    "plugin/build",
+    "plugin/src",
+    "app.plugin.js",
+    "index.d.ts",
+    "react-native-app-auth.podspec"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FormidableLabs/react-native-app-auth"
+  },
+  "bugs": {
+    "url": "https://github.com/FormidableLabs/react-native-app-auth/issues"
+  },
+  "homepage": "https://github.com/FormidableLabs/react-native-app-auth",
+  "keywords": [
+    "react",
+    "react-native",
+    "auth",
+    "authentication",
+    "oauth",
+    "oauth2",
+    "appauth"
+  ],
+  "license": "MIT",
+  "author": "Nearform Commerce (https://commerce.nearform.com)",
+  "peerDependencies": {
+    "react-native": ">=0.63.0"
+  },
+  "devDependencies": {
+    "@expo/config-plugins": "~10.1.2",
+    "@react-native/babel-preset": "0.79.2",
+    "@react-native/eslint-config": "^0.81.0",
+    "@types/node": "^22.0.0",
+    "expo-module-scripts": "^4.1.10",
+    "jest": "^29.6.3",
+    "react": "19.0.0",
+    "react-native": "0.79.2"
+  },
+  "dependencies": {
+    "invariant": "2.2.4",
+    "react-native-base64": "0.0.2"
+  },
+  "jest": {
+    "preset": "react-native"
+  },
+  "publishConfig": {
+    "provenance": true
+  }
+}
