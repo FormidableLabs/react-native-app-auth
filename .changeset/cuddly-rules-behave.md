@@ -1,5 +1,5 @@
 ---
-'react-native-app-auth': minor
+'react-native-app-auth': patch
 ---
 
-#965 remove duplicate state key
+Remove duplicate iOS auth `state` and `nonce` parameters.
