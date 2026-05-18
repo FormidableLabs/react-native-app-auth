@@ -710,6 +710,10 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                 additionalParametersMap.remove("ui_locales");
 
             }
+            if (additionalParametersMap.containsKey("response_mode")) {
+                authRequestBuilder.setResponseMode(additionalParametersMap.get("response_mode"));
+                additionalParametersMap.remove("response_mode");
+            }
 
             authRequestBuilder.setAdditionalParameters(additionalParametersMap);
         }
