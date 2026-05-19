@@ -183,7 +183,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate,
         return true
       }
     }
-    return false
+    return RCTLinkingManager.application(app, open: url, options: options)
   }
 }
 ```
