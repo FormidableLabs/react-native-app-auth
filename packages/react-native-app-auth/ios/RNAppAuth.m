@@ -730,14 +730,22 @@ RCT_REMAP_METHOD(logout,
 
 - (NSString*)getErrorMessage: (NSError*) error {
     NSDictionary * userInfo = [error userInfo];
+    NSString *message;
 
     if (userInfo &&
         userInfo[OIDOAuthErrorResponseErrorKey] &&
         userInfo[OIDOAuthErrorResponseErrorKey][OIDOAuthErrorFieldErrorDescription]) {
-        return userInfo[OIDOAuthErrorResponseErrorKey][OIDOAuthErrorFieldErrorDescription];
+        message = userInfo[OIDOAuthErrorResponseErrorKey][OIDOAuthErrorFieldErrorDescription];
     } else {
-        return [error localizedDescription];
+        message = [error localizedDescription];
     }
+
+    NSError *underlyingError = userInfo[NSUnderlyingErrorKey];
+    if (underlyingError && [underlyingError isKindOfClass:[NSError class]] && [underlyingError localizedDescription]) {
+        message = [message stringByAppendingFormat:@" - Cause: %@", [underlyingError localizedDescription]];
+    }
+
+    return message;
 }
 
 - (id<OIDExternalUserAgent>)getExternalUserAgentWithPresentingViewController: (UIViewController *)presentingViewController
