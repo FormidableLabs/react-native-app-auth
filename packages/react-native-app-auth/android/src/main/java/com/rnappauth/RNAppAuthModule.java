@@ -1051,7 +1051,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             if (cause != null && cause.getLocalizedMessage() != null) {
                 WritableMap userInfo = Arguments.createMap();
                 userInfo.putString("nativeError", cause.getLocalizedMessage());
-                promise.reject(code, message, userInfo);
+                promise.reject(code, message, ex, userInfo);
             } else {
                 promise.reject(code, message, ex);
             }
