@@ -2,4 +2,4 @@
 "react-native-app-auth": patch
 ---
 
-Include underlying native error causes in Android and iOS authorization error messages.
+Expose underlying native authorization errors on `error.nativeError` for debugging while keeping `error.message` user-safe.
