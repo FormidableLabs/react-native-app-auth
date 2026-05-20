@@ -1,5 +1,19 @@
 # react-native-app-auth
 
+## 8.3.0
+
+### Minor Changes
+
+- Expose underlying native authorization errors on `error.nativeError` for debugging while keeping `error.message` user-safe. ([#886](https://github.com/FormidableLabs/react-native-app-auth/pull/886))
+
+### Patch Changes
+
+- Support Expo 55 AppDelegate declarations without the public class modifier. ([#1109](https://github.com/FormidableLabs/react-native-app-auth/pull/1109))
+
+* Remove duplicate iOS auth `state` and `nonce` parameters. ([#974](https://github.com/FormidableLabs/react-native-app-auth/pull/974))
+
+- Add missing RCTLinkingManager fallback for non-auth urls in iOS AppDelegate setup docs and example ([#1115](https://github.com/FormidableLabs/react-native-app-auth/pull/1115))
+
 ## 8.2.0
 
 ### Minor Changes
