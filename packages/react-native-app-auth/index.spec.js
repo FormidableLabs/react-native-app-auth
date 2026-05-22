@@ -69,6 +69,7 @@ describe('AppAuth', () => {
     iosPrefersEphemeralSession: true,
     androidAllowCustomBrowsers: ['chrome'],
     androidTrustedWebActivity: false,
+    androidCustomTabPartialHeightFraction: null,
   };
 
   const registerConfig = {
@@ -758,7 +759,8 @@ describe('AppAuth', () => {
             false,
             config.customHeaders,
             config.androidAllowCustomBrowsers,
-            config.androidTrustedWebActivity
+            config.androidTrustedWebActivity,
+            config.androidCustomTabPartialHeightFraction
           );
         });
       });
@@ -782,7 +784,8 @@ describe('AppAuth', () => {
             false,
             config.customHeaders,
             config.androidAllowCustomBrowsers,
-            config.androidTrustedWebActivity
+            config.androidTrustedWebActivity,
+            config.androidCustomTabPartialHeightFraction
           );
         });
 
@@ -804,7 +807,8 @@ describe('AppAuth', () => {
             false,
             config.customHeaders,
             config.androidAllowCustomBrowsers,
-            config.androidTrustedWebActivity
+            config.androidTrustedWebActivity,
+            config.androidCustomTabPartialHeightFraction
           );
         });
 
@@ -826,7 +830,8 @@ describe('AppAuth', () => {
             true,
             config.customHeaders,
             config.androidAllowCustomBrowsers,
-            config.androidTrustedWebActivity
+            config.androidTrustedWebActivity,
+            config.androidCustomTabPartialHeightFraction
           );
         });
       });
@@ -857,7 +862,45 @@ describe('AppAuth', () => {
             false,
             customHeaders,
             config.androidAllowCustomBrowsers,
-            config.androidTrustedWebActivity
+            config.androidTrustedWebActivity,
+            config.androidCustomTabPartialHeightFraction
+          );
+        });
+      });
+      describe('androidCustomTabPartialHeightFraction parameter', () => {
+        it('forwards a valid fraction to the native bridge', () => {
+          authorize({ ...config, androidCustomTabPartialHeightFraction: 0.85 });
+          const lastArg = mockAuthorize.mock.calls[0][mockAuthorize.mock.calls[0].length - 1];
+          expect(lastArg).toBe(0.85);
+        });
+
+        it('forwards null when omitted', () => {
+          authorize(config);
+          const lastArg = mockAuthorize.mock.calls[0][mockAuthorize.mock.calls[0].length - 1];
+          expect(lastArg).toBeNull();
+        });
+
+        it('throws when the fraction is not a number', () => {
+          expect(() => {
+            authorize({ ...config, androidCustomTabPartialHeightFraction: 'half' });
+          }).toThrow(
+            /androidCustomTabPartialHeightFraction must be a number greater than 0 and at most 1/
+          );
+        });
+
+        it('throws when the fraction is 0', () => {
+          expect(() => {
+            authorize({ ...config, androidCustomTabPartialHeightFraction: 0 });
+          }).toThrow(
+            /androidCustomTabPartialHeightFraction must be a number greater than 0 and at most 1/
+          );
+        });
+
+        it('throws when the fraction is greater than 1', () => {
+          expect(() => {
+            authorize({ ...config, androidCustomTabPartialHeightFraction: 1.5 });
+          }).toThrow(
+            /androidCustomTabPartialHeightFraction must be a number greater than 0 and at most 1/
           );
         });
       });

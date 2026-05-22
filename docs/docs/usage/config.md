@@ -50,4 +50,11 @@ See specific example [configurations for your provider](/docs/category/providers
 - **iosPrefersEphemeralSession** - (`boolean`) (default: `false`) _IOS_ indicates whether the session should ask the browser for a private authentication session.
 - **androidAllowCustomBrowsers** - (`string[]`) (default: undefined) _ANDROID_ override the used browser for authorization. If no value is provided, all browsers are allowed.
 - **androidTrustedWebActivity** - (`boolean`) (default: `false`) _ANDROID_ Use [`EXTRA_LAUNCH_AS_TRUSTED_WEB_ACTIVITY`](https://developer.chrome.com/docs/android/trusted-web-activity/) when opening web view.
+- **androidCustomTabPartialHeightFraction** - (`number`) (default: undefined) _ANDROID_ render the Chrome [Partial Custom Tab](https://developer.chrome.com/docs/android/custom-tabs/guide-partial-custom-tabs) as a bottom-sheet at this fraction (greater than 0, at most 1) of the screen height. The activity stays user-resizable to full screen via the drag handle. A common choice is `0.85`. Notes:
+  - Requires Chrome 107+; older Chrome silently ignores the extra and falls back to a full-screen Custom Tab.
+  - For the bottom-sheet to render on the **first** invocation rather than only on subsequent ones, call [`prefetchConfiguration`](/docs/prefetch) when the screen mounts so Chrome's `CustomTabsService` is already bound by the time the user taps.
+  - Chrome enforces a 50% minimum height — fractions below `0.5` are silently clamped by Chrome to `0.5`.
+  - Chrome only renders the Partial Custom Tab in **portrait** orientation; in landscape Chrome falls back to a full-screen Custom Tab.
+  - Non-Chrome browsers selected via `androidAllowCustomBrowsers` (e.g. Firefox) do not implement the Partial Custom Tab extra and fall back to a full-screen Custom Tab.
+  - The bumped `androidx.browser:browser:1.5.0` dependency requires `compileSdkVersion` **33+**. Consumers that pin `compileSdkVersion` lower than 33 must raise it.
 - **connectionTimeoutSeconds** - (`number`) configure the request timeout interval in seconds. This must be a positive number. The default values are 60 seconds on iOS and 15 seconds on Android.

@@ -244,6 +244,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final ReadableMap customHeaders,
             final ReadableArray androidAllowCustomBrowsers,
             final boolean androidTrustedWebActivity,
+            final Double androidCustomTabPartialHeightFraction,
             final Promise promise) {
         this.parseHeaderMap(customHeaders);
         final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests,
@@ -278,7 +279,8 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                         useNonce,
                         usePKCE,
                         additionalParametersMap,
-                        androidTrustedWebActivity);
+                        androidTrustedWebActivity,
+                        androidCustomTabPartialHeightFraction);
             } catch (ActivityNotFoundException e) {
                 promise.reject("browser_not_found", e.getMessage());
             } catch (Exception e) {
@@ -309,7 +311,8 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                         useNonce,
                                         usePKCE,
                                         additionalParametersMap,
-                                        androidTrustedWebActivity);
+                                        androidTrustedWebActivity,
+                                        androidCustomTabPartialHeightFraction);
                             } catch (ActivityNotFoundException e) {
                                 promise.reject("browser_not_found", e.getMessage());
                             } catch (Exception e) {
@@ -661,7 +664,8 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final Boolean useNonce,
             final Boolean usePKCE,
             final Map<String, String> additionalParametersMap,
-            final Boolean androidTrustedWebActivity) {
+            final Boolean androidTrustedWebActivity,
+            final Double androidCustomTabPartialHeightFraction) {
 
         String scopesString = null;
 
@@ -736,6 +740,17 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             AuthorizationService authService = new AuthorizationService(context, appAuthConfiguration);
 
             CustomTabsIntent.Builder intentBuilder = authService.createCustomTabsIntentBuilder();
+
+            // Opt-in Partial Custom Tab (bottom-sheet) when caller supplies a height fraction
+            // and the device runs Chrome 107+ with androidx.browser 1.5.0+ — otherwise Chrome
+            // silently ignores the extra and falls back to a full-screen Custom Tab. Skipped for
+            // Trusted Web Activities (which intentionally render full-screen).
+            if (!androidTrustedWebActivity && androidCustomTabPartialHeightFraction != null) {
+                int displayHeightPx = currentActivity.getResources().getDisplayMetrics().heightPixels;
+                int initialHeightPx = (int) (displayHeightPx * androidCustomTabPartialHeightFraction);
+                intentBuilder.setInitialActivityHeightPx(initialHeightPx, CustomTabsIntent.ACTIVITY_HEIGHT_ADJUSTABLE);
+            }
+
             CustomTabsIntent customTabsIntent = intentBuilder.build();
 
             if (androidTrustedWebActivity) {
