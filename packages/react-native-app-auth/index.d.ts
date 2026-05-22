@@ -89,6 +89,7 @@ export type AuthConfiguration = BaseAuthConfiguration & {
     | 'samsungCustomTab'
   )[];
   androidTrustedWebActivity?: boolean;
+  androidCustomTabPartialHeightFraction?: number;
   iosPrefersEphemeralSession?: boolean;
 };
 

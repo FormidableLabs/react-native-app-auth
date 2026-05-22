@@ -101,6 +101,17 @@ const validateConnectionTimeoutSeconds = timeout => {
   invariant(typeof timeout === 'number', 'Config error: connectionTimeoutSeconds must be a number');
 };
 
+const validateAndroidCustomTabPartialHeightFraction = fraction => {
+  if (fraction == null) {
+    return;
+  }
+
+  invariant(
+    typeof fraction === 'number' && fraction > 0 && fraction <= 1,
+    'Config error: androidCustomTabPartialHeightFraction must be a number greater than 0 and at most 1'
+  );
+};
+
 export const SECOND_IN_MS = 1000;
 export const DEFAULT_TIMEOUT_IOS = 60;
 export const DEFAULT_TIMEOUT_ANDROID = 15;
@@ -228,6 +239,7 @@ export const authorize = ({
   iosCustomBrowser = null,
   androidAllowCustomBrowsers = null,
   androidTrustedWebActivity = false,
+  androidCustomTabPartialHeightFraction = null,
   connectionTimeoutSeconds,
   iosPrefersEphemeralSession = false,
 }) => {
@@ -237,6 +249,7 @@ export const authorize = ({
   validateHeaders(customHeaders);
   validateAdditionalHeaders(additionalHeaders);
   validateConnectionTimeoutSeconds(connectionTimeoutSeconds);
+  validateAndroidCustomTabPartialHeightFraction(androidCustomTabPartialHeightFraction);
   // TODO: validateAdditionalParameters
 
   const nativeMethodArguments = [
@@ -259,6 +272,7 @@ export const authorize = ({
     nativeMethodArguments.push(customHeaders);
     nativeMethodArguments.push(androidAllowCustomBrowsers);
     nativeMethodArguments.push(androidTrustedWebActivity);
+    nativeMethodArguments.push(androidCustomTabPartialHeightFraction);
   }
 
   if (Platform.OS === 'ios') {
