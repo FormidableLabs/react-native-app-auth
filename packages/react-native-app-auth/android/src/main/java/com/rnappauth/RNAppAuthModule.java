@@ -58,6 +58,8 @@ import net.openid.appauth.EndSessionResponse;
 import net.openid.appauth.connectivity.ConnectionBuilder;
 import net.openid.appauth.connectivity.DefaultConnectionBuilder;
 
+import org.json.JSONException;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -99,6 +101,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final String redirectUrl,
             final String clientId,
             final ReadableArray scopes,
+            final ReadableMap claims,
             final ReadableMap serviceConfiguration,
             final boolean dangerouslyAllowInsecureHttpRequests,
             final ReadableMap customHeaders,
@@ -233,6 +236,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final String clientId,
             final String clientSecret,
             final ReadableArray scopes,
+            final ReadableMap claims,
             final ReadableMap additionalParameters,
             final ReadableMap serviceConfiguration,
             final Boolean skipCodeExchange,
@@ -274,6 +278,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                         appAuthConfiguration,
                         clientId,
                         scopes,
+                        claims,
                         redirectUrl,
                         useNonce,
                         usePKCE,
@@ -305,6 +310,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                         appAuthConfiguration,
                                         clientId,
                                         scopes,
+                                        claims,
                                         redirectUrl,
                                         useNonce,
                                         usePKCE,
@@ -657,11 +663,12 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final AppAuthConfiguration appAuthConfiguration,
             final String clientId,
             final ReadableArray scopes,
+            final ReadableMap claims,
             final String redirectUrl,
             final Boolean useNonce,
             final Boolean usePKCE,
             final Map<String, String> additionalParametersMap,
-            final Boolean androidTrustedWebActivity) {
+            final Boolean androidTrustedWebActivity) throws Exception {
 
         String scopesString = null;
 
@@ -680,6 +687,14 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
         if (scopesString != null) {
             authRequestBuilder.setScope(scopesString);
+        }
+
+        if (claims != null) {
+            try {
+                authRequestBuilder.setClaims(MapUtil.convertMapToJson(claims));
+            } catch (JSONException ignored) {
+                throw new Exception("claims passed but contains invalid JSON");
+            }
         }
 
         if (additionalParametersMap != null) {
