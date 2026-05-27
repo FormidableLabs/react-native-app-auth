@@ -230,7 +230,7 @@ export const authorize = ({
   androidTrustedWebActivity = false,
   connectionTimeoutSeconds,
   iosPrefersEphemeralSession = false,
-  androidPrefersEphemeralSession = false
+  androidPrefersEphemeralSession = false,
 }) => {
   validateIssuerOrServiceConfigurationEndpoints(issuer, serviceConfiguration);
   validateClientId(clientId);

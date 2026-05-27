@@ -69,7 +69,7 @@ describe('AppAuth', () => {
     iosPrefersEphemeralSession: true,
     androidAllowCustomBrowsers: ['chrome'],
     androidTrustedWebActivity: false,
-    androidPrefersEphemeralSession: true
+    androidPrefersEphemeralSession: true,
   };
 
   const registerConfig = {
