@@ -12,7 +12,7 @@ buildscript {
             google()
         }
         dependencies {
-            classpath 'com.android.tools.build:gradle:8.5.2'
+            classpath 'com.android.tools.build:gradle:8.9.1'
         }
     }
 }
@@ -25,7 +25,7 @@ android {
       namespace "com.rnappauth"
     }
 
-    compileSdkVersion safeExtGet('compileSdkVersion', 34)
+    compileSdkVersion safeExtGet('compileSdkVersion', 36)
     defaultConfig {
         minSdkVersion safeExtGet('minSdkVersion', 16)
         targetSdkVersion safeExtGet('targetSdkVersion', 34)
