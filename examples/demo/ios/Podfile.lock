@@ -1338,7 +1338,7 @@ PODS:
     - React-jsiexecutor
     - React-RCTFBReactNativeSpec
     - ReactCommon/turbomodule/core
-  - react-native-app-auth (8.0.3):
+  - react-native-app-auth (8.3.0):
     - AppAuth (>= 1.7.6)
     - React-Core
   - React-NativeModulesApple (0.79.2):
@@ -1931,7 +1931,7 @@ SPEC CHECKSUMS:
   React-logger: 368570a253f00879a1e4fea24ed4047e72e7bbf3
   React-Mapbuffer: c04fcda1c6281fc0a6824c7dcc1633dd217ac1ec
   React-microtasksnativemodule: ca2804a25fdcefffa0aa942aa23ab53b99614a34
-  react-native-app-auth: 149f01d2c824758453c9e7815217ded451974683
+  react-native-app-auth: 2f5a3155dec63b23bb19654c806cb649ba31dc14
   React-NativeModulesApple: 452b86b29fae99ed0a4015dca3ad9cd222f88abf
   React-oscompat: ef5df1c734f19b8003e149317d041b8ce1f7d29c
   React-perflogger: 6fd2f6811533e9c19a61e855c3033eecbf4ad2a0
@@ -1966,6 +1966,6 @@ SPEC CHECKSUMS:
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: c758bfb934100bb4bf9cbaccb52557cee35e8bdf
 
-PODFILE CHECKSUM: c54684e3f1470fec4ac3575659f327d0c2b216e3
+PODFILE CHECKSUM: 1db384fdd374a87d35937b56f18331e74846937b
 
 COCOAPODS: 1.16.2
