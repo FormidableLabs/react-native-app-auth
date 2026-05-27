@@ -311,8 +311,9 @@ RCT_REMAP_METHOD(logout,
                                                  if (response) {
                                                      resolve([self formatRegistrationResponse:response]);
                                                  } else {
-                                                     reject([self getErrorCode: error defaultCode:@"registration_failed"],
-                                                            [self getErrorMessage: error], error);
+                                                     [self rejectPromise:reject
+                                                             defaultCode:@"registration_failed"
+                                                                   error:error];
                                                  }
                                             }];
 }
@@ -338,6 +339,10 @@ RCT_REMAP_METHOD(logout,
     NSString *codeVerifier = usePKCE ? [[self class] generateCodeVerifier] : nil;
     NSString *codeChallenge = usePKCE ? [[self class] codeChallengeS256ForVerifier:codeVerifier] : nil;
     NSString *nonce =  useNonce ? additionalParameters[@"nonce"]? additionalParameters[@"nonce"]:  [[self class] generateState] : nil ;
+    
+    NSMutableDictionary* mutableDict = [additionalParameters mutableCopy];
+    [mutableDict removeObjectForKey:@"state"];
+    [mutableDict removeObjectForKey:@"nonce"];
 
     // builds authentication request
     OIDAuthorizationRequest *request =
@@ -353,7 +358,7 @@ RCT_REMAP_METHOD(logout,
                                               codeVerifier:codeVerifier
                                              codeChallenge:codeChallenge
                                       codeChallengeMethod: usePKCE ? OIDOAuthorizationRequestCodeChallengeMethodS256 : nil
-                                      additionalParameters:additionalParameters];
+                                      additionalParameters:[mutableDict copy]];
 
     // performs authentication request
     id<UIApplicationDelegate, RNAppAuthAuthorizationFlowManager> appDelegate = (id<UIApplicationDelegate, RNAppAuthAuthorizationFlowManager>)[UIApplication sharedApplication].delegate;
@@ -385,8 +390,9 @@ RCT_REMAP_METHOD(logout,
                                                    if (authorizationResponse) {
                                                        resolve([self formatAuthorizationResponse:authorizationResponse withCodeVerifier:codeVerifier]);
                                                    } else {
-                                                       reject([self getErrorCode: error defaultCode:@"authentication_failed"],
-                                                              [self getErrorMessage: error], error);
+                                                       [self rejectPromise:reject
+                                                               defaultCode:@"authentication_failed"
+                                                                     error:error];
                                                    }
                                                };
 
@@ -421,8 +427,9 @@ RCT_REMAP_METHOD(logout,
                                                                resolve([self formatResponse:authState.lastTokenResponse
                                                                            withAuthResponse:authState.lastAuthorizationResponse]);
                                                            } else {
-                                                               reject([self getErrorCode: error defaultCode:@"authentication_failed"],
-                                                                      [self getErrorMessage: error], error);
+                                                               [self rejectPromise:reject
+                                                                       defaultCode:@"authentication_failed"
+                                                                             error:error];
                                                            }
                                                        };
         
@@ -478,8 +485,9 @@ RCT_REMAP_METHOD(logout,
                                             if (response) {
                                                 resolve([self formatResponse:response]);
                                             } else {
-                                                reject([self getErrorCode: error defaultCode:@"token_refresh_failed"],
-                                                       [self getErrorMessage: error], error);
+                                                [self rejectPromise:reject
+                                                        defaultCode:@"token_refresh_failed"
+                                                              error:error];
                                             }
                                         }];
 }
@@ -531,8 +539,9 @@ RCT_REMAP_METHOD(logout,
                                                           if (response) {
                                                               resolve([self formatEndSessionResponse:response]);
                                                           } else {
-                                                            reject([self getErrorCode: error defaultCode:@"end_session_failed"],
-                                                                   [self getErrorMessage: error], error);
+                                                            [self rejectPromise:reject
+                                                                    defaultCode:@"end_session_failed"
+                                                                          error:error];
                                                           }
                                                         }];
 }
@@ -731,8 +740,44 @@ RCT_REMAP_METHOD(logout,
         userInfo[OIDOAuthErrorResponseErrorKey] &&
         userInfo[OIDOAuthErrorResponseErrorKey][OIDOAuthErrorFieldErrorDescription]) {
         return userInfo[OIDOAuthErrorResponseErrorKey][OIDOAuthErrorFieldErrorDescription];
+    }
+
+    return [error localizedDescription];
+}
+
+- (NSString *)getNativeErrorFromError:(NSError *)error {
+    NSDictionary *userInfo = [error userInfo];
+    if (!userInfo) {
+        return nil;
+    }
+
+    NSError *underlyingError = userInfo[NSUnderlyingErrorKey];
+    if ([underlyingError isKindOfClass:[NSError class]] && [underlyingError localizedDescription]) {
+        return [underlyingError localizedDescription];
+    }
+
+    return nil;
+}
+
+- (void)rejectPromise:(RCTPromiseRejectBlock)reject
+          defaultCode:(NSString *)defaultCode
+                error:(NSError *)error {
+    NSString *code = [self getErrorCode:error defaultCode:defaultCode];
+    NSString *message = [self getErrorMessage:error];
+    NSString *nativeError = [self getNativeErrorFromError:error];
+
+    if (nativeError) {
+        NSMutableDictionary *userInfo = [[error userInfo] mutableCopy];
+        if (!userInfo) {
+            userInfo = [NSMutableDictionary dictionary];
+        }
+        userInfo[@"nativeError"] = nativeError;
+        NSError *rejectionError = [NSError errorWithDomain:error.domain
+                                                      code:error.code
+                                                  userInfo:userInfo];
+        reject(code, message, rejectionError);
     } else {
-        return [error localizedDescription];
+        reject(code, message, error);
     }
 }
 

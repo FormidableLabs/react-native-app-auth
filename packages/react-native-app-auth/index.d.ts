@@ -200,4 +200,5 @@ type ErrorCode =
 
 export interface AppAuthError extends Error {
   code: ErrorCode;
+  nativeError?: string;
 }

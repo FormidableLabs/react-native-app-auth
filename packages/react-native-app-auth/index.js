@@ -4,6 +4,22 @@ import base64 from 'react-native-base64';
 
 const { RNAppAuth } = NativeModules;
 
+const normalizeNativeAuthError = error => {
+  if (!error || error.nativeError) {
+    return error;
+  }
+
+  const nativeError = error.userInfo && error.userInfo.nativeError;
+  if (nativeError) {
+    error.nativeError = nativeError;
+  }
+
+  return error;
+};
+
+const wrapNativeAuthPromise = promise =>
+  Promise.resolve(promise).catch(error => Promise.reject(normalizeNativeAuthError(error)));
+
 const validateIssuer = issuer => typeof issuer === 'string' && issuer.length;
 const validateIssuerOrServiceConfigurationEndpoints = (issuer, serviceConfiguration) => {
   invariant(
@@ -191,7 +207,7 @@ export const register = ({
     nativeMethodArguments.push(additionalHeaders);
   }
 
-  return RNAppAuth.register(...nativeMethodArguments);
+  return wrapNativeAuthPromise(RNAppAuth.register(...nativeMethodArguments));
 };
 
 export const authorize = ({
@@ -255,7 +271,7 @@ export const authorize = ({
     nativeMethodArguments.push(iosPrefersEphemeralSession);
   }
 
-  return RNAppAuth.authorize(...nativeMethodArguments);
+  return wrapNativeAuthPromise(RNAppAuth.authorize(...nativeMethodArguments));
 };
 
 export const refresh = (
@@ -310,7 +326,7 @@ export const refresh = (
     nativeMethodArguments.push(iosCustomBrowser);
   }
 
-  return RNAppAuth.refresh(...nativeMethodArguments);
+  return wrapNativeAuthPromise(RNAppAuth.refresh(...nativeMethodArguments));
 };
 
 export const revoke = async (
@@ -391,5 +407,5 @@ export const logout = (
     nativeMethodArguments.push(iosPrefersEphemeralSession);
   }
 
-  return RNAppAuth.logout(...nativeMethodArguments);
+  return wrapNativeAuthPromise(RNAppAuth.logout(...nativeMethodArguments));
 };

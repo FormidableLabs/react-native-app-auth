@@ -576,6 +576,19 @@ describe('AppAuth', () => {
       );
     });
 
+    it('exposes native auth errors without changing the message', async () => {
+      const error = new Error('Network error');
+      error.userInfo = {
+        nativeError: 'Unacceptable certificate',
+      };
+      mockAuthorize.mockRejectedValue(error);
+
+      await expect(authorize(config)).rejects.toMatchObject({
+        message: 'Network error',
+        nativeError: 'Unacceptable certificate',
+      });
+    });
+
     describe('iOS-specific', () => {
       beforeEach(() => {
         require('react-native').Platform.OS = 'ios';

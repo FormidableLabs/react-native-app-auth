@@ -8,7 +8,7 @@ const withAppDelegateSwift: ConfigPlugin = rootConfig => {
     let { contents } = config.modResults;
 
     if (!contents.includes('RNAppAuthAuthorizationFlowManager')) {
-      const replaceText = 'public class AppDelegate: ExpoAppDelegate';
+      const replaceText = 'class AppDelegate: ExpoAppDelegate';
       contents = contents.replace(replaceText, `${replaceText}, RNAppAuthAuthorizationFlowManager`);
 
       const replaceText2 =

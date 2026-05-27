@@ -17,6 +17,7 @@ import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.browser.customtabs.TrustedWebUtils;
 
 import com.facebook.react.bridge.ActivityEventListener;
+import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
@@ -714,6 +715,10 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                 additionalParametersMap.remove("ui_locales");
 
             }
+            if (additionalParametersMap.containsKey("response_mode")) {
+                authRequestBuilder.setResponseMode(additionalParametersMap.get("response_mode"));
+                additionalParametersMap.remove("response_mode");
+            }
 
             authRequestBuilder.setAdditionalParameters(additionalParametersMap);
         }
@@ -1041,10 +1046,19 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
     private void handleAuthorizationException(final String fallbackErrorCode, final AuthorizationException ex,
             final Promise promise) {
+        final String code = ex.error != null ? ex.error : fallbackErrorCode;
         if (ex.getLocalizedMessage() == null) {
-            promise.reject(fallbackErrorCode, ex.error, ex);
+            promise.reject(code, ex.error, ex);
         } else {
-            promise.reject(ex.error != null ? ex.error : fallbackErrorCode, ex.getLocalizedMessage(), ex);
+            final String message = ex.getLocalizedMessage();
+            final Throwable cause = ex.getCause();
+            if (cause != null && cause.getLocalizedMessage() != null) {
+                WritableMap userInfo = Arguments.createMap();
+                userInfo.putString("nativeError", cause.getLocalizedMessage());
+                promise.reject(code, message, ex, userInfo);
+            } else {
+                promise.reject(code, message, ex);
+            }
         }
     }
 
