@@ -230,6 +230,7 @@ export const authorize = ({
   androidTrustedWebActivity = false,
   connectionTimeoutSeconds,
   iosPrefersEphemeralSession = false,
+  androidPrefersEphemeralSession = false,
 }) => {
   validateIssuerOrServiceConfigurationEndpoints(issuer, serviceConfiguration);
   validateClientId(clientId);
@@ -259,6 +260,7 @@ export const authorize = ({
     nativeMethodArguments.push(customHeaders);
     nativeMethodArguments.push(androidAllowCustomBrowsers);
     nativeMethodArguments.push(androidTrustedWebActivity);
+    nativeMethodArguments.push(androidPrefersEphemeralSession);
   }
 
   if (Platform.OS === 'ios') {
