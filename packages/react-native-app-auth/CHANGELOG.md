@@ -1,5 +1,13 @@
 # react-native-app-auth
 
+## 8.4.0
+
+### Minor Changes
+
+- Add `androidPrefersEphemeralSession` to request ephemeral Custom Tabs on Android when supported. ([#1100](https://github.com/FormidableLabs/react-native-app-auth/pull/1100))
+
+  This also updates AndroidX Browser to 1.9.0, so Android projects now need min SDK 21+, compile SDK 36+, and Android Gradle Plugin 8.9.1+.
+
 ## 8.3.0
 
 ### Minor Changes
