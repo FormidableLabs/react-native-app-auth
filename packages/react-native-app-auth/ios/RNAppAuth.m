@@ -18,6 +18,11 @@
  * not triggered by server redirects/JS navigation inside the session and is sporadically
  * dropped, leaving authorize() pending forever (#987, #932; openid/AppAuth-iOS#367).
  * This agent lets the session intercept the https redirect natively.
+ *
+ * Requires the callback host to be an associated domain with the webcredentials service
+ * type (entitlement + apple-app-site-association). When the association is missing the
+ * agent transparently falls back to the legacy callbackURLScheme session, preserving
+ * AppAuth's default behavior.
  */
 API_AVAILABLE(ios(17.4))
 @interface RNAppAuthHTTPSExternalUserAgent : NSObject <OIDExternalUserAgent, ASWebAuthenticationPresentationContextProviding>
@@ -850,8 +855,10 @@ RCT_REMAP_METHOD(logout,
     NSString *_host;
     NSString *_path;
     BOOL _externalUserAgentFlowInProgress;
+    BOOL _didFallBackToLegacySession;
     __weak id<OIDExternalUserAgentSession> _session;
     ASWebAuthenticationSession *_webAuthenticationSession;
+    NSURL *_requestURL;
 }
 
 - (instancetype)initWithPresentingViewController:(UIViewController *)presentingViewController
@@ -875,16 +882,38 @@ RCT_REMAP_METHOD(logout,
     }
     _externalUserAgentFlowInProgress = YES;
     _session = session;
+    _requestURL = [request externalUserAgentRequestURL];
 
-    NSURL *requestURL = [request externalUserAgentRequestURL];
+    ASWebAuthenticationSession *webAuthenticationSession = [self authenticationSessionWithHTTPSCallback:YES];
+    _webAuthenticationSession = webAuthenticationSession;
+    if ([webAuthenticationSession start]) {
+        return YES;
+    }
+    return [self startLegacyFallbackSession];
+}
+
+/**
+ * The https callback requires the callback host to be an associated domain with the
+ * webcredentials service type (entitlement + apple-app-site-association entry). When the
+ * association is missing or not yet validated, the session refuses to start — either
+ * start returns NO or the completion handler fires immediately with a non-cancel error.
+ * In both cases fall back to the legacy callbackURLScheme session, which matches
+ * AppAuth's default behavior, so sign-in keeps working instead of hard-failing.
+ */
+- (BOOL)startLegacyFallbackSession {
+    if (_didFallBackToLegacySession) {
+        return NO;
+    }
+    _didFallBackToLegacySession = YES;
+    ASWebAuthenticationSession *fallbackSession = [self authenticationSessionWithHTTPSCallback:NO];
+    _webAuthenticationSession = fallbackSession;
+    return [fallbackSession start];
+}
+
+- (ASWebAuthenticationSession *)authenticationSessionWithHTTPSCallback:(BOOL)useHTTPSCallback {
     __weak typeof(self) weakSelf = self;
-
-    ASWebAuthenticationSessionCallback *callback =
-        [ASWebAuthenticationSessionCallback callbackWithHTTPSHost:_host path:_path];
-    ASWebAuthenticationSession *webAuthenticationSession =
-        [[ASWebAuthenticationSession alloc] initWithURL:requestURL
-                                               callback:callback
-                                      completionHandler:^(NSURL *_Nullable callbackURL, NSError *_Nullable error) {
+    void (^completionHandler)(NSURL *_Nullable, NSError *_Nullable) =
+        ^(NSURL *_Nullable callbackURL, NSError *_Nullable error) {
         typeof(self) strongSelf = weakSelf;
         if (!strongSelf) {
             return;
@@ -892,19 +921,37 @@ RCT_REMAP_METHOD(logout,
         strongSelf->_webAuthenticationSession = nil;
         if (callbackURL) {
             [strongSelf->_session resumeExternalUserAgentFlowWithURL:callbackURL];
-        } else {
-            NSError *safariError =
-                [OIDErrorUtilities errorWithCode:OIDErrorCodeUserCanceledAuthorizationFlow
-                                 underlyingError:error
-                                     description:nil];
-            [strongSelf->_session failExternalUserAgentFlowWithError:safariError];
+            return;
         }
-    }];
+        BOOL isUserCancel = [error.domain isEqualToString:ASWebAuthenticationSessionErrorDomain] &&
+            error.code == ASWebAuthenticationSessionErrorCodeCanceledLogin;
+        if (useHTTPSCallback && !isUserCancel && [strongSelf startLegacyFallbackSession]) {
+            // Missing/unvalidated webcredentials association — legacy session took over
+            return;
+        }
+        NSError *safariError =
+            [OIDErrorUtilities errorWithCode:OIDErrorCodeUserCanceledAuthorizationFlow
+                             underlyingError:error
+                                 description:nil];
+        [strongSelf->_session failExternalUserAgentFlowWithError:safariError];
+    };
 
-    webAuthenticationSession.presentationContextProvider = self;
-    webAuthenticationSession.prefersEphemeralWebBrowserSession = _prefersEphemeralSession;
-    _webAuthenticationSession = webAuthenticationSession;
-    return [webAuthenticationSession start];
+    ASWebAuthenticationSession *session;
+    if (useHTTPSCallback) {
+        ASWebAuthenticationSessionCallback *callback =
+            [ASWebAuthenticationSessionCallback callbackWithHTTPSHost:_host path:_path];
+        session = [[ASWebAuthenticationSession alloc] initWithURL:_requestURL
+                                                         callback:callback
+                                                completionHandler:completionHandler];
+    } else {
+        // Matches AppAuth's OIDExternalUserAgentIOS default for https redirect URIs
+        session = [[ASWebAuthenticationSession alloc] initWithURL:_requestURL
+                                                callbackURLScheme:@"https"
+                                                completionHandler:completionHandler];
+    }
+    session.presentationContextProvider = self;
+    session.prefersEphemeralWebBrowserSession = _prefersEphemeralSession;
+    return session;
 }
 
 - (void)dismissExternalUserAgentAnimated:(BOOL)animated completion:(nonnull void (^)(void))completion {
