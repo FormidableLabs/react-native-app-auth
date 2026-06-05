@@ -7,6 +7,27 @@
 #import <React/RCTLog.h>
 #import <React/RCTConvert.h>
 #import "RNAppAuthAuthorizationFlowManager.h"
+#import <AuthenticationServices/AuthenticationServices.h>
+
+/**
+ * External user agent that uses the iOS 17.4+ ASWebAuthenticationSession https callback
+ * (ASWebAuthenticationSessionCallback callbackWithHTTPSHost:path:). With an https
+ * (universal link) redirect URI, AppAuth-iOS passes "https" as the callbackURLScheme —
+ * which ASWebAuthenticationSession does not support — so the session never intercepts
+ * the redirect and the flow has to rely on the universal link opening the app, which is
+ * not triggered by server redirects/JS navigation inside the session and is sporadically
+ * dropped, leaving authorize() pending forever (#987, #932; openid/AppAuth-iOS#367).
+ * This agent lets the session intercept the https redirect natively.
+ */
+API_AVAILABLE(ios(17.4))
+@interface RNAppAuthHTTPSExternalUserAgent : NSObject <OIDExternalUserAgent, ASWebAuthenticationPresentationContextProviding>
+
+- (nonnull instancetype)initWithPresentingViewController:(nonnull UIViewController *)presentingViewController
+                                 prefersEphemeralSession:(BOOL)prefersEphemeralSession
+                                                    host:(nonnull NSString *)host
+                                                    path:(nonnull NSString *)path;
+
+@end
 
 @interface RNAppAuth()<RNAppAuthAuthorizationFlowManagerDelegate> {
     id<OIDExternalUserAgentSession> _currentSession;
@@ -380,6 +401,20 @@ RCT_REMAP_METHOD(logout,
     id<OIDExternalUserAgent> externalUserAgent = nil;
 #elif TARGET_OS_IOS
     id<OIDExternalUserAgent> externalUserAgent = iosCustomBrowser != nil ? [self getCustomBrowser: iosCustomBrowser] : nil;
+    // Prefer the native https-callback session for https (universal link) redirect URIs
+    // (see RNAppAuthHTTPSExternalUserAgent above). Falls back to default behavior pre-17.4.
+    if (externalUserAgent == nil) {
+        if (@available(iOS 17.4, *)) {
+            NSURL *httpsRedirectURL = [NSURL URLWithString:redirectUrl];
+            if ([httpsRedirectURL.scheme isEqualToString:@"https"] && httpsRedirectURL.host != nil) {
+                externalUserAgent = [[RNAppAuthHTTPSExternalUserAgent alloc]
+                    initWithPresentingViewController:presentingViewController
+                             prefersEphemeralSession:prefersEphemeralSession
+                                                host:httpsRedirectURL.host
+                                                path:httpsRedirectURL.path.length > 0 ? httpsRedirectURL.path : @"/"];
+            }
+        }
+    }
 #endif
     
     OIDAuthorizationCallback callback = ^(OIDAuthorizationResponse *_Nullable authorizationResponse, NSError *_Nullable error) {
@@ -800,6 +835,96 @@ RCT_REMAP_METHOD(logout,
     externalUserAgent = [[OIDExternalUserAgentMac alloc] init];
   #endif
   return externalUserAgent;
+}
+
+@end
+
+/**
+ * Implementation modeled on AppAuth's OIDExternalUserAgentIOS, but built with
+ * [ASWebAuthenticationSessionCallback callbackWithHTTPSHost:path:] so the session
+ * intercepts the https redirect itself (iOS 17.4+).
+ */
+@implementation RNAppAuthHTTPSExternalUserAgent {
+    UIViewController *_presentingViewController;
+    BOOL _prefersEphemeralSession;
+    NSString *_host;
+    NSString *_path;
+    BOOL _externalUserAgentFlowInProgress;
+    __weak id<OIDExternalUserAgentSession> _session;
+    ASWebAuthenticationSession *_webAuthenticationSession;
+}
+
+- (instancetype)initWithPresentingViewController:(UIViewController *)presentingViewController
+                         prefersEphemeralSession:(BOOL)prefersEphemeralSession
+                                            host:(NSString *)host
+                                            path:(NSString *)path {
+    self = [super init];
+    if (self) {
+        _presentingViewController = presentingViewController;
+        _prefersEphemeralSession = prefersEphemeralSession;
+        _host = [host copy];
+        _path = [path copy];
+    }
+    return self;
+}
+
+- (BOOL)presentExternalUserAgentRequest:(id<OIDExternalUserAgentRequest>)request
+                                session:(id<OIDExternalUserAgentSession>)session {
+    if (_externalUserAgentFlowInProgress) {
+        return NO;
+    }
+    _externalUserAgentFlowInProgress = YES;
+    _session = session;
+
+    NSURL *requestURL = [request externalUserAgentRequestURL];
+    __weak typeof(self) weakSelf = self;
+
+    ASWebAuthenticationSessionCallback *callback =
+        [ASWebAuthenticationSessionCallback callbackWithHTTPSHost:_host path:_path];
+    ASWebAuthenticationSession *webAuthenticationSession =
+        [[ASWebAuthenticationSession alloc] initWithURL:requestURL
+                                               callback:callback
+                                      completionHandler:^(NSURL *_Nullable callbackURL, NSError *_Nullable error) {
+        typeof(self) strongSelf = weakSelf;
+        if (!strongSelf) {
+            return;
+        }
+        strongSelf->_webAuthenticationSession = nil;
+        if (callbackURL) {
+            [strongSelf->_session resumeExternalUserAgentFlowWithURL:callbackURL];
+        } else {
+            NSError *safariError =
+                [OIDErrorUtilities errorWithCode:OIDErrorCodeUserCanceledAuthorizationFlow
+                                 underlyingError:error
+                                     description:nil];
+            [strongSelf->_session failExternalUserAgentFlowWithError:safariError];
+        }
+    }];
+
+    webAuthenticationSession.presentationContextProvider = self;
+    webAuthenticationSession.prefersEphemeralWebBrowserSession = _prefersEphemeralSession;
+    _webAuthenticationSession = webAuthenticationSession;
+    return [webAuthenticationSession start];
+}
+
+- (void)dismissExternalUserAgentAnimated:(BOOL)animated completion:(nonnull void (^)(void))completion {
+    if (!_externalUserAgentFlowInProgress) {
+        if (completion) {
+            completion();
+        }
+        return;
+    }
+    _externalUserAgentFlowInProgress = NO;
+    [_webAuthenticationSession cancel];
+    _webAuthenticationSession = nil;
+    _session = nil;
+    if (completion) {
+        completion();
+    }
+}
+
+- (ASPresentationAnchor)presentationAnchorForWebAuthenticationSession:(ASWebAuthenticationSession *)session {
+    return _presentingViewController.view.window;
 }
 
 @end
