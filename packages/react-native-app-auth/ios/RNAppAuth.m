@@ -12,8 +12,8 @@
 /**
  * External user agent that uses the iOS 17.4+ ASWebAuthenticationSession https callback
  * (ASWebAuthenticationSessionCallback callbackWithHTTPSHost:path:). With an https
- * (universal link) redirect URI, AppAuth-iOS passes "https" as the callbackURLScheme —
- * which ASWebAuthenticationSession does not support — so the session never intercepts
+ * (universal link) redirect URI, AppAuth-iOS passes "https" as the callbackURLScheme -
+ * which ASWebAuthenticationSession does not support - so the session never intercepts
  * the redirect and the flow has to rely on the universal link opening the app, which is
  * not triggered by server redirects/JS navigation inside the session and is sporadically
  * dropped, leaving authorize() pending forever (#987, #932; openid/AppAuth-iOS#367).
@@ -22,7 +22,7 @@
  * Requires the callback host to be an associated domain with the webcredentials service
  * type (entitlement + apple-app-site-association). When the association is missing the
  * agent transparently falls back to the legacy callbackURLScheme session, preserving
- * AppAuth's default behavior.
+ * AppAuth default behavior.
  */
 API_AVAILABLE(ios(17.4))
 @interface RNAppAuthHTTPSExternalUserAgent : NSObject <OIDExternalUserAgent, ASWebAuthenticationPresentationContextProviding>
@@ -845,8 +845,8 @@ RCT_REMAP_METHOD(logout,
 @end
 
 /**
- * Implementation modeled on AppAuth's OIDExternalUserAgentIOS, but built with
- * [ASWebAuthenticationSessionCallback callbackWithHTTPSHost:path:] so the session
+ * Implementation modeled on AppAuth's OIDExternalUserAgentIOS, but built
+ * with [ASWebAuthenticationSessionCallback callbackWithHTTPSHost:path:] so the session
  * intercepts the https redirect itself (iOS 17.4+).
  */
 @implementation RNAppAuthHTTPSExternalUserAgent {
@@ -923,10 +923,13 @@ RCT_REMAP_METHOD(logout,
             [strongSelf->_session resumeExternalUserAgentFlowWithURL:callbackURL];
             return;
         }
-        BOOL isUserCancel = [error.domain isEqualToString:ASWebAuthenticationSessionErrorDomain] &&
-            error.code == ASWebAuthenticationSessionErrorCodeCanceledLogin;
-        if (useHTTPSCallback && !isUserCancel && [strongSelf startLegacyFallbackSession]) {
-            // Missing/unvalidated webcredentials association — legacy session took over
+        // A missing webcredentials association is reported with the SAME error code as a
+        // user cancellation (ASWebAuthenticationSessionErrorCodeCanceledLogin) — but it
+        // carries an NSLocalizedFailureReason ("...requires Associated Domains using the
+        // `webcredentials` service type..."), which genuine user cancellations do not.
+        NSString *failureReason = error.userInfo[NSLocalizedFailureReasonErrorKey];
+        if (useHTTPSCallback && failureReason.length > 0 && [strongSelf startLegacyFallbackSession]) {
+            // Association missing/unvalidated — legacy session took over
             return;
         }
         NSError *safariError =
