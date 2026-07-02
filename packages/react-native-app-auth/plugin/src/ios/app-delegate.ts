@@ -1,45 +1,64 @@
 import { withAppDelegate, ConfigPlugin } from '@expo/config-plugins';
-import { isExpo53OrLater } from '../expo-version';
+import { assertExpo53OrLater, isExpo53OrLater } from '../expo-version';
 
 const codeModIOs = require('@expo/config-plugins/build/ios/codeMod');
 
+const APP_AUTH_PROTOCOL = 'RNAppAuthAuthorizationFlowManager';
+const APP_AUTH_DELEGATE_PROPERTY =
+  'public weak var authorizationFlowManagerDelegate: RNAppAuthAuthorizationFlowManagerDelegate?';
+const APP_AUTH_DELEGATE_PROPERTY_PATTERN =
+  /\bvar\s+authorizationFlowManagerDelegate\s*:\s*RNAppAuthAuthorizationFlowManagerDelegate\??/;
+const APP_AUTH_RESUME_BLOCK = `if let authorizationFlowManagerDelegate = self.authorizationFlowManagerDelegate {
+      if authorizationFlowManagerDelegate.resumeExternalUserAgentFlow(with: url) {
+        return true
+      }
+    }`;
+
+export const applyExpo53AppDelegatePatch = (contents: string): string => {
+  contents = contents.replace(
+    /^(\s*(?:public\s+)?class\s+AppDelegate\s*:\s*ExpoAppDelegate)([^{]*)(\{)/m,
+    (match, declaration, conformances, openingBrace) => {
+      const trimmedConformances = conformances.trim();
+      if (trimmedConformances.includes(APP_AUTH_PROTOCOL)) {
+        return match;
+      }
+
+      return `${declaration}${trimmedConformances}, ${APP_AUTH_PROTOCOL} ${openingBrace}`;
+    }
+  );
+
+  if (!APP_AUTH_DELEGATE_PROPERTY_PATTERN.test(contents)) {
+    const reactNativeFactoryPattern =
+      /^(\s*)(?:public\s+)?var\s+reactNativeFactory\s*:\s*RCTReactNativeFactory\?\s*$/m;
+    const factoryMatch = contents.match(reactNativeFactoryPattern);
+    if (factoryMatch) {
+      const indent = factoryMatch[1];
+      contents = contents.replace(
+        reactNativeFactoryPattern,
+        match => `${match}\n\n${indent}${APP_AUTH_DELEGATE_PROPERTY}`
+      );
+    }
+  }
+
+  if (!contents.includes('resumeExternalUserAgentFlow(with: url)')) {
+    contents = contents.replace(
+      /((?:public\s+)?override\s+func\s+application\s*\([\s\S]*?open\s+url\s*:\s*URL[\s\S]*?\)\s*->\s*Bool\s*\{)/m,
+      match => `${match}\n    ${APP_AUTH_RESUME_BLOCK}\n`
+    );
+  }
+
+  return contents;
+};
+
 const withAppDelegateSwift: ConfigPlugin = rootConfig => {
   return withAppDelegate(rootConfig, config => {
-    let { contents } = config.modResults;
-
-    if (!contents.includes('RNAppAuthAuthorizationFlowManager')) {
-      const replaceText = 'class AppDelegate: ExpoAppDelegate';
-      contents = contents.replace(replaceText, `${replaceText}, RNAppAuthAuthorizationFlowManager`);
-
-      const replaceText2 =
-        'return super.application(app, open: url, options: options) || RCTLinkingManager.application(app, open: url, options: options)';
-      contents = contents.replace(
-        replaceText2,
-        `if let authorizationFlowManagerDelegate = self.authorizationFlowManagerDelegate {
-      if authorizationFlowManagerDelegate.resumeExternalUserAgentFlow(with: url) {
-         return true
-      }
-    }
-    ${replaceText2}`
-      );
-
-      const replaceText3 = 'var reactNativeFactory: RCTReactNativeFactory?';
-      contents = contents.replace(
-        replaceText3,
-        `${replaceText3}\n\n  public weak var authorizationFlowManagerDelegate: RNAppAuthAuthorizationFlowManagerDelegate?`
-      );
-    }
-
-    config.modResults.contents = contents;
+    assertExpo53OrLater(config, config.modRequest.projectRoot);
+    config.modResults.contents = applyExpo53AppDelegatePatch(config.modResults.contents);
     return config;
   });
 };
 
-export const withAppAuthAppDelegate: ConfigPlugin = rootConfig => {
-  if (isExpo53OrLater(rootConfig)) {
-    return withAppDelegateSwift(rootConfig);
-  }
-
+export const withLegacyAppAuthAppDelegate: ConfigPlugin = rootConfig => {
   return withAppDelegate(rootConfig, config => {
     let { contents } = config.modResults;
 
@@ -58,4 +77,12 @@ export const withAppAuthAppDelegate: ConfigPlugin = rootConfig => {
     config.modResults.contents = contents;
     return config;
   });
+};
+
+export const withAppAuthAppDelegate: ConfigPlugin = rootConfig => {
+  if (isExpo53OrLater(rootConfig)) {
+    return withAppDelegateSwift(rootConfig);
+  }
+
+  return withLegacyAppAuthAppDelegate(rootConfig);
 };
