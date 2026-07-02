@@ -57,7 +57,7 @@ export const assertExpo53OrLater = (config: ExpoConfig, projectRoot?: string): v
   const major = getExpoSdkMajorVersion(config, projectRoot);
   if (major != null && major < MIN_EXPO_SDK_MAJOR_VERSION) {
     throw new Error(
-      `react-native-app-auth config plugin requires Expo SDK ${MIN_EXPO_SDK_MAJOR_VERSION} or later. Detected Expo SDK ${major}.`
+      `react-native-app-auth iOS Swift AppDelegate patch requires Expo SDK ${MIN_EXPO_SDK_MAJOR_VERSION} or later. Detected Expo SDK ${major}.`
     );
   }
 };
