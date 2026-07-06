@@ -1,5 +1,11 @@
 # react-native-app-auth
 
+## 8.4.1
+
+### Patch Changes
+
+- Fix Expo config plugin support for Swift AppDelegate templates that omit `public` before the AppDelegate class declaration, and correctly extract URL schemes from AppAuth redirect URLs that use a single slash. ([#1123](https://github.com/FormidableLabs/react-native-app-auth/pull/1123))
+
 ## 8.4.0
 
 ### Minor Changes
