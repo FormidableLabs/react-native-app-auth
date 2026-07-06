@@ -55,6 +55,21 @@ describe('applyExpo53AppDelegatePatch', () => {
     );
   });
 
+  it('preserves whitespace before the class opening brace', () => {
+    const result = applyExpo53AppDelegatePatch(
+      expo56AppDelegate.replace(
+        'class AppDelegate: ExpoAppDelegate {',
+        `class AppDelegate: ExpoAppDelegate,
+  UIApplicationDelegate
+{`
+      )
+    );
+
+    expect(result).toContain(`class AppDelegate: ExpoAppDelegate,
+  UIApplicationDelegate, RNAppAuthAuthorizationFlowManager
+{`);
+  });
+
   it('does not duplicate an existing multiline AppAuth delegate property', () => {
     const appDelegateWithMultilineProperty = expo56AppDelegate.replace(
       '  var reactNativeFactory: RCTReactNativeFactory?',

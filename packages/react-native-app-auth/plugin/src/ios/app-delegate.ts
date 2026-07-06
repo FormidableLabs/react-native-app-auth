@@ -18,12 +18,17 @@ export const applyExpo53AppDelegatePatch = (contents: string): string => {
   contents = contents.replace(
     /^(\s*(?:public\s+)?class\s+AppDelegate\s*:\s*ExpoAppDelegate)([^{]*)(\{)/m,
     (match, declaration, conformances, openingBrace) => {
-      const trimmedConformances = conformances.trim();
-      if (trimmedConformances.includes(APP_AUTH_PROTOCOL)) {
+      if (conformances.includes(APP_AUTH_PROTOCOL)) {
         return match;
       }
 
-      return `${declaration}${trimmedConformances}, ${APP_AUTH_PROTOCOL} ${openingBrace}`;
+      const trailingWhitespace = conformances.match(/\s*$/)?.[0] ?? '';
+      const existingConformances = conformances.slice(
+        0,
+        conformances.length - trailingWhitespace.length
+      );
+
+      return `${declaration}${existingConformances}, ${APP_AUTH_PROTOCOL}${trailingWhitespace}${openingBrace}`;
     }
   );
 
