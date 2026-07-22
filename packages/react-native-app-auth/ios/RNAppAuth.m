@@ -130,7 +130,7 @@ RCT_REMAP_METHOD(authorize,
                                                                     return;
                                                                 }
                                                                 [self authorizeWithConfiguration: configuration
-                                                                 
+
                                                                                      redirectUrl: redirectUrl
                                                                                         clientId: clientId
                                                                                     clientSecret: clientSecret
@@ -348,7 +348,7 @@ RCT_REMAP_METHOD(logout,
     OIDAuthorizationRequest *request =
     [[OIDAuthorizationRequest alloc] initWithConfiguration:configuration
                                                   clientId:clientId
-     
+
                                               clientSecret:clientSecret
                                                      scope:[OIDScopeUtilities scopesWithArray:scopes]
                                                redirectURL:[NSURL URLWithString:redirectUrl]
@@ -376,12 +376,16 @@ RCT_REMAP_METHOD(logout,
 
     UIViewController *presentingViewController = appDelegate.window.rootViewController.view.window ? appDelegate.window.rootViewController : appDelegate.window.rootViewController.presentedViewController;
 
+    if (!presentingViewController) {
+        presentingViewController = RCTPresentedViewController();
+    }
+
 #if TARGET_OS_MACCATALYST
     id<OIDExternalUserAgent> externalUserAgent = nil;
 #elif TARGET_OS_IOS
     id<OIDExternalUserAgent> externalUserAgent = iosCustomBrowser != nil ? [self getCustomBrowser: iosCustomBrowser] : nil;
 #endif
-    
+
     OIDAuthorizationCallback callback = ^(OIDAuthorizationResponse *_Nullable authorizationResponse, NSError *_Nullable error) {
                                                    typeof(self) strongSelf = weakSelf;
                                                    strongSelf->_currentSession = nil;
@@ -397,7 +401,7 @@ RCT_REMAP_METHOD(logout,
                                                };
 
     if (skipCodeExchange) {
-        
+
         if(externalUserAgent != nil) {
             _currentSession = [OIDAuthorizationService presentAuthorizationRequest:request
                                                                  externalUserAgent:externalUserAgent
@@ -432,14 +436,14 @@ RCT_REMAP_METHOD(logout,
                                                                              error:error];
                                                            }
                                                        };
-        
+
         if(externalUserAgent != nil) {
             _currentSession = [OIDAuthState authStateByPresentingAuthorizationRequest:request
                                                                     externalUserAgent:externalUserAgent
                                                                              callback:callback];
         } else {
-            
-            
+
+
             if (@available(iOS 13, *)) {
                 _currentSession = [OIDAuthState authStateByPresentingAuthorizationRequest:request
                                                                  presentingViewController:presentingViewController
@@ -528,7 +532,7 @@ RCT_REMAP_METHOD(logout,
     id<OIDExternalUserAgent> externalUserAgent = iosCustomBrowser != nil ? [self getCustomBrowser: iosCustomBrowser] : [self getExternalUserAgentWithPresentingViewController:presentingViewController
                                                                                                                                     prefersEphemeralSession:prefersEphemeralSession];
 #endif
-    
+
     _currentSession = [OIDAuthorizationService presentEndSessionRequest: endSessionRequest
                                                       externalUserAgent: externalUserAgent
                                              callback: ^(OIDEndSessionResponse *_Nullable response, NSError *_Nullable error) {
@@ -706,7 +710,7 @@ RCT_REMAP_METHOD(logout,
 #if !TARGET_OS_MACCATALYST
 - (id<OIDExternalUserAgent>)getCustomBrowser: (NSString *) browserType {
     typedef id<OIDExternalUserAgent> (^BrowserBlock)(void);
-    
+
     NSDictionary *browsers = @{
         @"safari":
             ^{
