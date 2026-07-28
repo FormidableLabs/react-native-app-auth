@@ -344,6 +344,16 @@ RCT_REMAP_METHOD(logout,
     [mutableDict removeObjectForKey:@"state"];
     [mutableDict removeObjectForKey:@"nonce"];
 
+    // A null from JS bridges to NSNull, which is truthy in ObjC, so a plain
+    // ternary would send NSNull as the state. Absent generates, null omits.
+    id requestedState = additionalParameters[@"state"];
+    NSString *state = nil;
+    if (requestedState == nil) {
+        state = [[self class] generateState];
+    } else if (![requestedState isKindOfClass:[NSNull class]]) {
+        state = requestedState;
+    }
+
     // builds authentication request
     OIDAuthorizationRequest *request =
     [[OIDAuthorizationRequest alloc] initWithConfiguration:configuration
@@ -353,7 +363,7 @@ RCT_REMAP_METHOD(logout,
                                                      scope:[OIDScopeUtilities scopesWithArray:scopes]
                                                redirectURL:[NSURL URLWithString:redirectUrl]
                                               responseType:OIDResponseTypeCode
-                                                     state: additionalParameters[@"state"] ? additionalParameters[@"state"] : [[self class] generateState]
+                                                     state:state
                                                      nonce:nonce
                                               codeVerifier:codeVerifier
                                              codeChallenge:codeChallenge
