@@ -1108,6 +1108,10 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                     browserMatchers.add(VersionedBrowserMatcher.SAMSUNG_CUSTOM_TAB);
                     break;
                 }
+                case "edge": {
+                    browserMatchers.add(VersionedBrowserMatcher.EDGE_CUSTOM_TAB);
+                    break;
+                }
             }
         }
         return browserMatchers;
