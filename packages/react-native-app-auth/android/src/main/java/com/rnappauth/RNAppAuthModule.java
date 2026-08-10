@@ -85,11 +85,37 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     private String clientSecret;
     private final ConcurrentHashMap<String, AuthorizationServiceConfiguration> mServiceConfigurations = new ConcurrentHashMap<>();
     private boolean isPrefetched = false;
+    private AuthorizationService pendingBrowserAuthService;
+    private CustomTabsServiceConnection warmUpConnection;
 
     public RNAppAuthModule(ReactApplicationContext reactContext) {
         super(reactContext);
         this.reactContext = reactContext;
         reactContext.addActivityEventListener(this);
+    }
+
+    /*
+     * AuthorizationService binds to the browser's CustomTabsService in its constructor, and only
+     * releases that binding on dispose(). The browser based flows cannot dispose immediately, since
+     * the service must stay alive while the tab is open, so the instance is held until its result
+     * arrives.
+     */
+    private void disposePendingBrowserAuthService() {
+        if (pendingBrowserAuthService != null) {
+            pendingBrowserAuthService.dispose();
+            pendingBrowserAuthService = null;
+        }
+    }
+
+    private void unbindWarmUpConnection() {
+        if (warmUpConnection != null) {
+            try {
+                reactContext.unbindService(warmUpConnection);
+            } catch (IllegalArgumentException e) {
+                // The connection was never successfully bound; there is nothing to release.
+            }
+            warmUpConnection = null;
+        }
     }
 
     @ReactMethod
@@ -105,7 +131,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final Double connectionTimeoutMillis,
             final Promise promise) {
         if (warmAndPrefetchChrome) {
-            warmChromeCustomTab(reactContext, issuer);
+            warmChromeCustomTab(issuer);
         }
 
         this.parseHeaderMap(customHeaders);
@@ -491,6 +517,9 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
         try {
         if (requestCode == 52) {
+            // The browser flow is over, so the service that launched it can be released.
+            disposePendingBrowserAuthService();
+
             if (data == null) {
                 if (promise != null) {
                     promise.reject("authentication_error", "Data intent is null" );
@@ -529,7 +558,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                     null
             );
 
-            AuthorizationService authService = new AuthorizationService(this.reactContext, configuration);
+            final AuthorizationService authService = new AuthorizationService(this.reactContext, configuration);
 
             TokenRequest tokenRequest;
             if(this.additionalParametersMap == null) {
@@ -543,6 +572,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                 @Override
                 public void onTokenRequestCompleted(
                         TokenResponse resp, AuthorizationException ex) {
+                    authService.dispose();
                     if (resp != null) {
                         WritableMap map = TokenResponseFactory.tokenResponseToMap(resp, response);
                         if (authorizePromise != null) {
@@ -567,6 +597,9 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         } // close if
 
         if (requestCode == 53) {
+            // The browser flow is over, so the service that launched it can be released.
+            disposePendingBrowserAuthService();
+
             if (data == null) {
                 if (promise != null) {
                     promise.reject("end_session_failed", "Data intent is null" );
@@ -611,7 +644,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final Promise promise) {
         final Context context = this.reactContext;
 
-        AuthorizationService authService = new AuthorizationService(context, appAuthConfiguration);
+        final AuthorizationService authService = new AuthorizationService(context, appAuthConfiguration);
 
         RegistrationRequest.Builder registrationRequestBuilder = new RegistrationRequest.Builder(
                 serviceConfiguration,
@@ -640,6 +673,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             @Override
             public void onRegistrationRequestCompleted(@Nullable RegistrationResponse response,
                     @Nullable AuthorizationException ex) {
+                authService.dispose();
                 if (response != null) {
                     WritableMap map = RegistrationResponseFactory.registrationResponseToMap(response);
                     promise.resolve(map);
@@ -737,7 +771,9 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         AuthorizationRequest authRequest = authRequestBuilder.build();
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            disposePendingBrowserAuthService();
             AuthorizationService authService = new AuthorizationService(context, appAuthConfiguration);
+            pendingBrowserAuthService = authService;
 
             CustomTabsIntent.Builder intentBuilder = authService.createCustomTabsIntentBuilder();
             CustomTabsIntent customTabsIntent = intentBuilder.setEphemeralBrowsingEnabled(androidPrefersEphemeralSession).build();
@@ -750,7 +786,9 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
             currentActivity.startActivityForResult(authIntent, 52);
         } else {
+            disposePendingBrowserAuthService();
             AuthorizationService authService = new AuthorizationService(currentActivity, appAuthConfiguration);
+            pendingBrowserAuthService = authService;
             PendingIntent pendingIntent = currentActivity.createPendingResult(52, new Intent(), 0);
 
             authService.performAuthorizationRequest(authRequest, pendingIntent);
@@ -796,11 +834,12 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
         TokenRequest tokenRequest = tokenRequestBuilder.build();
 
-        AuthorizationService authService = new AuthorizationService(context, appAuthConfiguration);
+        final AuthorizationService authService = new AuthorizationService(context, appAuthConfiguration);
 
         AuthorizationService.TokenResponseCallback tokenResponseCallback = new AuthorizationService.TokenResponseCallback() {
             @Override
             public void onTokenRequestCompleted(@Nullable TokenResponse response, @Nullable AuthorizationException ex) {
+                authService.dispose();
                 if (response != null) {
                     WritableMap map = TokenResponseFactory.tokenResponseToMap(response);
                     promise.resolve(map);
@@ -846,12 +885,16 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         EndSessionRequest endSessionRequest = endSessionRequestBuilder.build();
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            disposePendingBrowserAuthService();
             AuthorizationService authService = new AuthorizationService(context, appAuthConfiguration);
+            pendingBrowserAuthService = authService;
             Intent endSessionIntent = authService.getEndSessionRequestIntent(endSessionRequest);
 
             currentActivity.startActivityForResult(endSessionIntent, 53);
         } else {
+            disposePendingBrowserAuthService();
             AuthorizationService authService = new AuthorizationService(currentActivity, appAuthConfiguration);
+            pendingBrowserAuthService = authService;
             PendingIntent pendingIntent = currentActivity.createPendingResult(53, new Intent(), 0);
 
             authService.performEndSessionRequest(endSessionRequest, pendingIntent);
@@ -1012,7 +1055,11 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                 endSessionEndpoint);
     }
 
-    private void warmChromeCustomTab(Context context, final String issuer) {
+    // Binds and unbinds via reactContext, since unbindService must be called on the same Context
+    // that registered the connection.
+    private void warmChromeCustomTab(final String issuer) {
+        unbindWarmUpConnection();
+
         CustomTabsServiceConnection connection = new CustomTabsServiceConnection() {
             @Override
             public void onCustomTabsServiceConnected(ComponentName name, CustomTabsClient client) {
@@ -1029,7 +1076,10 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
             }
         };
-        CustomTabsClient.bindCustomTabsService(context, CUSTOM_TAB_PACKAGE_NAME, connection);
+        // Retained even when the bind attempt fails: the ServiceConnection is registered either way,
+        // and must be unbound to be released.
+        CustomTabsClient.bindCustomTabsService(reactContext, CUSTOM_TAB_PACKAGE_NAME, connection);
+        warmUpConnection = connection;
     }
 
     private boolean hasServiceConfiguration(@Nullable String issuer) {
