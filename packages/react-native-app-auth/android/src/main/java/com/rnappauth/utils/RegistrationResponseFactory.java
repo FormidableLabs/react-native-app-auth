@@ -5,6 +5,8 @@ import com.facebook.react.bridge.WritableMap;
 
 import net.openid.appauth.RegistrationResponse;
 
+import java.util.concurrent.TimeUnit;
+
 public final class RegistrationResponseFactory {
     /*
      * Read raw registration response into a React Native map to be passed down the bridge
@@ -16,7 +18,7 @@ public final class RegistrationResponseFactory {
         map.putMap("additionalParameters", MapUtil.createAdditionalParametersMap(response.additionalParameters));
 
         if (response.clientIdIssuedAt != null) {
-            map.putString("clientIdIssuedAt", DateUtil.formatTimestamp(response.clientIdIssuedAt));
+            map.putString("clientIdIssuedAt", DateUtil.formatTimestamp(TimeUnit.SECONDS.toMillis(response.clientIdIssuedAt)));
         }
 
         if (response.clientSecret != null) {
@@ -24,7 +26,7 @@ public final class RegistrationResponseFactory {
         }
 
         if (response.clientSecretExpiresAt != null) {
-            map.putString("clientSecretExpiresAt", DateUtil.formatTimestamp(response.clientSecretExpiresAt));
+            map.putString("clientSecretExpiresAt", DateUtil.formatTimestamp(TimeUnit.SECONDS.toMillis(response.clientSecretExpiresAt)));
         }
 
         if (response.registrationAccessToken != null) {

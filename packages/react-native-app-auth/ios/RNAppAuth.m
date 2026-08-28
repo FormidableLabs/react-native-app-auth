@@ -643,7 +643,7 @@ RCT_REMAP_METHOD(logout,
              @"clientSecret": response.clientSecret ? response.clientSecret : @"",
              @"clientSecretExpiresAt": response.clientSecretExpiresAt ? [dateFormat stringFromDate:response.clientSecretExpiresAt] : @"",
              @"registrationAccessToken": response.registrationAccessToken ? response.registrationAccessToken : @"",
-             @"registrationClientUri": response.registrationClientURI ? response.registrationClientURI : @"",
+             @"registrationClientUri": response.registrationClientURI ? response.registrationClientURI.absoluteString : @"",
              @"tokenEndpointAuthMethod": response.tokenEndpointAuthenticationMethod ? response.tokenEndpointAuthenticationMethod : @"",
              };
 }
