@@ -71,9 +71,9 @@ const validateHeaders = headers => {
   );
 
   Object.values(headers).forEach(value => {
-    invariant(typeof value === 'object', customHeaderTypeErrorMessage);
+    invariant(value && typeof value === 'object' && !Array.isArray(value), customHeaderTypeErrorMessage);
     invariant(
-      Object.values(value).filter(key => typeof key !== 'string').length === 0,
+      Object.values(value).every(header => typeof header === 'string'),
       customHeaderTypeErrorMessage
     );
   });
@@ -86,19 +86,23 @@ const validateAdditionalHeaders = headers => {
 
   const errorMessage = 'Config error: additionalHeaders must be { [key: string]: string }';
 
-  invariant(typeof headers === 'object', errorMessage);
+  invariant(typeof headers === 'object' && !Array.isArray(headers), errorMessage);
   invariant(
-    Object.values(headers).filter(key => typeof key !== 'string').length === 0,
+    Object.values(headers).every(header => typeof header === 'string'),
     errorMessage
   );
 };
 
 const validateConnectionTimeoutSeconds = timeout => {
-  if (!timeout) {
+  if (timeout === undefined) {
     return;
   }
 
   invariant(typeof timeout === 'number', 'Config error: connectionTimeoutSeconds must be a number');
+  invariant(
+    Number.isFinite(timeout) && timeout >= 0,
+    'Config error: connectionTimeoutSeconds must be a finite, non-negative number'
+  );
 };
 
 export const SECOND_IN_MS = 1000;

@@ -32,7 +32,7 @@ const registerResult = await register(registerConfig);
   `hello=world&foo=bar` to the authorization request.
 - **dangerouslyAllowInsecureHttpRequests** - (`boolean`) _ANDROID_ same as in authorization config
 - **customHeaders** - (`object`) _ANDROID_ same as in authorization config
-- **connectionTimeoutSeconds** - (`number`) configure the request timeout interval in seconds. This must be a positive number. The default values are 60 seconds on iOS and 15 seconds on Android.
+- **connectionTimeoutSeconds** - (`number`) same timeout rules as in [Configuration](/docs/usage/config).
 
 #### registerResult
 
