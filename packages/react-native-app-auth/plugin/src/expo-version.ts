@@ -29,6 +29,15 @@ const readExpoPackageVersion = (projectRoot?: string): string | undefined => {
     return undefined;
   }
 
+  try {
+    const expoPackagePath = require.resolve('expo/package.json', { paths: [projectRoot] });
+    return JSON.parse(fs.readFileSync(expoPackagePath, 'utf8')).version;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'MODULE_NOT_FOUND') {
+      throw error;
+    }
+  }
+
   const packageJsonPath = path.join(projectRoot, 'package.json');
   if (!fs.existsSync(packageJsonPath)) {
     return undefined;
