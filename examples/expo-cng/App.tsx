@@ -10,7 +10,7 @@ const config: AuthConfiguration = {
   clientId: 'interactive.public',
   redirectUrl: 'io.identityserver.demo:/oauthredirect',
   additionalParameters: {},
-  scopes: ['openid', 'profile', 'email', 'offline_access'] as const,
+  scopes: ['openid', 'profile', 'email', 'offline_access'],
 };
 
 export default function App() {
@@ -33,7 +33,7 @@ export default function App() {
 
   const handleLogout = (): void => {
     setAuthState(null);
-    Alert.alert('Logged out', 'You have been logged out successfully');
+    Alert.alert('Local session cleared', 'Provider sessions and issued tokens have not been revoked.');
   };
 
   return (
@@ -59,7 +59,7 @@ export default function App() {
           <Text style={styles.info}>Access Token: {authState.accessToken.substring(0, 20)}...</Text>
           <Text style={styles.info}>Token Type: {authState.tokenType}</Text>
           <Text style={styles.info}>Scopes: {authState.scopes.join(', ')}</Text>
-          <Button title="Logout" onPress={handleLogout} />
+          <Button title="Clear local session" onPress={handleLogout} />
         </View>
       )}
 
