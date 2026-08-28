@@ -365,7 +365,7 @@ export const revoke = async (
   };
   if (includeBasicAuth) {
     headers.Authorization = `Basic ${base64.encode(
-      `${encodeFormComponent(clientId)}:${encodeFormComponent(clientSecret ?? '')}`
+      `${encodeFormComponent(clientId)}:${encodeFormComponent(clientSecret == null ? '' : clientSecret)}`
     )}`;
   }
   /**
