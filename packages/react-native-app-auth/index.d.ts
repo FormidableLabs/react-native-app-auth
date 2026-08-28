@@ -42,6 +42,7 @@ export type RegistrationConfiguration = BaseConfiguration & {
   dangerouslyAllowInsecureHttpRequests?: boolean;
   customHeaders?: CustomHeaders;
   additionalHeaders?: AdditionalHeaders;
+  connectionTimeoutSeconds?: number;
 };
 
 export interface RegistrationResponse {
@@ -97,6 +98,8 @@ export type EndSessionConfiguration = BaseAuthConfiguration & {
   additionalParameters?: { [name: string]: string };
   dangerouslyAllowInsecureHttpRequests?: boolean;
   iosPrefersEphemeralSession?: boolean;
+  iosCustomBrowser?: AuthConfiguration['iosCustomBrowser'];
+  androidAllowCustomBrowsers?: AuthConfiguration['androidAllowCustomBrowsers'];
 };
 
 export interface AuthorizeResult {
@@ -154,9 +157,9 @@ export function refresh(
 ): Promise<RefreshResult>;
 
 export function revoke(
-  config: BaseAuthConfiguration,
+  config: BaseAuthConfiguration & { clientSecret?: string },
   revokeConfig: RevokeConfiguration
-): Promise<void>;
+): Promise<Response>;
 
 export function logout(
   config: EndSessionConfiguration,
