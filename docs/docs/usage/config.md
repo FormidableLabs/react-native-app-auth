@@ -52,3 +52,13 @@ See specific example [configurations for your provider](/docs/category/providers
 - **androidAllowCustomBrowsers** - (`string[]`) (default: undefined) _ANDROID_ override the used browser for authorization. If no value is provided, all browsers are allowed.
 - **androidTrustedWebActivity** - (`boolean`) (default: `false`) _ANDROID_ Use [`EXTRA_LAUNCH_AS_TRUSTED_WEB_ACTIVITY`](https://developer.chrome.com/docs/android/trusted-web-activity/) when opening web view.
 - **connectionTimeoutSeconds** - (`number`) configure the request timeout interval in seconds. This must be a positive number. The default values are 60 seconds on iOS and 15 seconds on Android.
+
+### Android request isolation
+
+Custom headers and token-exchange options belong to each call. Pass any required headers on every call;
+omitting a header group does not reuse a previous provider's headers. Refresh and registration may run
+while authorization is pending without replacing its token-exchange parameters or timeout.
+
+Only one browser-based authorization or logout can be pending at a time. A second interactive call
+rejects with `authentication_in_progress`; finish or cancel the first before retrying. A token exchange
+already running after the browser returns keeps its own promise and configuration.

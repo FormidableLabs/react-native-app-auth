@@ -140,7 +140,7 @@ export const prefetchConfiguration = async ({
       convertTimeoutForPlatform(Platform.OS, connectionTimeoutSeconds),
     ];
 
-    RNAppAuth.prefetchConfiguration(...nativeMethodArguments);
+    await wrapNativeAuthPromise(RNAppAuth.prefetchConfiguration(...nativeMethodArguments));
   }
 };
 
