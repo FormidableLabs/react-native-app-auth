@@ -1,39 +1,39 @@
-import * as fs from 'fs';
-import { AndroidConfig, withDangerousMod, ConfigPlugin } from '@expo/config-plugins';
+import { withAppBuildGradle, ConfigPlugin } from '@expo/config-plugins';
+import {
+  createGeneratedHeaderComment,
+  removeGeneratedContents,
+} from '@expo/config-plugins/build/utils/generateCode';
 import { AppAuthProps } from '../types';
 
 const codeModAndroid = require('@expo/config-plugins/build/android/codeMod');
+const TAG = 'react-native-app-auth';
 
-export const withAppAuthAppBuildGradle: ConfigPlugin<AppAuthProps | undefined> = (rootConfig, props) =>
-  withDangerousMod(rootConfig, [
-    'android',
-    config => {
-      // find the app/build.gradle file and checks its format
-      const appBuildGradlePath = AndroidConfig.Paths.getAppBuildGradleFilePath(
-        config.modRequest.projectRoot
-      );
+export const withAppAuthAppBuildGradle: ConfigPlugin<AppAuthProps | undefined> = (rootConfig, props) => {
+  const scheme = props?.android?.appAuthRedirectScheme;
+  if (!scheme) {
+    return rootConfig;
+  }
+  if (typeof scheme !== 'string' || !/^[A-Za-z][A-Za-z0-9+.-]*$/.test(scheme)) {
+    throw new Error('appAuthRedirectScheme must be a valid URL scheme');
+  }
 
-      // BEWARE: we update the app/build.gradle file *outside* of the standard Expo config procedure !
-      let contents = fs.readFileSync(appBuildGradlePath, 'utf8');
-
-      if (contents.includes('manifestPlaceholders')) {
-        throw new Error(
-          'app/build.gradle already contains manifestPlaceholders, cannot update automatically !'
-        );
-      }
-
-      contents = codeModAndroid.appendContentsInsideDeclarationBlock(
-        contents,
-        'defaultConfig',
-        `    manifestPlaceholders = [
-            appAuthRedirectScheme: '${props?.android?.appAuthRedirectScheme}',
-        ]
-    `
-      );
-
-      // and finally we write the file back to the disk
-      fs.writeFileSync(appBuildGradlePath, contents, 'utf8');
-
-      return config;
-    },
-  ]);
+  return withAppBuildGradle(rootConfig, config => {
+    if (config.modResults.language !== 'groovy') {
+      throw new Error('react-native-app-auth requires a Groovy app/build.gradle');
+    }
+    const contents = removeGeneratedContents(config.modResults.contents, TAG) ?? config.modResults.contents;
+    const assignment = `    manifestPlaceholders.appAuthRedirectScheme = '${scheme}'`;
+    const insertion = [
+      createGeneratedHeaderComment(assignment, TAG, '//'),
+      assignment,
+      `// @generated end ${TAG}`,
+      '',
+    ].join('\n');
+    config.modResults.contents = codeModAndroid.appendContentsInsideDeclarationBlock(
+      contents,
+      'defaultConfig',
+      insertion
+    );
+    return config;
+  });
+};
