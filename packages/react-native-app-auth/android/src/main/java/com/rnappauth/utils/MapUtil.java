@@ -15,6 +15,7 @@ import com.facebook.react.bridge.WritableNativeMap;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -39,24 +40,27 @@ public class MapUtil {
     public static final WritableMap createAdditionalParametersMap(Map<String, String> additionalParameters) {
         WritableMap additionalParametersMap = Arguments.createMap();
 
-        if (!additionalParameters.isEmpty()) {
-
-            Iterator<String> iterator = additionalParameters.keySet().iterator();
-
-            while(iterator.hasNext()) {
-                String key = iterator.next();
-                String value = additionalParameters.get(key);
-                // Try to parse to JSON
+        for (Map.Entry<String, String> entry : additionalParameters.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            if (value != null) {
                 try {
-                    JSONObject jsonObject = new JSONObject(value);
-                    WritableMap json = convertJsonToMap(jsonObject);
-                    additionalParametersMap.putMap(key, json);
-                    continue;
+                    JSONTokener tokener = new JSONTokener(value);
+                    Object parsed = tokener.nextValue();
+                    if (tokener.nextClean() == 0) {
+                        if (parsed instanceof JSONObject) {
+                            additionalParametersMap.putMap(key, convertJsonToMap((JSONObject) parsed));
+                            continue;
+                        }
+                        if (parsed instanceof JSONArray) {
+                            additionalParametersMap.putArray(key, convertJsonToArray((JSONArray) parsed));
+                            continue;
+                        }
+                    }
                 } catch (JSONException ignored) {
-
                 }
-                additionalParametersMap.putString(key, additionalParameters.get(key));
             }
+            additionalParametersMap.putString(key, value);
         }
 
         return additionalParametersMap;
@@ -69,7 +73,9 @@ public class MapUtil {
         while (iterator.hasNext()) {
             String key = iterator.next();
             Object value = jsonObject.get(key);
-            if (value instanceof JSONObject) {
+            if (value == JSONObject.NULL) {
+                map.putNull(key);
+            } else if (value instanceof JSONObject) {
                 map.putMap(key, convertJsonToMap((JSONObject) value));
             } else if (value instanceof JSONArray) {
                 map.putArray(key, convertJsonToArray((JSONArray) value));
@@ -97,7 +103,9 @@ public class MapUtil {
 
         for (int i = 0; i < jsonArray.length(); i++) {
             Object value = jsonArray.get(i);
-            if (value instanceof JSONObject) {
+            if (value == JSONObject.NULL) {
+                array.pushNull();
+            } else if (value instanceof JSONObject) {
                 array.pushMap(convertJsonToMap((JSONObject) value));
             } else if (value instanceof JSONArray) {
                 array.pushArray(convertJsonToArray((JSONArray) value));
