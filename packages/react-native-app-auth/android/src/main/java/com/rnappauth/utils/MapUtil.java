@@ -45,14 +45,17 @@ public class MapUtil {
             String value = entry.getValue();
             if (value != null) {
                 try {
-                    Object parsed = new JSONTokener(value).nextValue();
-                    if (parsed instanceof JSONObject) {
-                        additionalParametersMap.putMap(key, convertJsonToMap((JSONObject) parsed));
-                        continue;
-                    }
-                    if (parsed instanceof JSONArray) {
-                        additionalParametersMap.putArray(key, convertJsonToArray((JSONArray) parsed));
-                        continue;
+                    JSONTokener tokener = new JSONTokener(value);
+                    Object parsed = tokener.nextValue();
+                    if (tokener.nextClean() == 0) {
+                        if (parsed instanceof JSONObject) {
+                            additionalParametersMap.putMap(key, convertJsonToMap((JSONObject) parsed));
+                            continue;
+                        }
+                        if (parsed instanceof JSONArray) {
+                            additionalParametersMap.putArray(key, convertJsonToArray((JSONArray) parsed));
+                            continue;
+                        }
                     }
                 } catch (JSONException ignored) {
                 }
