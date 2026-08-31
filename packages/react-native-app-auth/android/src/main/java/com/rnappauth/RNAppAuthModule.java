@@ -491,80 +491,8 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
         try {
         if (requestCode == 52) {
-            if (data == null) {
-                if (promise != null) {
-                    promise.reject("authentication_error", "Data intent is null" );
-                }
-                return;
-            }
-
-            final AuthorizationResponse response = AuthorizationResponse.fromIntent(data);
-            AuthorizationException ex = AuthorizationException.fromIntent(data);
-            if (ex != null) {
-                if (promise != null) {
-                    handleAuthorizationException("authentication_error", ex, promise);
-                }
-                return;
-            }
-
-            if (this.skipCodeExchange != null && this.skipCodeExchange) {
-                WritableMap map;
-                if (this.usePKCE != null && this.usePKCE && this.codeVerifier != null) {
-                    map = TokenResponseFactory.authorizationCodeResponseToMap(response, this.codeVerifier);
-                } else {
-                    map = TokenResponseFactory.authorizationResponseToMap(response);
-                }
-
-                if (promise != null) {
-                    promise.resolve(map);
-                }
-                return;
-            }
-
-
-            final Promise authorizePromise = this.promise;
-            final AppAuthConfiguration configuration = createAppAuthConfiguration(
-                    createConnectionBuilder(this.dangerouslyAllowInsecureHttpRequests, this.tokenRequestHeaders),
-                    this.dangerouslyAllowInsecureHttpRequests,
-                    null
-            );
-
-            AuthorizationService authService = new AuthorizationService(this.reactContext, configuration);
-
-            TokenRequest tokenRequest;
-            if(this.additionalParametersMap == null) {
-                tokenRequest = response.createTokenExchangeRequest();
-            } else {
-                tokenRequest = response.createTokenExchangeRequest(this.additionalParametersMap);
-            }
-
-            AuthorizationService.TokenResponseCallback tokenResponseCallback = new AuthorizationService.TokenResponseCallback() {
-
-                @Override
-                public void onTokenRequestCompleted(
-                        TokenResponse resp, AuthorizationException ex) {
-                    if (resp != null) {
-                        WritableMap map = TokenResponseFactory.tokenResponseToMap(resp, response);
-                        if (authorizePromise != null) {
-                            authorizePromise.resolve(map);
-                        }
-                    } else {
-                        if (promise != null) {
-                            handleAuthorizationException("token_exchange_failed", ex, promise);
-                        }
-                    }
-                }
-            };
-
-            if (this.clientSecret != null) {
-                ClientAuthentication clientAuth = this.getClientAuthentication(this.clientSecret, this.clientAuthMethod);
-                authService.performTokenRequest(tokenRequest, clientAuth, tokenResponseCallback);
-
-            } else {
-                authService.performTokenRequest(tokenRequest, tokenResponseCallback);
-            }
-
-        } // close if
+            handleAuthorizationResult(data);
+        }
 
         if (requestCode == 53) {
             if (data == null) {
@@ -746,9 +674,39 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                 customTabsIntent.intent.putExtra(TrustedWebUtils.EXTRA_LAUNCH_AS_TRUSTED_WEB_ACTIVITY, true);
             }
 
-            Intent authIntent = authService.getAuthorizationRequestIntent(authRequest, customTabsIntent);
+            // Deliver the response through a PendingIntent addressed to the
+            // launcher activity rather than as an activity result.
+            //
+            // startActivityForResult binds the response to the living instance of
+            // AuthorizationManagementActivity. When the host app's launcher
+            // activity is launchMode="singleTask" — which React Native recommends
+            // for deep linking — re-entering the app from the icon clears the task
+            // above the root and destroys it, and the response then arrives as a
+            // null Intent: "Data intent is null". See issue #1094.
+            //
+            // The Intent carries the component only, with no MAIN/LAUNCHER
+            // categories, since those are what trigger the task reset.
+            Intent launchIntent = currentActivity
+                    .getPackageManager()
+                    .getLaunchIntentForPackage(currentActivity.getPackageName());
+            Intent completionIntent = new Intent();
+            if (launchIntent != null && launchIntent.getComponent() != null) {
+                completionIntent.setComponent(launchIntent.getComponent());
+            } else {
+                completionIntent.setClass(currentActivity, currentActivity.getClass());
+            }
+            completionIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
 
-            currentActivity.startActivityForResult(authIntent, 52);
+            int pendingFlags = PendingIntent.FLAG_UPDATE_CURRENT;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                // AppAuth writes the response into the Intent, so it must be mutable.
+                pendingFlags |= PendingIntent.FLAG_MUTABLE;
+            }
+            PendingIntent completionPendingIntent = PendingIntent.getActivity(
+                    currentActivity, 52, completionIntent, pendingFlags);
+
+            authService.performAuthorizationRequest(
+                    authRequest, completionPendingIntent, completionPendingIntent, customTabsIntent);
         } else {
             AuthorizationService authService = new AuthorizationService(currentActivity, appAuthConfiguration);
             PendingIntent pendingIntent = currentActivity.createPendingResult(52, new Intent(), 0);
@@ -1115,6 +1073,99 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
     @Override
     public void onNewIntent(Intent intent) {
+        if (intent == null || this.promise == null) {
+            return;
+        }
+        if (AuthorizationResponse.fromIntent(intent) != null
+                || AuthorizationException.fromIntent(intent) != null) {
+            handleAuthorizationResult(intent);
+        }
+    }
+
+
+    /*
+     * Completes an authorization response, whichever way it arrived: as an
+     * activity result, or as a PendingIntent delivered to the launcher activity.
+     */
+    private void handleAuthorizationResult(Intent data) {
+        if (data == null) {
+            if (promise != null) {
+                promise.reject("authentication_error", "Data intent is null");
+            }
+            return;
+        }
+            if (data == null) {
+                if (promise != null) {
+                    promise.reject("authentication_error", "Data intent is null" );
+                }
+                return;
+            }
+
+            final AuthorizationResponse response = AuthorizationResponse.fromIntent(data);
+            AuthorizationException ex = AuthorizationException.fromIntent(data);
+            if (ex != null) {
+                if (promise != null) {
+                    handleAuthorizationException("authentication_error", ex, promise);
+                }
+                return;
+            }
+
+            if (this.skipCodeExchange != null && this.skipCodeExchange) {
+                WritableMap map;
+                if (this.usePKCE != null && this.usePKCE && this.codeVerifier != null) {
+                    map = TokenResponseFactory.authorizationCodeResponseToMap(response, this.codeVerifier);
+                } else {
+                    map = TokenResponseFactory.authorizationResponseToMap(response);
+                }
+
+                if (promise != null) {
+                    promise.resolve(map);
+                }
+                return;
+            }
+
+
+            final Promise authorizePromise = this.promise;
+            final AppAuthConfiguration configuration = createAppAuthConfiguration(
+                    createConnectionBuilder(this.dangerouslyAllowInsecureHttpRequests, this.tokenRequestHeaders),
+                    this.dangerouslyAllowInsecureHttpRequests,
+                    null
+            );
+
+            AuthorizationService authService = new AuthorizationService(this.reactContext, configuration);
+
+            TokenRequest tokenRequest;
+            if(this.additionalParametersMap == null) {
+                tokenRequest = response.createTokenExchangeRequest();
+            } else {
+                tokenRequest = response.createTokenExchangeRequest(this.additionalParametersMap);
+            }
+
+            AuthorizationService.TokenResponseCallback tokenResponseCallback = new AuthorizationService.TokenResponseCallback() {
+
+                @Override
+                public void onTokenRequestCompleted(
+                        TokenResponse resp, AuthorizationException ex) {
+                    if (resp != null) {
+                        WritableMap map = TokenResponseFactory.tokenResponseToMap(resp, response);
+                        if (authorizePromise != null) {
+                            authorizePromise.resolve(map);
+                        }
+                    } else {
+                        if (promise != null) {
+                            handleAuthorizationException("token_exchange_failed", ex, promise);
+                        }
+                    }
+                }
+            };
+
+            if (this.clientSecret != null) {
+                ClientAuthentication clientAuth = this.getClientAuthentication(this.clientSecret, this.clientAuthMethod);
+                authService.performTokenRequest(tokenRequest, clientAuth, tokenResponseCallback);
+
+            } else {
+                authService.performTokenRequest(tokenRequest, tokenResponseCallback);
+            }
 
     }
 
