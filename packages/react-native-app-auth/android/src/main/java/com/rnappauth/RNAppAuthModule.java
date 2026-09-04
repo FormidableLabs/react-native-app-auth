@@ -859,6 +859,10 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     }
 
     private void parseHeaderMap(ReadableMap headerMap) {
+        registrationRequestHeaders = null;
+        authorizationRequestHeaders = null;
+        tokenRequestHeaders = null;
+
         if (headerMap == null) {
             return;
         }
