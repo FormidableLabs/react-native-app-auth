@@ -27,7 +27,7 @@ jobs:
           cache: 'yarn'
 
       - name: Upgrade npm for OIDC
-        run: npm i -g npm@^11.5.1
+        run: npm i -g npm@11.19.1
 
       - run: npm config set registry https://registry.npmjs.org
 
