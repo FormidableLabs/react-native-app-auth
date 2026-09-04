@@ -65,26 +65,42 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class RNAppAuthModule extends ReactContextBaseJavaModule implements ActivityEventListener {
 
     public static final String CUSTOM_TAB_PACKAGE_NAME = "com.android.chrome";
 
     private final ReactApplicationContext reactContext;
-    private Promise promise;
-    private boolean dangerouslyAllowInsecureHttpRequests;
-    private Boolean skipCodeExchange;
-    private Boolean usePKCE;
-    private Boolean useNonce;
-    private String codeVerifier;
-    private String clientAuthMethod = "basic";
+    private final AtomicReference<PendingFlow> pendingFlow = new AtomicReference<>();
     private Map<String, String> registrationRequestHeaders = null;
     private Map<String, String> authorizationRequestHeaders = null;
     private Map<String, String> tokenRequestHeaders = null;
-    private Map<String, String> additionalParametersMap;
-    private String clientSecret;
     private final ConcurrentHashMap<String, AuthorizationServiceConfiguration> mServiceConfigurations = new ConcurrentHashMap<>();
     private boolean isPrefetched = false;
+
+    private static final class PendingFlow {
+        final Promise promise;
+        final int requestCode;
+        final AppAuthConfiguration tokenConfiguration;
+        final Map<String, String> additionalParameters;
+        final String clientSecret;
+        final String clientAuthMethod;
+        final boolean skipCodeExchange;
+        String codeVerifier;
+
+        PendingFlow(Promise promise, int requestCode, AppAuthConfiguration tokenConfiguration,
+                Map<String, String> additionalParameters, String clientSecret,
+                String clientAuthMethod, boolean skipCodeExchange) {
+            this.promise = promise;
+            this.requestCode = requestCode;
+            this.tokenConfiguration = tokenConfiguration;
+            this.additionalParameters = additionalParameters;
+            this.clientSecret = clientSecret;
+            this.clientAuthMethod = clientAuthMethod;
+            this.skipCodeExchange = skipCodeExchange;
+        }
+    }
 
     public RNAppAuthModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -253,15 +269,16 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                 dangerouslyAllowInsecureHttpRequests, androidAllowCustomBrowsers);
         final HashMap<String, String> additionalParametersMap = MapUtil.readableMapToHashMap(additionalParameters);
 
-        // store args in private fields for later use in onActivityResult handler
-        this.promise = promise;
-        this.dangerouslyAllowInsecureHttpRequests = dangerouslyAllowInsecureHttpRequests;
-        this.additionalParametersMap = additionalParametersMap;
-        this.clientSecret = clientSecret;
-        this.clientAuthMethod = clientAuthMethod;
-        this.skipCodeExchange = skipCodeExchange;
-        this.useNonce = useNonce;
-        this.usePKCE = usePKCE;
+        final AppAuthConfiguration tokenConfiguration = createAppAuthConfiguration(
+                createConnectionBuilder(dangerouslyAllowInsecureHttpRequests,
+                        this.tokenRequestHeaders, connectionTimeoutMillis),
+                dangerouslyAllowInsecureHttpRequests, null);
+        final PendingFlow flow = new PendingFlow(promise, 52, tokenConfiguration,
+                additionalParametersMap, clientSecret, clientAuthMethod, Boolean.TRUE.equals(skipCodeExchange));
+        if (!pendingFlow.compareAndSet(null, flow)) {
+            promise.reject("authentication_in_progress", "Another authorization or logout is already in progress");
+            return;
+        }
 
         // when serviceConfiguration is provided, we don't need to hit up the OpenID
         // well-known id endpoint
@@ -280,10 +297,13 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                         usePKCE,
                         additionalParametersMap,
                         androidTrustedWebActivity,
-                        androidPrefersEphemeralSession);
+                        androidPrefersEphemeralSession,
+                        flow);
             } catch (ActivityNotFoundException e) {
+                pendingFlow.compareAndSet(flow, null);
                 promise.reject("browser_not_found", e.getMessage());
             } catch (Exception e) {
+                pendingFlow.compareAndSet(flow, null);
                 promise.reject("authentication_failed", e.getMessage());
             }
         } else {
@@ -295,6 +315,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                 @Nullable AuthorizationServiceConfiguration fetchedConfiguration,
                                 @Nullable AuthorizationException ex) {
                             if (ex != null) {
+                                pendingFlow.compareAndSet(flow, null);
                                 promise.reject("service_configuration_fetch_error", ex.getLocalizedMessage(), ex);
                                 return;
                             }
@@ -312,10 +333,13 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                         usePKCE,
                                         additionalParametersMap,
                                         androidTrustedWebActivity,
-                                        androidPrefersEphemeralSession);
+                                        androidPrefersEphemeralSession,
+                                        flow);
                             } catch (ActivityNotFoundException e) {
+                                pendingFlow.compareAndSet(flow, null);
                                 promise.reject("browser_not_found", e.getMessage());
                             } catch (Exception e) {
+                                pendingFlow.compareAndSet(flow, null);
                                 promise.reject("authentication_failed", e.getMessage());
                             }
                         }
@@ -351,10 +375,6 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         if (clientSecret != null) {
             additionalParametersMap.put("client_secret", clientSecret);
         }
-
-        // store setting in private field for later use in onActivityResult handler
-        this.dangerouslyAllowInsecureHttpRequests = dangerouslyAllowInsecureHttpRequests;
-        this.additionalParametersMap = additionalParametersMap;
 
         // when serviceConfiguration is provided, we don't need to hit up the OpenID
         // well-known id endpoint
@@ -433,7 +453,11 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                 dangerouslyAllowInsecureHttpRequests, androidAllowCustomBrowsers);
         final HashMap<String, String> additionalParametersMap = MapUtil.readableMapToHashMap(additionalParameters);
 
-        this.promise = promise;
+        final PendingFlow flow = new PendingFlow(promise, 53, null, null, null, null, false);
+        if (!pendingFlow.compareAndSet(null, flow)) {
+            promise.reject("authentication_in_progress", "Another authorization or logout is already in progress");
+            return;
+        }
 
         if (serviceConfiguration != null || hasServiceConfiguration(issuer)) {
             try {
@@ -447,8 +471,10 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                         postLogoutRedirectUri,
                         additionalParametersMap);
             } catch (ActivityNotFoundException e) {
+                pendingFlow.compareAndSet(flow, null);
                 promise.reject("browser_not_found", e.getMessage());
             } catch (Exception e) {
+                pendingFlow.compareAndSet(flow, null);
                 promise.reject("end_session_failed", e.getMessage());
             }
         } else {
@@ -460,6 +486,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                 @Nullable AuthorizationServiceConfiguration fetchedConfiguration,
                                 @Nullable AuthorizationException ex) {
                             if (ex != null) {
+                                pendingFlow.compareAndSet(flow, null);
                                 promise.reject("service_configuration_fetch_error", ex.getLocalizedMessage(), ex);
                                 return;
                             }
@@ -474,8 +501,10 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                         postLogoutRedirectUri,
                                         additionalParametersMap);
                             } catch (ActivityNotFoundException e) {
+                                pendingFlow.compareAndSet(flow, null);
                                 promise.reject("browser_not_found", e.getMessage());
                             } catch (Exception e) {
+                                pendingFlow.compareAndSet(flow, null);
                                 promise.reject("end_session_failed", e.getMessage());
                             }
                         }
@@ -489,111 +518,66 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
      */
     @Override
     public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
+        final PendingFlow flow = pendingFlow.get();
+        if (flow == null || flow.requestCode != requestCode || !pendingFlow.compareAndSet(flow, null)) {
+            return;
+        }
+
+        final Promise promise = flow.promise;
+        final String errorCode = requestCode == 52 ? "authentication_error" : "end_session_failed";
         try {
-        if (requestCode == 52) {
             if (data == null) {
-                if (promise != null) {
-                    promise.reject("authentication_error", "Data intent is null" );
-                }
+                promise.reject(errorCode, "Data intent is null");
+                return;
+            }
+
+            AuthorizationException ex = AuthorizationException.fromIntent(data);
+            if (ex != null) {
+                handleAuthorizationException(errorCode, ex, promise);
+                return;
+            }
+
+            if (requestCode == 53) {
+                promise.resolve(EndSessionResponseFactory.endSessionResponseToMap(EndSessionResponse.fromIntent(data)));
                 return;
             }
 
             final AuthorizationResponse response = AuthorizationResponse.fromIntent(data);
-            AuthorizationException ex = AuthorizationException.fromIntent(data);
-            if (ex != null) {
-                if (promise != null) {
-                    handleAuthorizationException("authentication_error", ex, promise);
-                }
+            if (response == null) {
+                promise.reject(errorCode, "Authorization response is missing");
+                return;
+            }
+            if (flow.skipCodeExchange) {
+                promise.resolve(flow.codeVerifier != null
+                        ? TokenResponseFactory.authorizationCodeResponseToMap(response, flow.codeVerifier)
+                        : TokenResponseFactory.authorizationResponseToMap(response));
                 return;
             }
 
-            if (this.skipCodeExchange != null && this.skipCodeExchange) {
-                WritableMap map;
-                if (this.usePKCE != null && this.usePKCE && this.codeVerifier != null) {
-                    map = TokenResponseFactory.authorizationCodeResponseToMap(response, this.codeVerifier);
-                } else {
-                    map = TokenResponseFactory.authorizationResponseToMap(response);
-                }
-
-                if (promise != null) {
-                    promise.resolve(map);
-                }
-                return;
-            }
-
-
-            final Promise authorizePromise = this.promise;
-            final AppAuthConfiguration configuration = createAppAuthConfiguration(
-                    createConnectionBuilder(this.dangerouslyAllowInsecureHttpRequests, this.tokenRequestHeaders),
-                    this.dangerouslyAllowInsecureHttpRequests,
-                    null
-            );
-
-            AuthorizationService authService = new AuthorizationService(this.reactContext, configuration);
-
-            TokenRequest tokenRequest;
-            if(this.additionalParametersMap == null) {
-                tokenRequest = response.createTokenExchangeRequest();
-            } else {
-                tokenRequest = response.createTokenExchangeRequest(this.additionalParametersMap);
-            }
-
-            AuthorizationService.TokenResponseCallback tokenResponseCallback = new AuthorizationService.TokenResponseCallback() {
-
+            AuthorizationService authService = new AuthorizationService(this.reactContext, flow.tokenConfiguration);
+            TokenRequest tokenRequest = flow.additionalParameters == null
+                    ? response.createTokenExchangeRequest()
+                    : response.createTokenExchangeRequest(flow.additionalParameters);
+            AuthorizationService.TokenResponseCallback callback = new AuthorizationService.TokenResponseCallback() {
                 @Override
-                public void onTokenRequestCompleted(
-                        TokenResponse resp, AuthorizationException ex) {
+                public void onTokenRequestCompleted(TokenResponse resp, AuthorizationException ex) {
                     if (resp != null) {
-                        WritableMap map = TokenResponseFactory.tokenResponseToMap(resp, response);
-                        if (authorizePromise != null) {
-                            authorizePromise.resolve(map);
-                        }
+                        promise.resolve(TokenResponseFactory.tokenResponseToMap(resp, response));
                     } else {
-                        if (promise != null) {
-                            handleAuthorizationException("token_exchange_failed", ex, promise);
-                        }
+                        handleAuthorizationException("token_exchange_failed", ex, promise);
                     }
                 }
             };
 
-            if (this.clientSecret != null) {
-                ClientAuthentication clientAuth = this.getClientAuthentication(this.clientSecret, this.clientAuthMethod);
-                authService.performTokenRequest(tokenRequest, clientAuth, tokenResponseCallback);
-
+            if (flow.clientSecret != null) {
+                authService.performTokenRequest(tokenRequest,
+                        getClientAuthentication(flow.clientSecret, flow.clientAuthMethod), callback);
             } else {
-                authService.performTokenRequest(tokenRequest, tokenResponseCallback);
+                authService.performTokenRequest(tokenRequest, callback);
             }
-
-        } // close if
-
-        if (requestCode == 53) {
-            if (data == null) {
-                if (promise != null) {
-                    promise.reject("end_session_failed", "Data intent is null" );
-                }
-                return;
-            }
-            EndSessionResponse response = EndSessionResponse.fromIntent(data);
-            AuthorizationException ex = AuthorizationException.fromIntent(data);
-            if (ex != null) {
-                if (promise != null) {
-                    handleAuthorizationException("end_session_failed", ex, promise);
-                }
-                return;
-            }
-            final Promise endSessionPromise = this.promise;
-            if (endSessionPromise != null) {
-                WritableMap map = EndSessionResponseFactory.endSessionResponseToMap(response);
-                endSessionPromise.resolve(map);
-            }
-        }
-    } catch (Exception e) {
-        if(promise != null) {
+        } catch (Exception e) {
             promise.reject("run_time_exception", e.getMessage());
-        } else {
-            throw e;
         }
-    }
     }
 
     /*
@@ -665,7 +649,8 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final Boolean usePKCE,
             final Map<String, String> additionalParametersMap,
             final Boolean androidTrustedWebActivity,
-            final Boolean androidPrefersEphemeralSession) {
+            final Boolean androidPrefersEphemeralSession,
+            final PendingFlow flow) {
 
         String scopesString = null;
 
@@ -726,8 +711,8 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         if (!usePKCE) {
             authRequestBuilder.setCodeVerifier(null);
         } else {
-            this.codeVerifier = CodeVerifierUtil.generateRandomCodeVerifier();
-            authRequestBuilder.setCodeVerifier(this.codeVerifier);
+            flow.codeVerifier = CodeVerifierUtil.generateRandomCodeVerifier();
+            authRequestBuilder.setCodeVerifier(flow.codeVerifier);
         }
 
         if (!useNonce) {

@@ -182,6 +182,7 @@ type OAuthTokenErrorCode =
 // https://openid.net/specs/openid-connect-registration-1_0.html#RegistrationError
 type OICRegistrationErrorCode = 'invalid_redirect_uri' | 'invalid_client_metadata';
 type AppAuthErrorCode =
+  | 'authentication_in_progress'
   | 'service_configuration_fetch_error'
   | 'authentication_failed'
   | 'token_refresh_failed'
