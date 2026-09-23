@@ -148,21 +148,6 @@ export function register(config: RegistrationConfiguration): Promise<Registratio
 
 export function authorize(config: AuthConfiguration): Promise<AuthorizeResult>;
 
-export type ResumePendingAuthorizeConfiguration = {
-  additionalParameters?: { [name: string]: string };
-  dangerouslyAllowInsecureHttpRequests?: boolean;
-  customHeaders?: CustomHeaders;
-  connectionTimeoutSeconds?: number;
-};
-
-/**
- * Completes an `authorize()` interrupted by the OS killing the app process during the browser
- * step. Resolves `null` when there is nothing to resume, and always on iOS.
- */
-export function resumePendingAuthorize(
-  config?: ResumePendingAuthorizeConfiguration
-): Promise<AuthorizeResult | null>;
-
 export function refresh(
   config: AuthConfiguration,
   refreshConfig: RefreshConfiguration
