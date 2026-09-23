@@ -148,6 +148,17 @@ export function register(config: RegistrationConfiguration): Promise<Registratio
 
 export function authorize(config: AuthConfiguration): Promise<AuthorizeResult>;
 
+export type ResumePendingAuthorizeConfiguration = {
+  additionalParameters?: { [name: string]: string };
+  dangerouslyAllowInsecureHttpRequests?: boolean;
+  customHeaders?: CustomHeaders;
+  connectionTimeoutSeconds?: number;
+};
+
+export function resumePendingAuthorize(
+  config?: ResumePendingAuthorizeConfiguration
+): Promise<AuthorizeResult | null>;
+
 export function refresh(
   config: AuthConfiguration,
   refreshConfig: RefreshConfiguration

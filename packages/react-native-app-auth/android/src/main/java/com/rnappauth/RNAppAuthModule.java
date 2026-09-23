@@ -65,10 +65,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class RNAppAuthModule extends ReactContextBaseJavaModule implements ActivityEventListener {
 
     public static final String CUSTOM_TAB_PACKAGE_NAME = "com.android.chrome";
+
+    public static final int AUTHORIZATION_REQUEST_CODE = 52;
+
+    private static final AtomicReference<Intent> sStashedAuthorizationResult = new AtomicReference<>();
+
+    public static void stashAuthorizationResult(Intent data) {
+        sStashedAuthorizationResult.set(data);
+    }
 
     private final ReactApplicationContext reactContext;
     private Promise promise;
@@ -484,13 +493,73 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         }
     }
 
-    /*
-     * Called when the OAuth browser activity completes
-     */
+    @ReactMethod
+    public void resumePendingAuthorize(
+            final ReadableMap additionalParameters,
+            final Double connectionTimeoutMillis,
+            final ReadableMap customHeaders,
+            final boolean dangerouslyAllowInsecureHttpRequests,
+            final Promise promise) {
+        final Intent data = sStashedAuthorizationResult.getAndSet(null);
+
+        if (data == null) {
+            promise.resolve(null);
+            return;
+        }
+
+        try {
+            final AuthorizationException authException = AuthorizationException.fromIntent(data);
+            if (authException != null) {
+                handleAuthorizationException("authentication_error", authException, promise);
+                return;
+            }
+
+            final AuthorizationResponse response = AuthorizationResponse.fromIntent(data);
+            if (response == null) {
+                promise.resolve(null);
+                return;
+            }
+
+            this.parseHeaderMap(customHeaders);
+            final AppAuthConfiguration configuration = createAppAuthConfiguration(
+                    createConnectionBuilder(dangerouslyAllowInsecureHttpRequests, this.tokenRequestHeaders,
+                            connectionTimeoutMillis),
+                    dangerouslyAllowInsecureHttpRequests,
+                    null
+            );
+
+            final AuthorizationService authService = new AuthorizationService(this.reactContext, configuration);
+
+            final Map<String, String> additionalParametersMap = MapUtil.readableMapToHashMap(additionalParameters);
+            final TokenRequest tokenRequest = additionalParametersMap.isEmpty()
+                    ? response.createTokenExchangeRequest()
+                    : response.createTokenExchangeRequest(additionalParametersMap);
+
+            authService.performTokenRequest(tokenRequest, new AuthorizationService.TokenResponseCallback() {
+                @Override
+                public void onTokenRequestCompleted(TokenResponse resp, AuthorizationException ex) {
+                    authService.dispose();
+                    if (resp != null) {
+                        promise.resolve(TokenResponseFactory.tokenResponseToMap(resp, response));
+                    } else {
+                        handleAuthorizationException("token_exchange_failed", ex, promise);
+                    }
+                }
+            });
+        } catch (Exception e) {
+            promise.reject("run_time_exception", e.getMessage());
+        }
+    }
+
     @Override
     public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
         try {
-        if (requestCode == 52) {
+        if (requestCode == AUTHORIZATION_REQUEST_CODE) {
+            if (this.promise == null) {
+                return;
+            }
+            sStashedAuthorizationResult.set(null);
+
             if (data == null) {
                 if (promise != null) {
                     promise.reject("authentication_error", "Data intent is null" );
@@ -737,21 +806,52 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         AuthorizationRequest authRequest = authRequestBuilder.build();
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-            AuthorizationService authService = new AuthorizationService(context, appAuthConfiguration);
+            final Promise authorizePromise = this.promise;
 
-            CustomTabsIntent.Builder intentBuilder = authService.createCustomTabsIntentBuilder();
-            CustomTabsIntent customTabsIntent = intentBuilder.setEphemeralBrowsingEnabled(androidPrefersEphemeralSession).build();
-            
-            if (androidTrustedWebActivity) {
-                customTabsIntent.intent.putExtra(TrustedWebUtils.EXTRA_LAUNCH_AS_TRUSTED_WEB_ACTIVITY, true);
-            }
+            // AuthorizationService construction and createCustomTabsIntentBuilder() are @WorkerThread:
+            // the latter blocks on CustomTabManager's 1s browser-connection latch. Running them on the
+            // main thread freezes the UI for up to a second on every authorize().
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        AuthorizationService authService = new AuthorizationService(context, appAuthConfiguration);
 
-            Intent authIntent = authService.getAuthorizationRequestIntent(authRequest, customTabsIntent);
+                        CustomTabsIntent.Builder intentBuilder = authService.createCustomTabsIntentBuilder();
+                        CustomTabsIntent customTabsIntent = intentBuilder.setEphemeralBrowsingEnabled(androidPrefersEphemeralSession).build();
 
-            currentActivity.startActivityForResult(authIntent, 52);
+                        if (androidTrustedWebActivity) {
+                            customTabsIntent.intent.putExtra(TrustedWebUtils.EXTRA_LAUNCH_AS_TRUSTED_WEB_ACTIVITY, true);
+                        }
+
+                        final Intent authIntent = authService.getAuthorizationRequestIntent(authRequest, customTabsIntent);
+
+                        currentActivity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    currentActivity.startActivityForResult(authIntent, AUTHORIZATION_REQUEST_CODE);
+                                } catch (ActivityNotFoundException e) {
+                                    if (authorizePromise != null) {
+                                        authorizePromise.reject("browser_not_found", e.getMessage());
+                                    }
+                                } catch (Exception e) {
+                                    if (authorizePromise != null) {
+                                        authorizePromise.reject("authentication_failed", e.getMessage());
+                                    }
+                                }
+                            }
+                        });
+                    } catch (Exception e) {
+                        if (authorizePromise != null) {
+                            authorizePromise.reject("authentication_failed", e.getMessage());
+                        }
+                    }
+                }
+            }, "RNAppAuth-authorize").start();
         } else {
             AuthorizationService authService = new AuthorizationService(currentActivity, appAuthConfiguration);
-            PendingIntent pendingIntent = currentActivity.createPendingResult(52, new Intent(), 0);
+            PendingIntent pendingIntent = currentActivity.createPendingResult(AUTHORIZATION_REQUEST_CODE, new Intent(), 0);
 
             authService.performAuthorizationRequest(authRequest, pendingIntent);
         }
