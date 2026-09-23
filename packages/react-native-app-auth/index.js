@@ -274,6 +274,37 @@ export const authorize = ({
   return wrapNativeAuthPromise(RNAppAuth.authorize(...nativeMethodArguments));
 };
 
+/**
+ * Completes an `authorize()` that was interrupted by Android killing the app process while the
+ * user was in the browser. Safe to call unconditionally: resolves `null` when there is nothing
+ * to resume. Always resolves `null` on iOS.
+ *
+ * Requires the host Activity to forward its authorization result via
+ * `RNAppAuthModule.stashAuthorizationResult(data)`.
+ */
+export const resumePendingAuthorize = ({
+  additionalParameters,
+  dangerouslyAllowInsecureHttpRequests = false,
+  customHeaders,
+  connectionTimeoutSeconds,
+} = {}) => {
+  if (Platform.OS !== 'android') {
+    return Promise.resolve(null);
+  }
+
+  validateHeaders(customHeaders);
+  validateConnectionTimeoutSeconds(connectionTimeoutSeconds);
+
+  return wrapNativeAuthPromise(
+    RNAppAuth.resumePendingAuthorize(
+      additionalParameters,
+      convertTimeoutForPlatform(Platform.OS, connectionTimeoutSeconds),
+      customHeaders,
+      dangerouslyAllowInsecureHttpRequests
+    )
+  );
+};
+
 export const refresh = (
   {
     issuer,
