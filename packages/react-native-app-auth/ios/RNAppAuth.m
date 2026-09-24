@@ -7,6 +7,32 @@
 #import <React/RCTLog.h>
 #import <React/RCTConvert.h>
 #import "RNAppAuthAuthorizationFlowManager.h"
+#import <AuthenticationServices/AuthenticationServices.h>
+
+/**
+ * External user agent that uses the iOS 17.4+ ASWebAuthenticationSession https callback
+ * (ASWebAuthenticationSessionCallback callbackWithHTTPSHost:path:). With an https
+ * (universal link) redirect URI, AppAuth-iOS passes "https" as the callbackURLScheme -
+ * which ASWebAuthenticationSession does not support - so the session never intercepts
+ * the redirect and the flow has to rely on the universal link opening the app, which is
+ * not triggered by server redirects/JS navigation inside the session and is sporadically
+ * dropped, leaving authorize() pending forever (#987, #932; openid/AppAuth-iOS#367).
+ * This agent lets the session intercept the https redirect natively.
+ *
+ * Requires the callback host to be an associated domain with the webcredentials service
+ * type (entitlement + apple-app-site-association). When the association is missing the
+ * agent transparently falls back to the legacy callbackURLScheme session, preserving
+ * AppAuth default behavior.
+ */
+API_AVAILABLE(ios(17.4))
+@interface RNAppAuthHTTPSExternalUserAgent : NSObject <OIDExternalUserAgent, ASWebAuthenticationPresentationContextProviding>
+
+- (nonnull instancetype)initWithPresentingViewController:(nonnull UIViewController *)presentingViewController
+                                 prefersEphemeralSession:(BOOL)prefersEphemeralSession
+                                                    host:(nonnull NSString *)host
+                                                    path:(nonnull NSString *)path;
+
+@end
 
 @interface RNAppAuth()<RNAppAuthAuthorizationFlowManagerDelegate> {
     id<OIDExternalUserAgentSession> _currentSession;
@@ -380,6 +406,20 @@ RCT_REMAP_METHOD(logout,
     id<OIDExternalUserAgent> externalUserAgent = nil;
 #elif TARGET_OS_IOS
     id<OIDExternalUserAgent> externalUserAgent = iosCustomBrowser != nil ? [self getCustomBrowser: iosCustomBrowser] : nil;
+    // Prefer the native https-callback session for https (universal link) redirect URIs
+    // (see RNAppAuthHTTPSExternalUserAgent above). Falls back to default behavior pre-17.4.
+    if (externalUserAgent == nil) {
+        if (@available(iOS 17.4, *)) {
+            NSURL *httpsRedirectURL = [NSURL URLWithString:redirectUrl];
+            if ([httpsRedirectURL.scheme isEqualToString:@"https"] && httpsRedirectURL.host != nil) {
+                externalUserAgent = [[RNAppAuthHTTPSExternalUserAgent alloc]
+                    initWithPresentingViewController:presentingViewController
+                             prefersEphemeralSession:prefersEphemeralSession
+                                                host:httpsRedirectURL.host
+                                                path:httpsRedirectURL.path.length > 0 ? httpsRedirectURL.path : @"/"];
+            }
+        }
+    }
 #endif
     
     OIDAuthorizationCallback callback = ^(OIDAuthorizationResponse *_Nullable authorizationResponse, NSError *_Nullable error) {
@@ -800,6 +840,141 @@ RCT_REMAP_METHOD(logout,
     externalUserAgent = [[OIDExternalUserAgentMac alloc] init];
   #endif
   return externalUserAgent;
+}
+
+@end
+
+/**
+ * Implementation modeled on AppAuth's OIDExternalUserAgentIOS, but built
+ * with [ASWebAuthenticationSessionCallback callbackWithHTTPSHost:path:] so the session
+ * intercepts the https redirect itself (iOS 17.4+).
+ */
+@implementation RNAppAuthHTTPSExternalUserAgent {
+    UIViewController *_presentingViewController;
+    BOOL _prefersEphemeralSession;
+    NSString *_host;
+    NSString *_path;
+    BOOL _externalUserAgentFlowInProgress;
+    BOOL _didFallBackToLegacySession;
+    __weak id<OIDExternalUserAgentSession> _session;
+    ASWebAuthenticationSession *_webAuthenticationSession;
+    NSURL *_requestURL;
+}
+
+- (instancetype)initWithPresentingViewController:(UIViewController *)presentingViewController
+                         prefersEphemeralSession:(BOOL)prefersEphemeralSession
+                                            host:(NSString *)host
+                                            path:(NSString *)path {
+    self = [super init];
+    if (self) {
+        _presentingViewController = presentingViewController;
+        _prefersEphemeralSession = prefersEphemeralSession;
+        _host = [host copy];
+        _path = [path copy];
+    }
+    return self;
+}
+
+- (BOOL)presentExternalUserAgentRequest:(id<OIDExternalUserAgentRequest>)request
+                                session:(id<OIDExternalUserAgentSession>)session {
+    if (_externalUserAgentFlowInProgress) {
+        return NO;
+    }
+    _externalUserAgentFlowInProgress = YES;
+    _session = session;
+    _requestURL = [request externalUserAgentRequestURL];
+
+    ASWebAuthenticationSession *webAuthenticationSession = [self authenticationSessionWithHTTPSCallback:YES];
+    _webAuthenticationSession = webAuthenticationSession;
+    if ([webAuthenticationSession start]) {
+        return YES;
+    }
+    return [self startLegacyFallbackSession];
+}
+
+/**
+ * The https callback requires the callback host to be an associated domain with the
+ * webcredentials service type (entitlement + apple-app-site-association entry). When the
+ * association is missing or not yet validated, the session refuses to start — either
+ * start returns NO or the completion handler fires immediately with a non-cancel error.
+ * In both cases fall back to the legacy callbackURLScheme session, which matches
+ * AppAuth's default behavior, so sign-in keeps working instead of hard-failing.
+ */
+- (BOOL)startLegacyFallbackSession {
+    if (_didFallBackToLegacySession) {
+        return NO;
+    }
+    _didFallBackToLegacySession = YES;
+    ASWebAuthenticationSession *fallbackSession = [self authenticationSessionWithHTTPSCallback:NO];
+    _webAuthenticationSession = fallbackSession;
+    return [fallbackSession start];
+}
+
+- (ASWebAuthenticationSession *)authenticationSessionWithHTTPSCallback:(BOOL)useHTTPSCallback {
+    __weak typeof(self) weakSelf = self;
+    void (^completionHandler)(NSURL *_Nullable, NSError *_Nullable) =
+        ^(NSURL *_Nullable callbackURL, NSError *_Nullable error) {
+        typeof(self) strongSelf = weakSelf;
+        if (!strongSelf) {
+            return;
+        }
+        strongSelf->_webAuthenticationSession = nil;
+        if (callbackURL) {
+            [strongSelf->_session resumeExternalUserAgentFlowWithURL:callbackURL];
+            return;
+        }
+        // A missing webcredentials association is reported with the SAME error code as a
+        // user cancellation (ASWebAuthenticationSessionErrorCodeCanceledLogin) — but it
+        // carries an NSLocalizedFailureReason ("...requires Associated Domains using the
+        // `webcredentials` service type..."), which genuine user cancellations do not.
+        NSString *failureReason = error.userInfo[NSLocalizedFailureReasonErrorKey];
+        if (useHTTPSCallback && failureReason.length > 0 && [strongSelf startLegacyFallbackSession]) {
+            // Association missing/unvalidated — legacy session took over
+            return;
+        }
+        NSError *safariError =
+            [OIDErrorUtilities errorWithCode:OIDErrorCodeUserCanceledAuthorizationFlow
+                             underlyingError:error
+                                 description:nil];
+        [strongSelf->_session failExternalUserAgentFlowWithError:safariError];
+    };
+
+    ASWebAuthenticationSession *session;
+    if (useHTTPSCallback) {
+        ASWebAuthenticationSessionCallback *callback =
+            [ASWebAuthenticationSessionCallback callbackWithHTTPSHost:_host path:_path];
+        session = [[ASWebAuthenticationSession alloc] initWithURL:_requestURL
+                                                         callback:callback
+                                                completionHandler:completionHandler];
+    } else {
+        // Matches AppAuth's OIDExternalUserAgentIOS default for https redirect URIs
+        session = [[ASWebAuthenticationSession alloc] initWithURL:_requestURL
+                                                callbackURLScheme:@"https"
+                                                completionHandler:completionHandler];
+    }
+    session.presentationContextProvider = self;
+    session.prefersEphemeralWebBrowserSession = _prefersEphemeralSession;
+    return session;
+}
+
+- (void)dismissExternalUserAgentAnimated:(BOOL)animated completion:(nonnull void (^)(void))completion {
+    if (!_externalUserAgentFlowInProgress) {
+        if (completion) {
+            completion();
+        }
+        return;
+    }
+    _externalUserAgentFlowInProgress = NO;
+    [_webAuthenticationSession cancel];
+    _webAuthenticationSession = nil;
+    _session = nil;
+    if (completion) {
+        completion();
+    }
+}
+
+- (ASPresentationAnchor)presentationAnchorForWebAuthenticationSession:(ASWebAuthenticationSession *)session {
+    return _presentingViewController.view.window;
 }
 
 @end
