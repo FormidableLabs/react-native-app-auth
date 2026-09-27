@@ -64,7 +64,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
 
 public class RNAppAuthModule extends ReactContextBaseJavaModule implements ActivityEventListener {
 
@@ -84,7 +83,6 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     private Map<String, String> additionalParametersMap;
     private String clientSecret;
     private final ConcurrentHashMap<String, AuthorizationServiceConfiguration> mServiceConfigurations = new ConcurrentHashMap<>();
-    private boolean isPrefetched = false;
 
     public RNAppAuthModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -111,47 +109,36 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         this.parseHeaderMap(customHeaders);
         final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests,
                 this.authorizationRequestHeaders, connectionTimeoutMillis);
-        final CountDownLatch fetchConfigurationLatch = new CountDownLatch(1);
+        if (hasServiceConfiguration(issuer)) {
+            promise.resolve(true);
+            return;
+        }
 
-        if (!isPrefetched) {
-            if (serviceConfiguration != null && !this.hasServiceConfiguration(issuer)) {
-                try {
-                    setServiceConfiguration(issuer, createAuthorizationServiceConfiguration(serviceConfiguration));
-                    isPrefetched = true;
-                    fetchConfigurationLatch.countDown();
-                } catch (Exception e) {
-                    promise.reject("configuration_error", "Failed to convert serviceConfiguration", e);
-                }
-            } else if (!hasServiceConfiguration(issuer)) {
-                final Uri issuerUri = Uri.parse(issuer);
-                AuthorizationServiceConfiguration.fetchFromUrl(
-                        buildConfigurationUriFromIssuer(issuerUri),
-                        new AuthorizationServiceConfiguration.RetrieveConfigurationCallback() {
-                            public void onFetchConfigurationCompleted(
-                                    @Nullable AuthorizationServiceConfiguration fetchedConfiguration,
-                                    @Nullable AuthorizationException ex) {
-                                if (ex != null) {
-                                    promise.reject("service_configuration_fetch_error", "Failed to fetch configuration",
-                                            ex);
-                                    return;
-                                }
-                                setServiceConfiguration(issuer, fetchedConfiguration);
-                                isPrefetched = true;
-                                fetchConfigurationLatch.countDown();
-                            }
-                        },
-                        builder);
+        if (serviceConfiguration != null) {
+            try {
+                setServiceConfiguration(issuer, createAuthorizationServiceConfiguration(serviceConfiguration));
+                promise.resolve(true);
+            } catch (Exception e) {
+                promise.reject("configuration_error", "Failed to convert serviceConfiguration", e);
             }
-        } else {
-            fetchConfigurationLatch.countDown();
+            return;
         }
 
-        try {
-            fetchConfigurationLatch.await();
-            promise.resolve(isPrefetched);
-        } catch (Exception e) {
-            promise.reject("service_configuration_fetch_error", "Failed to await fetch configuration", e);
-        }
+        AuthorizationServiceConfiguration.fetchFromUrl(
+                buildConfigurationUriFromIssuer(Uri.parse(issuer)),
+                new AuthorizationServiceConfiguration.RetrieveConfigurationCallback() {
+                    public void onFetchConfigurationCompleted(
+                            @Nullable AuthorizationServiceConfiguration fetchedConfiguration,
+                            @Nullable AuthorizationException ex) {
+                        if (ex != null) {
+                            promise.reject("service_configuration_fetch_error", "Failed to fetch configuration", ex);
+                            return;
+                        }
+                        setServiceConfiguration(issuer, fetchedConfiguration);
+                        promise.resolve(true);
+                    }
+                },
+                builder);
     }
 
     @ReactMethod

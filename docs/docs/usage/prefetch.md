@@ -17,5 +17,13 @@ const config = {
   scopes: ['<YOUR_SCOPES_ARRAY>'],
 };
 
-prefetchConfiguration(config);
+try {
+  await prefetchConfiguration(config);
+} catch (error) {
+  // Prefetch is optional. authorize() can retry discovery when needed.
+}
 ```
+
+The promise resolves only after configuration is available and rejects when discovery fails.
+Cached issuers resolve immediately; prefetching a different issuer fetches its own configuration.
+Calls on iOS remain a no-op. Handle rejection if you previously called this method without awaiting it.
