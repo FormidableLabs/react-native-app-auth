@@ -19,6 +19,37 @@
     return [_currentSession resumeExternalUserAgentFlowWithURL:url];
 }
 
+-(UIViewController *)topmostPresentedViewControllerFromRootViewController:(UIViewController *)rootViewController {
+    UIViewController *topViewController = rootViewController;
+    while (topViewController.presentedViewController) {
+        topViewController = topViewController.presentedViewController;
+    }
+    return topViewController;
+}
+
+-(UIWindow *)keyWindowFromConnectedScenes {
+    UIWindow *fallbackKeyWindow = nil;
+    for (UIScene *scene in UIApplication.sharedApplication.connectedScenes) {
+        if (![scene isKindOfClass:[UIWindowScene class]]) {
+            continue;
+        }
+        UIWindowScene *windowScene = (UIWindowScene *)scene;
+        UIWindow *keyWindow = windowScene.keyWindow;
+        if (!keyWindow) {
+            continue;
+        }
+        if (windowScene.activationState == UISceneActivationStateForegroundActive) {
+            [keyWindow layoutIfNeeded];
+            return keyWindow;
+        }
+        if (!fallbackKeyWindow) {
+            fallbackKeyWindow = keyWindow;
+        }
+    }
+    [fallbackKeyWindow layoutIfNeeded];
+    return fallbackKeyWindow;
+}
+
 - (dispatch_queue_t)methodQueue
 {
     return dispatch_get_main_queue();
@@ -374,7 +405,7 @@ RCT_REMAP_METHOD(logout,
         rnAppAuthTaskId = UIBackgroundTaskInvalid;
     }];
 
-    UIViewController *presentingViewController = appDelegate.window.rootViewController.view.window ? appDelegate.window.rootViewController : appDelegate.window.rootViewController.presentedViewController;
+    UIViewController *presentingViewController = [self topmostPresentedViewControllerFromRootViewController:[self keyWindowFromConnectedScenes].rootViewController];
 
 #if TARGET_OS_MACCATALYST
     id<OIDExternalUserAgent> externalUserAgent = nil;
@@ -520,7 +551,7 @@ RCT_REMAP_METHOD(logout,
         rnAppAuthTaskId = UIBackgroundTaskInvalid;
     }];
 
-    UIViewController *presentingViewController = appDelegate.window.rootViewController.view.window ? appDelegate.window.rootViewController : appDelegate.window.rootViewController.presentedViewController;
+    UIViewController *presentingViewController = [self topmostPresentedViewControllerFromRootViewController:[self keyWindowFromConnectedScenes].rootViewController];
 
 #if TARGET_OS_MACCATALYST
     id<OIDExternalUserAgent> externalUserAgent = nil;
