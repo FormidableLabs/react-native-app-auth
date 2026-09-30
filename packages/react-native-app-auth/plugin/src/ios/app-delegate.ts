@@ -15,10 +15,15 @@ const APP_AUTH_RESUME_BLOCK = `if let authorizationFlowManagerDelegate = self.au
     }`;
 
 export const applyExpo53AppDelegatePatch = (contents: string): string => {
+  const appDelegatePattern =
+    /^(\s*(?:(?:public|open|final)\s+)*class\s+AppDelegate\s*:\s*ExpoAppDelegate)([^{]*)(\{)/m;
+  if (!appDelegatePattern.test(contents)) {
+    throw new Error('Unable to find the Expo AppDelegate declaration; configure AppAuth manually');
+  }
   contents = contents.replace(
-    /^(\s*(?:public\s+)?class\s+AppDelegate\s*:\s*ExpoAppDelegate)([^{]*)(\{)/m,
+    appDelegatePattern,
     (match, declaration, conformances, openingBrace) => {
-      if (conformances.includes(APP_AUTH_PROTOCOL)) {
+      if (conformances.split(',').some((protocol: string) => protocol.trim() === APP_AUTH_PROTOCOL)) {
         return match;
       }
 
@@ -33,21 +38,20 @@ export const applyExpo53AppDelegatePatch = (contents: string): string => {
   );
 
   if (!APP_AUTH_DELEGATE_PROPERTY_PATTERN.test(contents)) {
-    const reactNativeFactoryPattern =
-      /^(\s*)(?:public\s+)?var\s+reactNativeFactory\s*:\s*RCTReactNativeFactory\?\s*$/m;
-    const factoryMatch = contents.match(reactNativeFactoryPattern);
-    if (factoryMatch) {
-      const indent = factoryMatch[1];
-      contents = contents.replace(
-        reactNativeFactoryPattern,
-        match => `${match}\n\n${indent}${APP_AUTH_DELEGATE_PROPERTY}`
-      );
-    }
+    contents = contents.replace(
+      appDelegatePattern,
+      match => `${match}\n  ${APP_AUTH_DELEGATE_PROPERTY}\n`
+    );
   }
 
   if (!contents.includes('resumeExternalUserAgentFlow(with: url)')) {
+    const openUrlPattern =
+      /((?:public\s+)?override\s+func\s+application\s*\([^)]*\bopen\s+url\s*:\s*URL[^)]*\)\s*->\s*Bool\s*\{)/m;
+    if (!openUrlPattern.test(contents)) {
+      throw new Error('Unable to find the AppDelegate open URL handler; configure AppAuth manually');
+    }
     contents = contents.replace(
-      /((?:public\s+)?override\s+func\s+application\s*\([\s\S]*?open\s+url\s*:\s*URL[\s\S]*?\)\s*->\s*Bool\s*\{)/m,
+      openUrlPattern,
       match => `${match}\n    ${APP_AUTH_RESUME_BLOCK}\n`
     );
   }
