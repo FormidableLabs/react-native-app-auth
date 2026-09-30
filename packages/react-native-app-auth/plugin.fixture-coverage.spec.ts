@@ -6,7 +6,7 @@ import {
   assertSupportedExpoSdk,
   isSupportedExpoSdk,
 } from './plugin/src/expo-version';
-import { getRedirectUrlScheme } from './plugin/src/index';
+import withAppAuth, { getRedirectUrlScheme } from './plugin/src/index';
 import { applyAppAuthRedirectSchemeManifestPlaceholder } from './plugin/src/android/app-build-gradle';
 import { applyAppAuthActivityResultPatch } from './plugin/src/android/main-activity';
 import { applyExpoAppDelegatePatch } from './plugin/src/ios/app-delegate';
@@ -18,6 +18,35 @@ import {
 } from './plugin/src/ios/bridging-header';
 import { addUrlScheme } from './plugin/src/ios/info-plist';
 import { insertProtocolDeclaration } from './plugin/src/ios/utils/insert-protocol-declaration';
+
+const createXcodeProjectFixture = () => {
+  const project = require('xcode').project(
+    path.join(__dirname, '../../examples/demo/ios/Example.xcodeproj/project.pbxproj')
+  );
+  project.parseSync();
+  project.removeBuildProperty('SWIFT_OBJC_BRIDGING_HEADER');
+  return project;
+};
+
+const applyBridgingHeaderMod = async (project: any, projectRoot: string) => {
+  let config = withAppAuth({
+    name: 'Example',
+    slug: 'example',
+    sdkVersion: '57.0.0',
+    _internal: { projectRoot },
+  }, {});
+  if (config.mods?.ios?.dangerous) {
+    config = await config.mods.ios.dangerous({
+      ...config,
+      modRequest: { projectRoot, platformProjectRoot: path.join(projectRoot, 'ios'), platform: 'ios', modName: 'dangerous' },
+    } as any);
+  }
+  return config.mods!.ios!.xcodeproj!({
+    ...config,
+    modResults: project,
+    modRequest: { projectRoot, platformProjectRoot: path.join(projectRoot, 'ios'), platform: 'ios', modName: 'xcodeproj' },
+  } as any);
+};
 
 const createExpoAppDelegateFixture = (classDeclaration = 'class AppDelegate: ExpoAppDelegate') =>
   `import Expo
@@ -303,10 +332,37 @@ class MainActivity : ReactActivity() {
       const patched = applyAppAuthRedirectSchemeManifestPlaceholder(source, 'com.example');
       expect(patched).toContain(debugBlock);
       expect(patched.slice(patched.indexOf('defaultConfig'))).toContain("appAuthRedirectScheme: 'com.example'");
-      if (defaults) expect(patched).toContain(defaults.slice(0, -1));
+      if (defaults) expect(patched).toContain("other: 'default-value'");
       expect(applyAppAuthRedirectSchemeManifestPlaceholder(patched, 'com.example')).toBe(patched);
     }
   );
+
+  it.each([
+    "otherScheme: 'other' // keep this comment",
+    "otherScheme: 'other', // keep this comma and comment",
+    "otherScheme: 'other' /* keep this block comment */",
+    "otherScheme: 'other'\n            // keep this trailing comment",
+    "otherScheme: 'https://fixture.example/path' // keep URL and comment",
+    "// comment-only map",
+  ])('preserves commented Gradle map entries: %s', entries => {
+    const source = `android {
+    defaultConfig {
+        manifestPlaceholders = [
+            ${entries}
+        ]
+    }
+}`;
+    const patched = applyAppAuthRedirectSchemeManifestPlaceholder(source, 'com.example');
+    expect(patched).toContain(`appAuthRedirectScheme: 'com.example',\n            ${entries}`);
+    expect(applyAppAuthRedirectSchemeManifestPlaceholder(patched, 'com.example')).toBe(patched);
+  });
+
+  it('preserves inline block comments in Gradle map entries', () => {
+    const source = "android { defaultConfig { manifestPlaceholders = [other: 'value' /* keep */] } }";
+    const patched = applyAppAuthRedirectSchemeManifestPlaceholder(source, 'com.example');
+    expect(patched).toContain("[appAuthRedirectScheme: 'com.example', other: 'value' /* keep */]");
+    expect(applyAppAuthRedirectSchemeManifestPlaceholder(patched, 'com.example')).toBe(patched);
+  });
 
   it('discovers existing Swift bridging headers recursively without choosing arbitrary headers', () => {
     const iosRoot = path.join(tempDir, 'ios');
@@ -327,34 +383,89 @@ class MainActivity : ReactActivity() {
     expect(ensureBridgingHeaderImport(patched)).toBe(patched);
   });
 
-  it('sets the Xcode bridging header build setting only when missing', () => {
-    const addedBuildSettings: Record<string, string> = {};
-    const project = {
-      getBuildProperty: (name: string, target: string) => addedBuildSettings[`${target}:${name}`],
-      addBuildProperty: (name: string, value: string, target: string) => {
-        addedBuildSettings[`${target}:${name}`] = value;
-      },
-    };
+  it('sets missing Xcode build settings on the app target without changing project settings', () => {
+    const project = createXcodeProjectFixture();
+    const target = project.getFirstTarget().uuid;
+    const targetList = project.pbxXCConfigurationList()[project.getFirstTarget().firstTarget.buildConfigurationList];
+    const projectSettingsBefore = project.getFirstProject().firstProject.buildConfigurationList;
+    const globalList = project.pbxXCConfigurationList()[projectSettingsBefore];
+    const globalConfigs = globalList.buildConfigurations.map(({ value }: any) => project.pbxXCBuildConfigurationSection()[value]);
 
-    expect(createXcodeBridgingHeaderBuildSetting('ExpoCng/ExpoCng-Bridging-Header.h')).toBe(
-      '$(SRCROOT)/ExpoCng/ExpoCng-Bridging-Header.h'
-    );
-    expect(
-      ensureXcodeBridgingHeaderBuildSetting(
-        project,
-        'TARGET',
-        'ExpoCng/ExpoCng-Bridging-Header.h'
-      )
-    ).toBe(true);
-    expect(
-      ensureXcodeBridgingHeaderBuildSetting(
-        project,
-        'TARGET',
-        'ExpoCng/ExpoCng-Bridging-Header.h'
-      )
-    ).toBe(false);
-    expect(addedBuildSettings['TARGET:SWIFT_OBJC_BRIDGING_HEADER']).toBe(
-      '$(SRCROOT)/ExpoCng/ExpoCng-Bridging-Header.h'
-    );
+    expect(createXcodeBridgingHeaderBuildSetting('Example/CustomBridge.h')).toBe('$(SRCROOT)/Example/CustomBridge.h');
+    expect(ensureXcodeBridgingHeaderBuildSetting(project, target, 'Example/CustomBridge.h')).toBe(true);
+    for (const { value } of targetList.buildConfigurations) {
+      expect(project.pbxXCBuildConfigurationSection()[value].buildSettings.SWIFT_OBJC_BRIDGING_HEADER)
+        .toBe('$(SRCROOT)/Example/CustomBridge.h');
+    }
+    expect(globalConfigs.every((entry: any) => !entry.buildSettings.SWIFT_OBJC_BRIDGING_HEADER)).toBe(true);
+    expect(ensureXcodeBridgingHeaderBuildSetting(project, target, 'Example/Other.h')).toBe(false);
+    expect(ensureXcodeBridgingHeaderBuildSetting(project, target)).toBe(false);
+  });
+
+  it.each([
+    'Example/CustomBridge.h',
+    '"$(SRCROOT)/Example/CustomBridge.h"',
+    '${PROJECT_DIR}/Example/CustomBridge.h',
+    '$(PROJECT_NAME)/CustomBridge.h',
+    '$(PRODUCT_NAME)/CustomBridge.h',
+  ])('patches the configured custom header idempotently: %s', async setting => {
+    const project = createXcodeProjectFixture();
+    project.addBuildProperty('SWIFT_OBJC_BRIDGING_HEADER', setting);
+    const headerPath = path.join(tempDir, 'ios', 'Example', 'CustomBridge.h');
+    fs.mkdirSync(path.dirname(headerPath), { recursive: true });
+    fs.writeFileSync(headerPath, '#import "Existing.h"\n');
+    const unrelatedHeader = path.join(tempDir, 'ios', 'Other-Bridging-Header.h');
+    fs.writeFileSync(unrelatedHeader, '// unrelated header\n');
+    await applyBridgingHeaderMod(project, tempDir);
+    const contents = fs.readFileSync(headerPath, 'utf8');
+    expect(contents).toBe('#import "RNAppAuthAuthorizationFlowManager.h"\n#import "Existing.h"\n');
+    expect(project.getBuildProperty('SWIFT_OBJC_BRIDGING_HEADER')).toBe(setting);
+    expect(fs.readFileSync(unrelatedHeader, 'utf8')).toBe('// unrelated header\n');
+    expect(fs.existsSync(path.join(tempDir, 'ios', 'AppDelegate+RNAppAuth.h'))).toBe(false);
+    const serialized = project.writeSync();
+    await applyBridgingHeaderMod(project, tempDir);
+    expect(fs.readFileSync(headerPath, 'utf8')).toBe(contents);
+    expect(project.writeSync()).toBe(serialized);
+  });
+
+  it('preserves inherited project settings and different headers for Debug and Release', async () => {
+    const project = createXcodeProjectFixture();
+    const section = project.pbxXCBuildConfigurationSection();
+    const targetList = project.pbxXCConfigurationList()[project.getFirstTarget().firstTarget.buildConfigurationList];
+    project.addBuildProperty('SWIFT_OBJC_BRIDGING_HEADER', 'Example/DebugBridge.h', 'Debug');
+    for (const { value } of targetList.buildConfigurations) {
+      const configuration = section[value];
+      if (configuration.name === 'Debug') delete configuration.buildSettings.SWIFT_OBJC_BRIDGING_HEADER;
+      else configuration.buildSettings.SWIFT_OBJC_BRIDGING_HEADER = 'Example/ReleaseBridge.h';
+    }
+    const headers = ['DebugBridge.h', 'ReleaseBridge.h'].map(name => path.join(tempDir, 'ios', 'Example', name));
+    fs.mkdirSync(path.dirname(headers[0]), { recursive: true });
+    for (const header of headers) fs.writeFileSync(header, '// existing content\n');
+    const serialized = project.writeSync();
+    await applyBridgingHeaderMod(project, tempDir);
+    expect(project.writeSync()).toBe(serialized);
+    for (const header of headers) {
+      expect(fs.readFileSync(header, 'utf8')).toBe('#import "RNAppAuthAuthorizationFlowManager.h"\n// existing content\n');
+    }
+    await applyBridgingHeaderMod(project, tempDir);
+    expect(project.writeSync()).toBe(serialized);
+  });
+
+  it('configures a discovered header or creates one when no header exists', async () => {
+    const iosRoot = path.join(tempDir, 'ios');
+    fs.mkdirSync(iosRoot, { recursive: true });
+    const discovered = path.join(iosRoot, 'Example-Bridging-Header.h');
+    fs.writeFileSync(discovered, '// existing header\n');
+    const project = createXcodeProjectFixture();
+    await applyBridgingHeaderMod(project, tempDir);
+    expect(project.getBuildProperty('SWIFT_OBJC_BRIDGING_HEADER')).toBe('$(SRCROOT)/Example-Bridging-Header.h');
+    fs.unlinkSync(discovered);
+    const emptyProject = createXcodeProjectFixture();
+    await applyBridgingHeaderMod(emptyProject, tempDir);
+    const generated = path.join(iosRoot, 'AppDelegate+RNAppAuth.h');
+    expect(fs.readFileSync(generated, 'utf8')).toBe('#import "RNAppAuthAuthorizationFlowManager.h"\n');
+    expect(emptyProject.getBuildProperty('SWIFT_OBJC_BRIDGING_HEADER')).toBe('$(SRCROOT)/AppDelegate+RNAppAuth.h');
+    await applyBridgingHeaderMod(emptyProject, tempDir);
+    expect(countOccurrences(fs.readFileSync(generated, 'utf8'), 'RNAppAuthAuthorizationFlowManager.h')).toBe(1);
   });
 });

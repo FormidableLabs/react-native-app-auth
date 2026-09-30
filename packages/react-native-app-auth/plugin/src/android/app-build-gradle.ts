@@ -41,12 +41,11 @@ const mergeAppAuthRedirectSchemeManifestPlaceholder = (
         if (entries.includes('\n')) {
           const closingIndent = match.match(/\n(\s*)\]$/)?.[1] || '        ';
           const entryIndent = `${closingIndent}    `;
-          const normalizedEntries = entries.trimEnd().replace(/,?\s*$/, ',');
-
-          return `${opening}${normalizedEntries}\n${entryIndent}${APP_AUTH_PLACEHOLDER_KEY}: '${escapedScheme}',\n${closingIndent}${closing}`;
+          // Add our entry first so trailing commas and comments remain untouched.
+          return `${opening}\n${entryIndent}${APP_AUTH_PLACEHOLDER_KEY}: '${escapedScheme}',${entries}${closing}`;
         }
 
-        return `${opening}${entries.trim().replace(/,?\s*$/, ',')} ${APP_AUTH_PLACEHOLDER_KEY}: '${escapedScheme}'${closing}`;
+        return `${opening}${APP_AUTH_PLACEHOLDER_KEY}: '${escapedScheme}', ${entries.trim()}${closing}`;
       }
     );
   }

@@ -6,7 +6,6 @@ import {
   withAppAuthAppDelegateHeader,
   withUrlSchemes,
   withBridgingHeader,
-  withXcodeBuildSettings,
 } from './ios';
 import { withAppAuthAppBuildGradle, withAppAuthMainActivity } from './android';
 
@@ -34,7 +33,6 @@ const withAppAuth: AppAuthConfigPlugin = (config, props) => {
   return withPlugins(config, [
     // iOS
     withBridgingHeader,
-    withXcodeBuildSettings,
     withAppAuthAppDelegate,
     withAppAuthAppDelegateHeader,
     [withUrlSchemes, transformedProps],
