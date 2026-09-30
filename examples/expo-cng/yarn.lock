@@ -4351,14 +4351,14 @@ __metadata:
   linkType: hard
 
 "react-native-app-auth@file:../../packages/react-native-app-auth::locator=expo-cng%40workspace%3A.":
-  version: 8.4.1
-  resolution: "react-native-app-auth@file:../../packages/react-native-app-auth#../../packages/react-native-app-auth::hash=5a4776&locator=expo-cng%40workspace%3A."
+  version: 8.5.0
+  resolution: "react-native-app-auth@file:../../packages/react-native-app-auth#../../packages/react-native-app-auth::hash=8b1ef9&locator=expo-cng%40workspace%3A."
   dependencies:
     invariant: "npm:2.2.4"
     react-native-base64: "npm:0.0.2"
   peerDependencies:
     react-native: ">=0.86.0"
-  checksum: 10c0/e54b71ea18e7d8c68b9aea2bfb13264b98aa4acd629850101c52c18ecb315e244aa04b7e8e86bd141bd3c2ceb900cdeffa2a15a3faebe7503414116f7303bbb7
+  checksum: 10c0/523b5cb4c5b5fe5ea6143fffb1e8f5b6736efb686988335291fad4aa0acc6a85150617301de2086a879886e7830d7c19ec04946568e56b5ee98ec3a235651036
   languageName: node
   linkType: hard
 
