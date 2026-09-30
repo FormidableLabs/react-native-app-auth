@@ -274,6 +274,36 @@ export const authorize = ({
   return wrapNativeAuthPromise(RNAppAuth.authorize(...nativeMethodArguments));
 };
 
+export const resumePendingAuthorize = ({
+  additionalParameters,
+  clientSecret,
+  clientAuthMethod = 'basic',
+  skipCodeExchange = false,
+  dangerouslyAllowInsecureHttpRequests = false,
+  customHeaders,
+  connectionTimeoutSeconds,
+} = {}) => {
+  const platform = Platform.OS;
+  if (platform !== 'android') {
+    return Promise.resolve(null);
+  }
+
+  validateHeaders(customHeaders);
+  validateConnectionTimeoutSeconds(connectionTimeoutSeconds);
+
+  return wrapNativeAuthPromise(
+    RNAppAuth.resumePendingAuthorize(
+      additionalParameters,
+      convertTimeoutForPlatform(platform, connectionTimeoutSeconds),
+      customHeaders,
+      dangerouslyAllowInsecureHttpRequests,
+      clientSecret,
+      clientAuthMethod,
+      skipCodeExchange
+    )
+  );
+};
+
 export const refresh = (
   {
     issuer,
