@@ -792,45 +792,44 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                     try {
                         AuthorizationService authService = new AuthorizationService(context, appAuthConfiguration);
 
-                        CustomTabsIntent.Builder intentBuilder;
                         try {
-                            intentBuilder = authService.createCustomTabsIntentBuilder();
+                            CustomTabsIntent.Builder intentBuilder = authService.createCustomTabsIntentBuilder();
+                            CustomTabsIntent customTabsIntent = intentBuilder.setEphemeralBrowsingEnabled(androidPrefersEphemeralSession).build();
+
+                            if (androidTrustedWebActivity) {
+                                customTabsIntent.intent.putExtra(TrustedWebUtils.EXTRA_LAUNCH_AS_TRUSTED_WEB_ACTIVITY, true);
+                            }
+
+                            final Intent authIntent = authService.getAuthorizationRequestIntent(authRequest, customTabsIntent);
+
+                            UiThreadUtil.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    try {
+                                        final Activity activity = getCurrentActivity();
+                                        if (activity == null || activity.isFinishing() || activity.isDestroyed()) {
+                                            throw new IllegalStateException("No foreground activity available for authorization");
+                                        }
+                                        activity.startActivityForResult(authIntent, AUTHORIZATION_REQUEST_CODE);
+                                    } catch (ActivityNotFoundException e) {
+                                        if (authorizePromise != null) {
+                                            pendingAuthorizePromise.compareAndSet(authorizePromise, null);
+                                            authorizePromise.reject("browser_not_found", e.getMessage());
+                                        }
+                                    } catch (Exception e) {
+                                        if (authorizePromise != null) {
+                                            pendingAuthorizePromise.compareAndSet(authorizePromise, null);
+                                            authorizePromise.reject("authentication_failed", e.getMessage());
+                                        }
+                                    } finally {
+                                        authService.dispose();
+                                    }
+                                }
+                            });
                         } catch (Exception error) {
                             authService.dispose();
                             throw error;
                         }
-                        CustomTabsIntent customTabsIntent = intentBuilder.setEphemeralBrowsingEnabled(androidPrefersEphemeralSession).build();
-
-                        if (androidTrustedWebActivity) {
-                            customTabsIntent.intent.putExtra(TrustedWebUtils.EXTRA_LAUNCH_AS_TRUSTED_WEB_ACTIVITY, true);
-                        }
-
-                        final Intent authIntent = authService.getAuthorizationRequestIntent(authRequest, customTabsIntent);
-
-                        UiThreadUtil.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                try {
-                                    final Activity activity = getCurrentActivity();
-                                    if (activity == null || activity.isFinishing() || activity.isDestroyed()) {
-                                        throw new IllegalStateException("No foreground activity available for authorization");
-                                    }
-                                    activity.startActivityForResult(authIntent, AUTHORIZATION_REQUEST_CODE);
-                                } catch (ActivityNotFoundException e) {
-                                    if (authorizePromise != null) {
-                                        pendingAuthorizePromise.compareAndSet(authorizePromise, null);
-                                        pendingAuthorizePromise.compareAndSet(authorizePromise, null);
-                            authorizePromise.reject("browser_not_found", e.getMessage());
-                                    }
-                                } catch (Exception e) {
-                                    if (authorizePromise != null) {
-                                        pendingAuthorizePromise.compareAndSet(authorizePromise, null);
-                                        pendingAuthorizePromise.compareAndSet(authorizePromise, null);
-                            authorizePromise.reject("authentication_failed", e.getMessage());
-                                    }
-                                }
-                            }
-                        });
                     } catch (Exception e) {
                         if (authorizePromise != null) {
                             pendingAuthorizePromise.compareAndSet(authorizePromise, null);
