@@ -61,6 +61,7 @@ This requires your `MainActivity` to forward the raw activity result to
 `RNAppAuthModule` before React Native's normal handling has a chance to drop it:
 
 ```kotlin
+import android.content.Intent
 import com.rnappauth.RNAppAuthModule
 
 class MainActivity : ReactActivity() {
@@ -77,5 +78,13 @@ class MainActivity : ReactActivity() {
 
 #### `config`
 
-Accepts the same `additionalParameters`, `dangerouslyAllowInsecureHttpRequests`, `customHeaders`
-and `connectionTimeoutSeconds` options as `authorize`.
+Pass the original authorization configuration when resuming. `additionalParameters`,
+`clientSecret`, `clientAuthMethod`, `skipCodeExchange`, `dangerouslyAllowInsecureHttpRequests`,
+`customHeaders`, and `connectionTimeoutSeconds` keep the same meaning as in `authorize`.
+With `skipCodeExchange: true`, recovery returns the authorization code and original PKCE
+verifier without exchanging the code. Client secrets and exchange options are supplied by
+your app; they are not saved in the browser result.
+
+Call this before starting a new authorization. A pending result is claimed once: subsequent
+calls return `null`, including after an exchange failure. Start a new authorization if recovery
+fails. A live `authorize()` owns its own result and is not recovered by this API.

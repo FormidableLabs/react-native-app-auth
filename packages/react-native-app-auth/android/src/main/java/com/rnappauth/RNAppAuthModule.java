@@ -26,6 +26,7 @@ import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.ReadableType;
+import com.facebook.react.bridge.UiThreadUtil;
 
 import com.rnappauth.utils.MapUtil;
 import com.rnappauth.utils.MutableBrowserAllowList;
@@ -75,12 +76,13 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
     private static final AtomicReference<Intent> sStashedAuthorizationResult = new AtomicReference<>();
 
-    public static void stashAuthorizationResult(Intent data) {
+    public static void stashAuthorizationResult(final Intent data) {
         sStashedAuthorizationResult.set(data);
     }
 
     private final ReactApplicationContext reactContext;
     private Promise promise;
+    private final AtomicReference<Promise> pendingAuthorizePromise = new AtomicReference<>();
     private boolean dangerouslyAllowInsecureHttpRequests;
     private Boolean skipCodeExchange;
     private Boolean usePKCE;
@@ -255,6 +257,10 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final boolean androidTrustedWebActivity,
             final boolean androidPrefersEphemeralSession,
             final Promise promise) {
+        if (!pendingAuthorizePromise.compareAndSet(null, promise)) {
+            promise.reject("authentication_in_progress", "An authorization is already pending");
+            return;
+        }
         this.parseHeaderMap(customHeaders);
         final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests,
                 this.authorizationRequestHeaders, connectionTimeoutMillis);
@@ -263,7 +269,6 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         final HashMap<String, String> additionalParametersMap = MapUtil.readableMapToHashMap(additionalParameters);
 
         // store args in private fields for later use in onActivityResult handler
-        this.promise = promise;
         this.dangerouslyAllowInsecureHttpRequests = dangerouslyAllowInsecureHttpRequests;
         this.additionalParametersMap = additionalParametersMap;
         this.clientSecret = clientSecret;
@@ -291,8 +296,10 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                         androidTrustedWebActivity,
                         androidPrefersEphemeralSession);
             } catch (ActivityNotFoundException e) {
+                pendingAuthorizePromise.compareAndSet(promise, null);
                 promise.reject("browser_not_found", e.getMessage());
             } catch (Exception e) {
+                pendingAuthorizePromise.compareAndSet(promise, null);
                 promise.reject("authentication_failed", e.getMessage());
             }
         } else {
@@ -304,6 +311,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                 @Nullable AuthorizationServiceConfiguration fetchedConfiguration,
                                 @Nullable AuthorizationException ex) {
                             if (ex != null) {
+                                pendingAuthorizePromise.compareAndSet(promise, null);
                                 promise.reject("service_configuration_fetch_error", ex.getLocalizedMessage(), ex);
                                 return;
                             }
@@ -323,8 +331,10 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                                         androidTrustedWebActivity,
                                         androidPrefersEphemeralSession);
                             } catch (ActivityNotFoundException e) {
+                                pendingAuthorizePromise.compareAndSet(promise, null);
                                 promise.reject("browser_not_found", e.getMessage());
                             } catch (Exception e) {
+                                pendingAuthorizePromise.compareAndSet(promise, null);
                                 promise.reject("authentication_failed", e.getMessage());
                             }
                         }
@@ -499,170 +509,135 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final Double connectionTimeoutMillis,
             final ReadableMap customHeaders,
             final boolean dangerouslyAllowInsecureHttpRequests,
+            final String clientSecret,
+            final String clientAuthMethod,
+            final boolean skipCodeExchange,
             final Promise promise) {
+        // A live browser flow belongs to authorize(), even if the host has forwarded its result.
+        if (pendingAuthorizePromise.get() != null) {
+            promise.resolve(null);
+            return;
+        }
         final Intent data = sStashedAuthorizationResult.getAndSet(null);
-
         if (data == null) {
             promise.resolve(null);
             return;
         }
 
+        final Map<String, String> tokenHeaders = customHeaders != null && customHeaders.hasKey("token")
+                ? MapUtil.readableMapToHashMap(customHeaders.getMap("token")) : null;
+        final AppAuthConfiguration configuration = createAppAuthConfiguration(
+                createConnectionBuilder(dangerouslyAllowInsecureHttpRequests, tokenHeaders, connectionTimeoutMillis),
+                dangerouslyAllowInsecureHttpRequests, null);
+        completeAuthorization(data, skipCodeExchange, clientSecret, clientAuthMethod,
+                MapUtil.readableMapToHashMap(additionalParameters), configuration, promise);
+    }
+
+    private void completeAuthorization(
+            final Intent data,
+            final boolean skipCodeExchange,
+            final String clientSecret,
+            final String clientAuthMethod,
+            final Map<String, String> additionalParameters,
+            final AppAuthConfiguration configuration,
+            final Promise resultPromise) {
         try {
-            final AuthorizationException authException = AuthorizationException.fromIntent(data);
-            if (authException != null) {
-                handleAuthorizationException("authentication_error", authException, promise);
+            if (data == null) {
+                resultPromise.reject("authentication_error", "Data intent is null");
                 return;
             }
-
+            final AuthorizationException exception = AuthorizationException.fromIntent(data);
+            if (exception != null) {
+                handleAuthorizationException("authentication_error", exception, resultPromise);
+                return;
+            }
             final AuthorizationResponse response = AuthorizationResponse.fromIntent(data);
             if (response == null) {
-                promise.resolve(null);
+                resultPromise.reject("authentication_error", "No authorization response in activity result");
+                return;
+            }
+            if (skipCodeExchange) {
+                final String verifier = response.request.codeVerifier;
+                resultPromise.resolve(verifier != null
+                        ? TokenResponseFactory.authorizationCodeResponseToMap(response, verifier)
+                        : TokenResponseFactory.authorizationResponseToMap(response));
                 return;
             }
 
-            this.parseHeaderMap(customHeaders);
-            final AppAuthConfiguration configuration = createAppAuthConfiguration(
-                    createConnectionBuilder(dangerouslyAllowInsecureHttpRequests, this.tokenRequestHeaders,
-                            connectionTimeoutMillis),
-                    dangerouslyAllowInsecureHttpRequests,
-                    null
-            );
-
+            final Map<String, String> exchangeParameters = new HashMap<>();
+            if (additionalParameters != null) {
+                exchangeParameters.putAll(additionalParameters);
+            }
+            // Match authorizeWithConfiguration: these options belong to the browser request.
+            for (String parameter : new String[]{"display", "login_hint", "prompt", "state", "nonce", "ui_locales", "response_mode"}) {
+                exchangeParameters.remove(parameter);
+            }
+            final TokenRequest tokenRequest = response.createTokenExchangeRequest(exchangeParameters);
             final AuthorizationService authService = new AuthorizationService(this.reactContext, configuration);
-
-            final Map<String, String> additionalParametersMap = MapUtil.readableMapToHashMap(additionalParameters);
-            final TokenRequest tokenRequest = additionalParametersMap.isEmpty()
-                    ? response.createTokenExchangeRequest()
-                    : response.createTokenExchangeRequest(additionalParametersMap);
-
-            authService.performTokenRequest(tokenRequest, new AuthorizationService.TokenResponseCallback() {
+            final AuthorizationService.TokenResponseCallback callback = new AuthorizationService.TokenResponseCallback() {
                 @Override
-                public void onTokenRequestCompleted(TokenResponse resp, AuthorizationException ex) {
+                public void onTokenRequestCompleted(final TokenResponse responseToken, final AuthorizationException error) {
                     authService.dispose();
-                    if (resp != null) {
-                        promise.resolve(TokenResponseFactory.tokenResponseToMap(resp, response));
+                    if (responseToken != null) {
+                        resultPromise.resolve(TokenResponseFactory.tokenResponseToMap(responseToken, response));
                     } else {
-                        handleAuthorizationException("token_exchange_failed", ex, promise);
+                        handleAuthorizationException("token_exchange_failed", error, resultPromise);
                     }
                 }
-            });
-        } catch (Exception e) {
-            promise.reject("run_time_exception", e.getMessage());
+            };
+            try {
+                if (clientSecret != null) {
+                    authService.performTokenRequest(tokenRequest, getClientAuthentication(clientSecret, clientAuthMethod), callback);
+                } else {
+                    authService.performTokenRequest(tokenRequest, callback);
+                }
+            } catch (Exception error) {
+                authService.dispose();
+                throw error;
+            }
+        } catch (Exception error) {
+            resultPromise.reject("run_time_exception", error.getMessage());
         }
     }
 
     @Override
     public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
-        try {
         if (requestCode == AUTHORIZATION_REQUEST_CODE) {
-            if (this.promise == null) {
+            final Promise authorizePromise = pendingAuthorizePromise.getAndSet(null);
+            if (authorizePromise == null) {
+                stashAuthorizationResult(data);
                 return;
             }
-            sStashedAuthorizationResult.set(null);
-
-            if (data == null) {
-                if (promise != null) {
-                    promise.reject("authentication_error", "Data intent is null" );
-                }
-                return;
-            }
-
-            final AuthorizationResponse response = AuthorizationResponse.fromIntent(data);
-            AuthorizationException ex = AuthorizationException.fromIntent(data);
-            if (ex != null) {
-                if (promise != null) {
-                    handleAuthorizationException("authentication_error", ex, promise);
-                }
-                return;
-            }
-
-            if (this.skipCodeExchange != null && this.skipCodeExchange) {
-                WritableMap map;
-                if (this.usePKCE != null && this.usePKCE && this.codeVerifier != null) {
-                    map = TokenResponseFactory.authorizationCodeResponseToMap(response, this.codeVerifier);
-                } else {
-                    map = TokenResponseFactory.authorizationResponseToMap(response);
-                }
-
-                if (promise != null) {
-                    promise.resolve(map);
-                }
-                return;
-            }
-
-
-            final Promise authorizePromise = this.promise;
+            sStashedAuthorizationResult.compareAndSet(data, null);
             final AppAuthConfiguration configuration = createAppAuthConfiguration(
                     createConnectionBuilder(this.dangerouslyAllowInsecureHttpRequests, this.tokenRequestHeaders),
-                    this.dangerouslyAllowInsecureHttpRequests,
-                    null
-            );
-
-            AuthorizationService authService = new AuthorizationService(this.reactContext, configuration);
-
-            TokenRequest tokenRequest;
-            if(this.additionalParametersMap == null) {
-                tokenRequest = response.createTokenExchangeRequest();
-            } else {
-                tokenRequest = response.createTokenExchangeRequest(this.additionalParametersMap);
-            }
-
-            AuthorizationService.TokenResponseCallback tokenResponseCallback = new AuthorizationService.TokenResponseCallback() {
-
-                @Override
-                public void onTokenRequestCompleted(
-                        TokenResponse resp, AuthorizationException ex) {
-                    if (resp != null) {
-                        WritableMap map = TokenResponseFactory.tokenResponseToMap(resp, response);
-                        if (authorizePromise != null) {
-                            authorizePromise.resolve(map);
-                        }
-                    } else {
-                        if (promise != null) {
-                            handleAuthorizationException("token_exchange_failed", ex, promise);
-                        }
-                    }
-                }
-            };
-
-            if (this.clientSecret != null) {
-                ClientAuthentication clientAuth = this.getClientAuthentication(this.clientSecret, this.clientAuthMethod);
-                authService.performTokenRequest(tokenRequest, clientAuth, tokenResponseCallback);
-
-            } else {
-                authService.performTokenRequest(tokenRequest, tokenResponseCallback);
-            }
-
-        } // close if
+                    this.dangerouslyAllowInsecureHttpRequests, null);
+            completeAuthorization(data, Boolean.TRUE.equals(this.skipCodeExchange), this.clientSecret,
+                    this.clientAuthMethod, this.additionalParametersMap, configuration, authorizePromise);
+            return;
+        }
 
         if (requestCode == 53) {
-            if (data == null) {
-                if (promise != null) {
-                    promise.reject("end_session_failed", "Data intent is null" );
-                }
-                return;
-            }
-            EndSessionResponse response = EndSessionResponse.fromIntent(data);
-            AuthorizationException ex = AuthorizationException.fromIntent(data);
-            if (ex != null) {
-                if (promise != null) {
-                    handleAuthorizationException("end_session_failed", ex, promise);
-                }
-                return;
-            }
             final Promise endSessionPromise = this.promise;
-            if (endSessionPromise != null) {
-                WritableMap map = EndSessionResponseFactory.endSessionResponseToMap(response);
-                endSessionPromise.resolve(map);
+            this.promise = null;
+            if (endSessionPromise == null) {
+                return;
+            }
+            try {
+                if (data == null) {
+                    endSessionPromise.reject("end_session_failed", "Data intent is null");
+                    return;
+                }
+                final AuthorizationException exception = AuthorizationException.fromIntent(data);
+                if (exception != null) {
+                    handleAuthorizationException("end_session_failed", exception, endSessionPromise);
+                    return;
+                }
+                endSessionPromise.resolve(EndSessionResponseFactory.endSessionResponseToMap(EndSessionResponse.fromIntent(data)));
+            } catch (Exception error) {
+                endSessionPromise.reject("run_time_exception", error.getMessage());
             }
         }
-    } catch (Exception e) {
-        if(promise != null) {
-            promise.reject("run_time_exception", e.getMessage());
-        } else {
-            throw e;
-        }
-    }
     }
 
     /*
@@ -806,7 +781,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         AuthorizationRequest authRequest = authRequestBuilder.build();
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-            final Promise authorizePromise = this.promise;
+            final Promise authorizePromise = pendingAuthorizePromise.get();
 
             // AuthorizationService construction and createCustomTabsIntentBuilder() are @WorkerThread:
             // the latter blocks on CustomTabManager's 1s browser-connection latch. Running them on the
@@ -817,7 +792,13 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                     try {
                         AuthorizationService authService = new AuthorizationService(context, appAuthConfiguration);
 
-                        CustomTabsIntent.Builder intentBuilder = authService.createCustomTabsIntentBuilder();
+                        CustomTabsIntent.Builder intentBuilder;
+                        try {
+                            intentBuilder = authService.createCustomTabsIntentBuilder();
+                        } catch (Exception error) {
+                            authService.dispose();
+                            throw error;
+                        }
                         CustomTabsIntent customTabsIntent = intentBuilder.setEphemeralBrowsingEnabled(androidPrefersEphemeralSession).build();
 
                         if (androidTrustedWebActivity) {
@@ -826,24 +807,33 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
                         final Intent authIntent = authService.getAuthorizationRequestIntent(authRequest, customTabsIntent);
 
-                        currentActivity.runOnUiThread(new Runnable() {
+                        UiThreadUtil.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
                                 try {
-                                    currentActivity.startActivityForResult(authIntent, AUTHORIZATION_REQUEST_CODE);
+                                    final Activity activity = getCurrentActivity();
+                                    if (activity == null || activity.isFinishing() || activity.isDestroyed()) {
+                                        throw new IllegalStateException("No foreground activity available for authorization");
+                                    }
+                                    activity.startActivityForResult(authIntent, AUTHORIZATION_REQUEST_CODE);
                                 } catch (ActivityNotFoundException e) {
                                     if (authorizePromise != null) {
-                                        authorizePromise.reject("browser_not_found", e.getMessage());
+                                        pendingAuthorizePromise.compareAndSet(authorizePromise, null);
+                                        pendingAuthorizePromise.compareAndSet(authorizePromise, null);
+                            authorizePromise.reject("browser_not_found", e.getMessage());
                                     }
                                 } catch (Exception e) {
                                     if (authorizePromise != null) {
-                                        authorizePromise.reject("authentication_failed", e.getMessage());
+                                        pendingAuthorizePromise.compareAndSet(authorizePromise, null);
+                                        pendingAuthorizePromise.compareAndSet(authorizePromise, null);
+                            authorizePromise.reject("authentication_failed", e.getMessage());
                                     }
                                 }
                             }
                         });
                     } catch (Exception e) {
                         if (authorizePromise != null) {
+                            pendingAuthorizePromise.compareAndSet(authorizePromise, null);
                             authorizePromise.reject("authentication_failed", e.getMessage());
                         }
                     }

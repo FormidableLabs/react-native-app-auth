@@ -276,6 +276,9 @@ export const authorize = ({
 
 export const resumePendingAuthorize = ({
   additionalParameters,
+  clientSecret,
+  clientAuthMethod = 'basic',
+  skipCodeExchange = false,
   dangerouslyAllowInsecureHttpRequests = false,
   customHeaders,
   connectionTimeoutSeconds,
@@ -292,7 +295,10 @@ export const resumePendingAuthorize = ({
       additionalParameters,
       convertTimeoutForPlatform(Platform.OS, connectionTimeoutSeconds),
       customHeaders,
-      dangerouslyAllowInsecureHttpRequests
+      dangerouslyAllowInsecureHttpRequests,
+      clientSecret,
+      clientAuthMethod,
+      skipCodeExchange
     )
   );
 };

@@ -150,6 +150,9 @@ export function authorize(config: AuthConfiguration): Promise<AuthorizeResult>;
 
 export type ResumePendingAuthorizeConfiguration = {
   additionalParameters?: { [name: string]: string };
+  clientSecret?: string;
+  clientAuthMethod?: 'basic' | 'post';
+  skipCodeExchange?: boolean;
   dangerouslyAllowInsecureHttpRequests?: boolean;
   customHeaders?: CustomHeaders;
   connectionTimeoutSeconds?: number;
