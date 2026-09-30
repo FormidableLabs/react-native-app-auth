@@ -1,5 +1,6 @@
 import { withPlugins, createRunOncePlugin } from '@expo/config-plugins';
 import { AppAuthConfigPlugin, AppAuthProps } from './types';
+import { assertSupportedExpoSdk } from './expo-version';
 import {
   withAppAuthAppDelegate,
   withAppAuthAppDelegateHeader,
@@ -7,7 +8,7 @@ import {
   withBridgingHeader,
   withXcodeBuildSettings,
 } from './ios';
-import { withAppAuthAppBuildGradle } from './android';
+import { withAppAuthAppBuildGradle, withAppAuthMainActivity } from './android';
 
 const packageJson = require('../../package.json');
 
@@ -16,6 +17,7 @@ export const getRedirectUrlScheme = (redirectUrl?: string): string | undefined =
 };
 
 const withAppAuth: AppAuthConfigPlugin = (config, props) => {
+  assertSupportedExpoSdk(config);
   const redirectUrlScheme = getRedirectUrlScheme(props?.redirectUrls?.[0]);
 
   // Transform redirectUrls configuration to platform-specific format
@@ -39,6 +41,7 @@ const withAppAuth: AppAuthConfigPlugin = (config, props) => {
 
     // Android
     [withAppAuthAppBuildGradle, transformedProps],
+    withAppAuthMainActivity,
   ]);
 };
 

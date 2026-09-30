@@ -1,11 +1,20 @@
 package com.example
 
+import android.content.Intent
+import com.rnappauth.RNAppAuthModule
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
 import com.facebook.react.defaults.DefaultReactActivityDelegate
 
 class MainActivity : ReactActivity() {
+
+  override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+    if (requestCode == RNAppAuthModule.AUTHORIZATION_REQUEST_CODE) {
+      RNAppAuthModule.stashAuthorizationResult(data)
+    }
+    super.onActivityResult(requestCode, resultCode, data)
+  }
 
   /**
    * Returns the name of the main component registered from JavaScript. This is used to schedule

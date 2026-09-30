@@ -4,11 +4,11 @@ sidebar_position: 1
 
 # Expo Setup
 
-React Native App Auth provides seamless integration with Expo through our config plugin, supporting **Expo SDK 53+** with Continuous Native Generation (CNG).
+React Native App Auth provides seamless integration with Expo through our config plugin, supporting **Expo SDK 57+** with Continuous Native Generation (CNG).
 
 ## Prerequisites
 
-- Expo SDK 53 or later
+- Expo SDK 57 or later
 - CNG workflow (not Expo Go)
 - `expo prebuild` capability
 
@@ -58,6 +58,14 @@ npx expo prebuild --clean
 This automatically:
 - **iOS**: Adds URL scheme to `Info.plist` and configures bridging headers
 - **Android**: Sets up manifest placeholders in `build.gradle`
+
+The plugin also forwards Android activity results for `resumePendingAuthorize()`.
+Call that method at startup with the same token-exchange options as `authorize()`
+to recover a browser flow after Android recreates the application process.
+
+For iOS scene support, put `expo-build-properties` after `react-native-app-auth`
+in the plugins array and set its `ios.enableSceneSupport` option to `true`.
+The SDK 57 scene delegate forwards URL callbacks to the patched AppDelegate.
 
 ### 4. Use the Library
 
@@ -170,13 +178,13 @@ If you have React Navigation deep linking, ensure your OAuth scheme is different
 If you're migrating from manual iOS/Android setup:
 
 1. Remove manual URL scheme configurations from `Info.plist` and `build.gradle`
-2. Remove manual AppDelegate modifications (the plugin handles this automatically for Expo SDK 53+)
+2. Remove manual AppDelegate modifications (the plugin handles this automatically for Expo SDK 57+)
 3. Add the plugin configuration to `app.json`
 4. Run `npx expo prebuild --clean`
 
 ## Limitations
 
-- **Expo SDK 53+ only**: Earlier versions require [manual setup](../#manual-setup)
+- **Expo SDK 57+ only**: Earlier versions require [manual setup](../#manual-setup)
 - **CNG workflow only**: Expo Go is not supported (OAuth requires native configuration)
 - **First-party providers**: Some OAuth providers may require additional native configuration
 
