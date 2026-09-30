@@ -7,6 +7,7 @@
 #import <React/RCTLog.h>
 #import <React/RCTConvert.h>
 #import "RNAppAuthAuthorizationFlowManager.h"
+#import "RNAppAuthPresentation.h"
 
 @interface RNAppAuth()<RNAppAuthAuthorizationFlowManagerDelegate> {
     id<OIDExternalUserAgentSession> _currentSession;
@@ -366,6 +367,11 @@ RCT_REMAP_METHOD(logout,
         [NSException raise:@"RNAppAuth Missing protocol conformance"
                     format:@"%@ does not conform to RNAppAuthAuthorizationFlowManager", appDelegate];
     }
+    UIViewController *presentingViewController = RNAppAuthPresentingViewController(UIApplication.sharedApplication);
+    if (presentingViewController == nil) {
+        reject(@"authentication_failed", @"No foreground window is available to present authorization.", nil);
+        return;
+    }
     appDelegate.authorizationFlowManagerDelegate = self;
     __weak typeof(self) weakSelf = self;
 
@@ -373,8 +379,6 @@ RCT_REMAP_METHOD(logout,
         [UIApplication.sharedApplication endBackgroundTask:rnAppAuthTaskId];
         rnAppAuthTaskId = UIBackgroundTaskInvalid;
     }];
-
-    UIViewController *presentingViewController = appDelegate.window.rootViewController.view.window ? appDelegate.window.rootViewController : appDelegate.window.rootViewController.presentedViewController;
 
 #if TARGET_OS_MACCATALYST
     id<OIDExternalUserAgent> externalUserAgent = nil;
@@ -512,6 +516,11 @@ RCT_REMAP_METHOD(logout,
         [NSException raise:@"RNAppAuth Missing protocol conformance"
                     format:@"%@ does not conform to RNAppAuthAuthorizationFlowManager", appDelegate];
     }
+    UIViewController *presentingViewController = RNAppAuthPresentingViewController(UIApplication.sharedApplication);
+    if (presentingViewController == nil) {
+        reject(@"end_session_failed", @"No foreground window is available to present logout.", nil);
+        return;
+    }
     appDelegate.authorizationFlowManagerDelegate = self;
     __weak typeof(self) weakSelf = self;
 
@@ -519,8 +528,6 @@ RCT_REMAP_METHOD(logout,
         [UIApplication.sharedApplication endBackgroundTask:rnAppAuthTaskId];
         rnAppAuthTaskId = UIBackgroundTaskInvalid;
     }];
-
-    UIViewController *presentingViewController = appDelegate.window.rootViewController.view.window ? appDelegate.window.rootViewController : appDelegate.window.rootViewController.presentedViewController;
 
 #if TARGET_OS_MACCATALYST
     id<OIDExternalUserAgent> externalUserAgent = nil;
