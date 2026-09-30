@@ -67,6 +67,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
+import java.lang.ref.WeakReference;
 
 public class RNAppAuthModule extends ReactContextBaseJavaModule implements ActivityEventListener {
 
@@ -75,9 +76,19 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     public static final int AUTHORIZATION_REQUEST_CODE = 52;
 
     private static final AtomicReference<Intent> sStashedAuthorizationResult = new AtomicReference<>();
+    private static final Object authorizationResultLock = new Object();
+    // Remember only the last consumed delivery, without retaining its code or PKCE verifier.
+    private static WeakReference<Intent> sConsumedAuthorizationResult = new WeakReference<>(null);
 
     public static void stashAuthorizationResult(final Intent data) {
-        sStashedAuthorizationResult.set(data);
+        synchronized (authorizationResultLock) {
+            if (data == null) {
+                sStashedAuthorizationResult.set(null);
+                sConsumedAuthorizationResult.clear();
+            } else if (data != sConsumedAuthorizationResult.get()) {
+                sStashedAuthorizationResult.set(data);
+            }
+        }
     }
 
     private final ReactApplicationContext reactContext;
@@ -257,9 +268,11 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final boolean androidTrustedWebActivity,
             final boolean androidPrefersEphemeralSession,
             final Promise promise) {
-        if (!pendingAuthorizePromise.compareAndSet(null, promise)) {
-            promise.reject("authentication_in_progress", "An authorization is already pending");
-            return;
+        synchronized (authorizationResultLock) {
+            if (!pendingAuthorizePromise.compareAndSet(null, promise)) {
+                promise.reject("authentication_in_progress", "An authorization is already pending");
+                return;
+            }
         }
         this.parseHeaderMap(customHeaders);
         final ConnectionBuilder builder = createConnectionBuilder(dangerouslyAllowInsecureHttpRequests,
@@ -513,12 +526,18 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             final String clientAuthMethod,
             final boolean skipCodeExchange,
             final Promise promise) {
-        // A live browser flow belongs to authorize(), even if the host has forwarded its result.
-        if (pendingAuthorizePromise.get() != null) {
-            promise.resolve(null);
-            return;
+        final Intent data;
+        synchronized (authorizationResultLock) {
+            // Check ownership and claim the stash together across the UI and native-module queues.
+            if (pendingAuthorizePromise.get() != null) {
+                promise.resolve(null);
+                return;
+            }
+            data = sStashedAuthorizationResult.getAndSet(null);
+            if (data != null) {
+                sConsumedAuthorizationResult = new WeakReference<>(data);
+            }
         }
-        final Intent data = sStashedAuthorizationResult.getAndSet(null);
         if (data == null) {
             promise.resolve(null);
             return;
@@ -603,17 +622,40 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     @Override
     public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
         if (requestCode == AUTHORIZATION_REQUEST_CODE) {
-            final Promise authorizePromise = pendingAuthorizePromise.getAndSet(null);
-            if (authorizePromise == null) {
-                stashAuthorizationResult(data);
-                return;
+            final Promise authorizePromise;
+            final boolean allowInsecureConnections;
+            final Map<String, String> tokenHeaders;
+            final boolean exchangeSkipped;
+            final String secret;
+            final String authenticationMethod;
+            final Map<String, String> exchangeParameters;
+            synchronized (authorizationResultLock) {
+                if (data != null && data == sConsumedAuthorizationResult.get()) {
+                    return;
+                }
+                authorizePromise = pendingAuthorizePromise.getAndSet(null);
+                if (authorizePromise == null) {
+                    stashAuthorizationResult(data);
+                    return;
+                }
+                // Recovery must not observe released ownership with the same result still stashed.
+                sStashedAuthorizationResult.compareAndSet(data, null);
+                if (data != null) {
+                    sConsumedAuthorizationResult = new WeakReference<>(data);
+                }
+                // A subsequent authorize() may replace these fields as soon as ownership is released.
+                allowInsecureConnections = this.dangerouslyAllowInsecureHttpRequests;
+                tokenHeaders = this.tokenRequestHeaders;
+                exchangeSkipped = Boolean.TRUE.equals(this.skipCodeExchange);
+                secret = this.clientSecret;
+                authenticationMethod = this.clientAuthMethod;
+                exchangeParameters = this.additionalParametersMap;
             }
-            sStashedAuthorizationResult.compareAndSet(data, null);
             final AppAuthConfiguration configuration = createAppAuthConfiguration(
-                    createConnectionBuilder(this.dangerouslyAllowInsecureHttpRequests, this.tokenRequestHeaders),
-                    this.dangerouslyAllowInsecureHttpRequests, null);
-            completeAuthorization(data, Boolean.TRUE.equals(this.skipCodeExchange), this.clientSecret,
-                    this.clientAuthMethod, this.additionalParametersMap, configuration, authorizePromise);
+                    createConnectionBuilder(allowInsecureConnections, tokenHeaders),
+                    allowInsecureConnections, null);
+            completeAuthorization(data, exchangeSkipped, secret,
+                    authenticationMethod, exchangeParameters, configuration, authorizePromise);
             return;
         }
 
