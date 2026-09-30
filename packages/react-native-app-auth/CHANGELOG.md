@@ -1,5 +1,17 @@
 # react-native-app-auth
 
+## 8.5.0
+
+### Minor Changes
+
+- Add `resumePendingAuthorize` to recover Android browser authorization after process termination, preserving client authentication and skipped code exchanges. Move Custom Tab preparation off the UI thread. ([#1146](https://github.com/FormidableLabs/react-native-app-auth/pull/1146))
+
+### Patch Changes
+
+- Prevent a delayed or repeated Android activity callback from replaying an already consumed authorization result, and preserve the completed flow's exchange options when another login starts concurrently. ([#1146](https://github.com/FormidableLabs/react-native-app-auth/pull/1146))
+
+* Support scene-based iOS authorization and logout presentation while preserving legacy app windows and older iOS versions. ([#1148](https://github.com/FormidableLabs/react-native-app-auth/pull/1148))
+
 ## 8.4.1
 
 ### Patch Changes
