@@ -364,6 +364,62 @@ class MainActivity : ReactActivity() {
     expect(applyAppAuthRedirectSchemeManifestPlaceholder(patched, 'com.example')).toBe(patched);
   });
 
+  it.each([
+    "// appAuthRedirectScheme: 'old'",
+    "/* appAuthRedirectScheme: 'old' */",
+    "// manifestPlaceholders = [other: 'value']",
+    "/* manifestPlaceholders = [other: 'value'] */",
+  ])('ignores commented-out redirect configuration: %s', comment => {
+    const source = `android {
+    defaultConfig {
+        ${comment}
+    }
+}`;
+    const patched = applyAppAuthRedirectSchemeManifestPlaceholder(source, 'com.example');
+    expect(patched).toContain(comment);
+    expect(patched).toContain("manifestPlaceholders = [\n            appAuthRedirectScheme: 'com.example',");
+    expect(applyAppAuthRedirectSchemeManifestPlaceholder(patched, 'com.example')).toBe(patched);
+  });
+
+  it.each([
+    "// appAuthRedirectScheme: 'old'",
+    "/* appAuthRedirectScheme: 'old' ] */",
+  ])('ignores commented-out keys inside an active placeholder map: %s', comment => {
+    const source = `android {
+    defaultConfig {
+        manifestPlaceholders = [
+            ${comment}
+            other: 'https://fixture.example/path',
+        ]
+    }
+}`;
+    const patched = applyAppAuthRedirectSchemeManifestPlaceholder(source, 'com.example');
+    expect(patched).toContain(comment);
+    expect(patched).toContain("appAuthRedirectScheme: 'com.example',");
+    expect(patched).toContain("other: 'https://fixture.example/path',");
+    expect(applyAppAuthRedirectSchemeManifestPlaceholder(patched, 'com.example')).toBe(patched);
+  });
+
+  it('updates the active quoted key while preserving commented keys and string contents', () => {
+    const source = `android {
+    defaultConfig {
+        // manifestPlaceholders = [appAuthRedirectScheme: 'unused']
+        manifestPlaceholders = [
+            // appAuthRedirectScheme: 'old-comment'
+            "appAuthRedirectScheme": 'old-active',
+            other: 'a ] bracket // and /* literal */',
+        ]
+    }
+}`;
+    const patched = applyAppAuthRedirectSchemeManifestPlaceholder(source, 'com.example');
+    expect(patched).toContain("// manifestPlaceholders = [appAuthRedirectScheme: 'unused']");
+    expect(patched).toContain("// appAuthRedirectScheme: 'old-comment'");
+    expect(patched).toContain(`"appAuthRedirectScheme": 'com.example'`);
+    expect(patched).toContain("other: 'a ] bracket // and /* literal */'");
+    expect(patched).not.toContain('old-active');
+    expect(applyAppAuthRedirectSchemeManifestPlaceholder(patched, 'com.example')).toBe(patched);
+  });
+
   it('discovers existing Swift bridging headers recursively without choosing arbitrary headers', () => {
     const iosRoot = path.join(tempDir, 'ios');
     const appDir = path.join(iosRoot, 'ExpoCng');
@@ -449,6 +505,65 @@ class MainActivity : ReactActivity() {
     }
     await applyBridgingHeaderMod(project, tempDir);
     expect(project.writeSync()).toBe(serialized);
+  });
+
+  it.each(['$(inherited)', '"$(inherited)"', '${inherited}'])(
+    'falls back when the inherited bridging header expands to empty: %s', async setting => {
+      const project = createXcodeProjectFixture();
+      const targetList = project.pbxXCConfigurationList()[project.getFirstTarget().firstTarget.buildConfigurationList];
+      for (const { value } of targetList.buildConfigurations) {
+        project.pbxXCBuildConfigurationSection()[value].buildSettings.SWIFT_OBJC_BRIDGING_HEADER = setting;
+      }
+      const iosRoot = path.join(tempDir, 'ios');
+      fs.mkdirSync(iosRoot, { recursive: true });
+      await applyBridgingHeaderMod(project, tempDir);
+      const generated = path.join(iosRoot, 'AppDelegate+RNAppAuth.h');
+      expect(fs.readFileSync(generated, 'utf8')).toBe('#import "RNAppAuthAuthorizationFlowManager.h"\n');
+      expect(project.getBuildProperty('SWIFT_OBJC_BRIDGING_HEADER')).toBe('$(SRCROOT)/AppDelegate+RNAppAuth.h');
+      const serialized = project.writeSync();
+      await applyBridgingHeaderMod(project, tempDir);
+      expect(project.writeSync()).toBe(serialized);
+    }
+  );
+
+  it('discovers a header when inheritance is empty and preserves valid inherited headers', async () => {
+    const project = createXcodeProjectFixture();
+    const section = project.pbxXCBuildConfigurationSection();
+    const targetList = project.pbxXCConfigurationList()[project.getFirstTarget().firstTarget.buildConfigurationList];
+    project.addBuildProperty('SWIFT_OBJC_BRIDGING_HEADER', 'Example/InheritedBridge.h', 'Release');
+    for (const { value } of targetList.buildConfigurations) {
+      section[value].buildSettings.SWIFT_OBJC_BRIDGING_HEADER = '$(inherited)';
+    }
+    const inheritedHeader = path.join(tempDir, 'ios', 'Example', 'InheritedBridge.h');
+    fs.mkdirSync(path.dirname(inheritedHeader), { recursive: true });
+    fs.writeFileSync(inheritedHeader, '// existing header\n');
+    await applyBridgingHeaderMod(project, tempDir);
+    for (const { value } of targetList.buildConfigurations) {
+      const configuration = section[value];
+      expect(configuration.buildSettings.SWIFT_OBJC_BRIDGING_HEADER).toBe(
+        configuration.name === 'Release' ? '$(inherited)' : '$(SRCROOT)/Example/InheritedBridge.h'
+      );
+    }
+    expect(fs.readFileSync(inheritedHeader, 'utf8')).toContain('#import "RNAppAuthAuthorizationFlowManager.h"');
+    expect(fs.existsSync(path.join(tempDir, 'ios', 'AppDelegate+RNAppAuth.h'))).toBe(false);
+    const serialized = project.writeSync();
+    await applyBridgingHeaderMod(project, tempDir);
+    expect(project.writeSync()).toBe(serialized);
+  });
+
+  it('uses a discovered header when there is no inherited project header', async () => {
+    const project = createXcodeProjectFixture();
+    const targetList = project.pbxXCConfigurationList()[project.getFirstTarget().firstTarget.buildConfigurationList];
+    for (const { value } of targetList.buildConfigurations) {
+      project.pbxXCBuildConfigurationSection()[value].buildSettings.SWIFT_OBJC_BRIDGING_HEADER = '$(inherited)';
+    }
+    const discovered = path.join(tempDir, 'ios', 'Example-Bridging-Header.h');
+    fs.mkdirSync(path.dirname(discovered), { recursive: true });
+    fs.writeFileSync(discovered, '// discovered header\n');
+    await applyBridgingHeaderMod(project, tempDir);
+    expect(project.getBuildProperty('SWIFT_OBJC_BRIDGING_HEADER')).toBe('$(SRCROOT)/Example-Bridging-Header.h');
+    expect(fs.readFileSync(discovered, 'utf8')).toContain('#import "RNAppAuthAuthorizationFlowManager.h"');
+    expect(fs.existsSync(path.join(tempDir, 'ios', 'AppDelegate+RNAppAuth.h'))).toBe(false);
   });
 
   it('configures a discovered header or creates one when no header exists', async () => {

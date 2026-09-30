@@ -89,7 +89,8 @@ const getConfiguredBridgingHeader = (
 export const ensureXcodeBridgingHeaderBuildSetting = (
   project: XcodeProject,
   target: string,
-  relativeHeaderPath?: string
+  relativeHeaderPath?: string,
+  iosPath = path.dirname(path.dirname(project.filepath))
 ): boolean => {
   if (!relativeHeaderPath) {
     return false;
@@ -97,7 +98,8 @@ export const ensureXcodeBridgingHeaderBuildSetting = (
 
   let added = false;
   for (const [, configuration] of getTargetConfigurations(project, target)) {
-    if (!getConfiguredBridgingHeader(project, configuration)) {
+    const setting = getConfiguredBridgingHeader(project, configuration);
+    if (!setting || !resolveConfiguredHeaderPath(setting, iosPath, project, configuration)) {
       configuration.buildSettings[XCODE_BRIDGING_HEADER_SETTING] =
         createXcodeBridgingHeaderBuildSetting(relativeHeaderPath);
       added = true;
@@ -111,7 +113,7 @@ const resolveConfiguredHeaderPath = (
   iosPath: string,
   project: XcodeProject,
   configuration: ReturnType<typeof getTargetConfigurations>[number][1]
-): string => {
+): string | undefined => {
   const variables: Record<string, unknown> = {
     ...getInheritedSettings(project, configuration),
     ...configuration.buildSettings,
@@ -133,7 +135,7 @@ const resolveConfiguredHeaderPath = (
   if (headerPath.includes('$')) {
     throw new Error(`react-native-app-auth cannot resolve SWIFT_OBJC_BRIDGING_HEADER: ${setting}`);
   }
-  return path.resolve(iosPath, headerPath);
+  return headerPath.trim() ? path.resolve(iosPath, headerPath) : undefined;
 };
 
 export const withBridgingHeader: ConfigPlugin = rootConfig =>
@@ -153,7 +155,7 @@ export const withBridgingHeader: ConfigPlugin = rootConfig =>
     const fallbackHeader = configuredHeaders[0] || findBridgingHeader(iosPath) ||
       path.join(iosPath, BRIDGING_HEADER_NAME);
 
-    ensureXcodeBridgingHeaderBuildSetting(project, target, path.relative(iosPath, fallbackHeader));
+    ensureXcodeBridgingHeaderBuildSetting(project, target, path.relative(iosPath, fallbackHeader), iosPath);
     for (const headerPath of new Set([...configuredHeaders, fallbackHeader])) {
       const contents = fs.existsSync(headerPath) ? fs.readFileSync(headerPath, 'utf8') : '';
       fs.mkdirSync(path.dirname(headerPath), { recursive: true });

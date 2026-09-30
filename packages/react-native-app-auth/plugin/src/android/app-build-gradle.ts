@@ -12,45 +12,62 @@ const createManifestPlaceholderBlock = (appAuthRedirectScheme: string): string =
         ]
     `;
 
+// Preserve offsets and line breaks so edits apply to the original text.
+// Quoted strings are consumed before looking for comments inside them.
+const maskGradleSyntax = (contents: string, maskStrings = false): string =>
+  contents.replace(
+    /\/\/[^\r\n]*|\/\*[\s\S]*?\*\/|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g,
+    token => token.startsWith('/') || maskStrings ? token.replace(/[^\r\n]/g, ' ') : token
+  );
+
 const mergeAppAuthRedirectSchemeManifestPlaceholder = (
   contents: string,
   appAuthRedirectScheme: string
 ): string => {
+  const code = maskGradleSyntax(contents, true);
+  const declaration = /\bmanifestPlaceholders\s*=\s*\[/.exec(code);
+  if (!declaration) {
+    return `${contents.slice(0, -1)}${createManifestPlaceholderBlock(appAuthRedirectScheme)}}`;
+  }
+
+  const entriesStart = declaration.index + declaration[0].length;
+  let depth = 1;
+  let entriesEnd = entriesStart;
+  for (; entriesEnd < code.length; entriesEnd++) {
+    if (code[entriesEnd] === '[') depth++;
+    if (code[entriesEnd] === ']' && --depth === 0) break;
+  }
+  if (depth !== 0) {
+    throw new Error('react-native-app-auth could not find the end of manifestPlaceholders.');
+  }
+
+  const entries = contents.slice(entriesStart, entriesEnd);
   const existingPlaceholderPattern = new RegExp(
-    `(["']?${APP_AUTH_PLACEHOLDER_KEY}["']?\\s*:\\s*)["'][^"']*["']`
+    `(["']?${APP_AUTH_PLACEHOLDER_KEY}["']?\\s*:\\s*)("(?:\\\\.|[^"\\\\])*"|'(?:\\\\.|[^'\\\\])*')`,
+    'g'
   );
-
-  if (existingPlaceholderPattern.test(contents)) {
-    return contents.replace(
-      existingPlaceholderPattern,
-      `$1'${appAuthRedirectScheme.replace(/'/g, "\\'")}'`
-    );
+  for (const match of maskGradleSyntax(entries).matchAll(existingPlaceholderPattern)) {
+    // A key in a quoted value is not an active map entry.
+    const colon = match.index! + match[1].indexOf(':');
+    if (code[entriesStart + colon] !== ':') continue;
+    const valueStart = entriesStart + match.index! + match[1].length;
+    const valueEnd = valueStart + match[2].length;
+    const escapedScheme = appAuthRedirectScheme.replace(/'/g, "\\'");
+    return `${contents.slice(0, valueStart)}'${escapedScheme}'${contents.slice(valueEnd)}`;
   }
 
-  const manifestPlaceholdersPattern = /(manifestPlaceholders\s*=\s*\[)([\s\S]*?)(\])/m;
-  if (manifestPlaceholdersPattern.test(contents)) {
-    return contents.replace(
-      manifestPlaceholdersPattern,
-      (match, opening, entries, closing) => {
-        const escapedScheme = appAuthRedirectScheme.replace(/'/g, "\\'");
-
-        if (!entries.trim()) {
-          return `${opening}\n            ${APP_AUTH_PLACEHOLDER_KEY}: '${escapedScheme}',\n        ${closing}`;
-        }
-
-        if (entries.includes('\n')) {
-          const closingIndent = match.match(/\n(\s*)\]$/)?.[1] || '        ';
-          const entryIndent = `${closingIndent}    `;
-          // Add our entry first so trailing commas and comments remain untouched.
-          return `${opening}\n${entryIndent}${APP_AUTH_PLACEHOLDER_KEY}: '${escapedScheme}',${entries}${closing}`;
-        }
-
-        return `${opening}${APP_AUTH_PLACEHOLDER_KEY}: '${escapedScheme}', ${entries.trim()}${closing}`;
-      }
-    );
+  const escapedScheme = appAuthRedirectScheme.replace(/'/g, "\\'");
+  let patchedEntries: string;
+  if (!entries.trim()) {
+    patchedEntries = `\n            ${APP_AUTH_PLACEHOLDER_KEY}: '${escapedScheme}',\n        `;
+  } else if (entries.includes('\n')) {
+    const closingIndent = entries.match(/\n(\s*)$/)?.[1] || '        ';
+    // Add our entry first so trailing commas and comments remain untouched.
+    patchedEntries = `\n${closingIndent}    ${APP_AUTH_PLACEHOLDER_KEY}: '${escapedScheme}',${entries}`;
+  } else {
+    patchedEntries = `${APP_AUTH_PLACEHOLDER_KEY}: '${escapedScheme}', ${entries.trim()}`;
   }
-
-  return `${contents.slice(0, -1)}${createManifestPlaceholderBlock(appAuthRedirectScheme)}}`;
+  return `${contents.slice(0, entriesStart)}${patchedEntries}${contents.slice(entriesEnd)}`;
 };
 
 export const applyAppAuthRedirectSchemeManifestPlaceholder = (
@@ -60,11 +77,11 @@ export const applyAppAuthRedirectSchemeManifestPlaceholder = (
   if (!appAuthRedirectScheme) {
     return contents;
   }
-  const defaultConfig = codeModAndroid.findGradlePluginCodeBlock(contents, 'defaultConfig');
+  const defaultConfig = codeModAndroid.findGradlePluginCodeBlock(maskGradleSyntax(contents, true), 'defaultConfig');
   if (!defaultConfig) {
     throw new Error('react-native-app-auth could not find defaultConfig in app/build.gradle.');
   }
-  const patched = mergeAppAuthRedirectSchemeManifestPlaceholder(defaultConfig.code, appAuthRedirectScheme);
+  const patched = mergeAppAuthRedirectSchemeManifestPlaceholder(contents.slice(defaultConfig.start, defaultConfig.end + 1), appAuthRedirectScheme);
   return `${contents.slice(0, defaultConfig.start)}${patched}${contents.slice(defaultConfig.end + 1)}`;
 };
 
