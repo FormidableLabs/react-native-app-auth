@@ -28,7 +28,7 @@ npx react-native run-android
 The demo uses React Native 0.87, Node 22.13+, iOS 15.1+, and Android API 24+.
 Start Metro with `yarn start` if running the native projects directly. To use another port, pass the same `--port <port>` to Metro and the run command.
 
-From the repository root, run the native regression suites against booted devices. They require no provider credentials or Metro server and are also available through the manual Native Regression workflow:
+From the repository root, run the native regression suites locally against booted devices. They require no provider credentials or Metro server:
 
 ```sh
 yarn workspace react-native-app-auth test:ios-presenter <simulator-udid>
