@@ -7,6 +7,7 @@
 #import <React/RCTLog.h>
 #import <React/RCTConvert.h>
 #import "RNAppAuthAuthorizationFlowManager.h"
+#import "RNAppAuthPresentation.h"
 
 @interface RNAppAuth()<RNAppAuthAuthorizationFlowManagerDelegate> {
     id<OIDExternalUserAgentSession> _currentSession;
@@ -17,37 +18,6 @@
 
 -(BOOL)resumeExternalUserAgentFlowWithURL:(NSURL *)url {
     return [_currentSession resumeExternalUserAgentFlowWithURL:url];
-}
-
--(UIViewController *)topmostPresentedViewControllerFromRootViewController:(UIViewController *)rootViewController {
-    UIViewController *topViewController = rootViewController;
-    while (topViewController.presentedViewController) {
-        topViewController = topViewController.presentedViewController;
-    }
-    return topViewController;
-}
-
--(UIWindow *)keyWindowFromConnectedScenes {
-    UIWindow *fallbackKeyWindow = nil;
-    for (UIScene *scene in UIApplication.sharedApplication.connectedScenes) {
-        if (![scene isKindOfClass:[UIWindowScene class]]) {
-            continue;
-        }
-        UIWindowScene *windowScene = (UIWindowScene *)scene;
-        UIWindow *keyWindow = windowScene.keyWindow;
-        if (!keyWindow) {
-            continue;
-        }
-        if (windowScene.activationState == UISceneActivationStateForegroundActive) {
-            [keyWindow layoutIfNeeded];
-            return keyWindow;
-        }
-        if (!fallbackKeyWindow) {
-            fallbackKeyWindow = keyWindow;
-        }
-    }
-    [fallbackKeyWindow layoutIfNeeded];
-    return fallbackKeyWindow;
 }
 
 - (dispatch_queue_t)methodQueue
@@ -397,6 +367,11 @@ RCT_REMAP_METHOD(logout,
         [NSException raise:@"RNAppAuth Missing protocol conformance"
                     format:@"%@ does not conform to RNAppAuthAuthorizationFlowManager", appDelegate];
     }
+    UIViewController *presentingViewController = RNAppAuthPresentingViewController(UIApplication.sharedApplication);
+    if (presentingViewController == nil) {
+        reject(@"authentication_failed", @"No foreground window is available to present authorization.", nil);
+        return;
+    }
     appDelegate.authorizationFlowManagerDelegate = self;
     __weak typeof(self) weakSelf = self;
 
@@ -404,8 +379,6 @@ RCT_REMAP_METHOD(logout,
         [UIApplication.sharedApplication endBackgroundTask:rnAppAuthTaskId];
         rnAppAuthTaskId = UIBackgroundTaskInvalid;
     }];
-
-    UIViewController *presentingViewController = [self topmostPresentedViewControllerFromRootViewController:[self keyWindowFromConnectedScenes].rootViewController];
 
 #if TARGET_OS_MACCATALYST
     id<OIDExternalUserAgent> externalUserAgent = nil;
@@ -543,6 +516,11 @@ RCT_REMAP_METHOD(logout,
         [NSException raise:@"RNAppAuth Missing protocol conformance"
                     format:@"%@ does not conform to RNAppAuthAuthorizationFlowManager", appDelegate];
     }
+    UIViewController *presentingViewController = RNAppAuthPresentingViewController(UIApplication.sharedApplication);
+    if (presentingViewController == nil) {
+        reject(@"end_session_failed", @"No foreground window is available to present logout.", nil);
+        return;
+    }
     appDelegate.authorizationFlowManagerDelegate = self;
     __weak typeof(self) weakSelf = self;
 
@@ -550,8 +528,6 @@ RCT_REMAP_METHOD(logout,
         [UIApplication.sharedApplication endBackgroundTask:rnAppAuthTaskId];
         rnAppAuthTaskId = UIBackgroundTaskInvalid;
     }];
-
-    UIViewController *presentingViewController = [self topmostPresentedViewControllerFromRootViewController:[self keyWindowFromConnectedScenes].rootViewController];
 
 #if TARGET_OS_MACCATALYST
     id<OIDExternalUserAgent> externalUserAgent = nil;

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AA1148000000000000000001 /* RNAppAuthPresentation.m in Sources */ = {isa = PBXBuildFile; fileRef = AA1148000000000000000002 /* RNAppAuthPresentation.m */; };
 		B3E7B58A1CC2AC0600A0062D /* RNAppAuth.m in Sources */ = {isa = PBXBuildFile; fileRef = B3E7B5891CC2AC0600A0062D /* RNAppAuth.m */; };
 /* End PBXBuildFile section */
 
@@ -23,6 +24,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		AA1148000000000000000002 /* RNAppAuthPresentation.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RNAppAuthPresentation.m; sourceTree = "<group>"; };
+		AA1148000000000000000003 /* RNAppAuthPresentation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNAppAuthPresentation.h; sourceTree = "<group>"; };
 		02A9A6ED212C1BC200FAAB86 /* RNAppAuthAuthorizationFlowManagerDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNAppAuthAuthorizationFlowManagerDelegate.h; sourceTree = "<group>"; };
 		134814201AA4EA6300B7C361 /* libRNAppAuth.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libRNAppAuth.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		19C8EE5020E3796B00C4D522 /* RNAppAuthAuthorizationFlowManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNAppAuthAuthorizationFlowManager.h; sourceTree = "<group>"; };
@@ -54,6 +57,8 @@
 			children = (
 				B3E7B5881CC2AC0600A0062D /* RNAppAuth.h */,
 				B3E7B5891CC2AC0600A0062D /* RNAppAuth.m */,
+				AA1148000000000000000002 /* RNAppAuthPresentation.m */,
+				AA1148000000000000000003 /* RNAppAuthPresentation.h */,
 				19C8EE5020E3796B00C4D522 /* RNAppAuthAuthorizationFlowManager.h */,
 				02A9A6ED212C1BC200FAAB86 /* RNAppAuthAuthorizationFlowManagerDelegate.h */,
 				134814211AA4EA7D00B7C361 /* Products */,
@@ -117,6 +122,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B3E7B58A1CC2AC0600A0062D /* RNAppAuth.m in Sources */,
+				AA1148000000000000000001 /* RNAppAuthPresentation.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -6,6 +6,7 @@
   "types": "index.d.ts",
   "scripts": {
     "test": "jest",
+    "test:ios-presenter": "bash native-tests/ios-presentation.sh",
     "lint": "eslint .",
     "build": "expo-module build plugin",
     "clean": "expo-module clean plugin",
