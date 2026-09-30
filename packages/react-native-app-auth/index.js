@@ -283,7 +283,8 @@ export const resumePendingAuthorize = ({
   customHeaders,
   connectionTimeoutSeconds,
 } = {}) => {
-  if (Platform.OS !== 'android') {
+  const platform = Platform.OS;
+  if (platform !== 'android') {
     return Promise.resolve(null);
   }
 
@@ -293,7 +294,7 @@ export const resumePendingAuthorize = ({
   return wrapNativeAuthPromise(
     RNAppAuth.resumePendingAuthorize(
       additionalParameters,
-      convertTimeoutForPlatform(Platform.OS, connectionTimeoutSeconds),
+      convertTimeoutForPlatform(platform, connectionTimeoutSeconds),
       customHeaders,
       dangerouslyAllowInsecureHttpRequests,
       clientSecret,

@@ -6,6 +6,11 @@ jest.mock('react-native', () => ({
   Platform: { OS: 'android' },
 }));
 
+jest.mock('react-native-base64', () => ({
+  encode: jest.fn(),
+  decode: jest.fn(),
+}));
+
 describe('resumePendingAuthorize', () => {
   const nativeResume = NativeModules.RNAppAuth.resumePendingAuthorize;
 
