@@ -1,4 +1,4 @@
-import { applyExpo53AppDelegatePatch } from '../ios/app-delegate';
+import { applyExpoAppDelegatePatch } from '../ios/app-delegate';
 
 const expo56AppDelegate = `internal import Expo
 import React
@@ -18,6 +18,13 @@ class AppDelegate: ExpoAppDelegate {
   ) -> Bool {
     return super.application(app, open: url, options: options) || RCTLinkingManager.application(app, open: url, options: options)
   }
+  public override func application(
+    _ application: UIApplication,
+    continue userActivity: NSUserActivity,
+    restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void
+  ) -> Bool {
+    return super.application(application, continue: userActivity, restorationHandler: restorationHandler)
+  }
 }`;
 
 const publicAppDelegate = expo56AppDelegate.replace(
@@ -25,9 +32,9 @@ const publicAppDelegate = expo56AppDelegate.replace(
   'public class AppDelegate: ExpoAppDelegate'
 );
 
-describe('applyExpo53AppDelegatePatch', () => {
+describe('applyExpoAppDelegatePatch', () => {
   it('adds AppAuth conformance to Expo 56 Swift AppDelegate templates', () => {
-    const result = applyExpo53AppDelegatePatch(expo56AppDelegate);
+    const result = applyExpoAppDelegatePatch(expo56AppDelegate);
 
     expect(result).toContain('class AppDelegate: ExpoAppDelegate, RNAppAuthAuthorizationFlowManager {');
     expect(result).toContain(
@@ -37,13 +44,13 @@ describe('applyExpo53AppDelegatePatch', () => {
   });
 
   it('preserves older public Swift AppDelegate templates', () => {
-    const result = applyExpo53AppDelegatePatch(publicAppDelegate);
+    const result = applyExpoAppDelegatePatch(publicAppDelegate);
 
     expect(result).toContain('public class AppDelegate: ExpoAppDelegate, RNAppAuthAuthorizationFlowManager {');
   });
 
   it('preserves existing protocol conformances', () => {
-    const result = applyExpo53AppDelegatePatch(
+    const result = applyExpoAppDelegatePatch(
       expo56AppDelegate.replace(
         'class AppDelegate: ExpoAppDelegate',
         'class AppDelegate: ExpoAppDelegate, UIApplicationDelegate'
@@ -56,7 +63,7 @@ describe('applyExpo53AppDelegatePatch', () => {
   });
 
   it('preserves whitespace before the class opening brace', () => {
-    const result = applyExpo53AppDelegatePatch(
+    const result = applyExpoAppDelegatePatch(
       expo56AppDelegate.replace(
         'class AppDelegate: ExpoAppDelegate {',
         `class AppDelegate: ExpoAppDelegate,
@@ -79,14 +86,14 @@ describe('applyExpo53AppDelegatePatch', () => {
     RNAppAuthAuthorizationFlowManagerDelegate?`
     );
 
-    const result = applyExpo53AppDelegatePatch(appDelegateWithMultilineProperty);
+    const result = applyExpoAppDelegatePatch(appDelegateWithMultilineProperty);
 
     expect(result.match(/\bvar\s+authorizationFlowManagerDelegate\b/g)).toHaveLength(1);
   });
 
   it('is idempotent', () => {
-    const once = applyExpo53AppDelegatePatch(expo56AppDelegate);
-    const twice = applyExpo53AppDelegatePatch(once);
+    const once = applyExpoAppDelegatePatch(expo56AppDelegate);
+    const twice = applyExpoAppDelegatePatch(once);
 
     expect(twice).toBe(once);
   });

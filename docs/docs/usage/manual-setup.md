@@ -57,8 +57,7 @@ AppAuth supports three options for dependency management.
 
 ### Register redirect URL scheme
 
-If you intend to support iOS 10 and older, you need to define the supported redirect URL schemes in
-your `Info.plist` as follows:
+Define your redirect URL scheme in `Info.plist` so iOS can route OAuth callbacks to your app:
 
 ```xml
 <key>CFBundleURLTypes</key>
@@ -214,7 +213,7 @@ If you want to support universal links, add the following to `AppDelegate.mm` un
 + @property(nonatomic, weak)id<RNAppAuthAuthorizationFlowManagerDelegate>authorizationFlowManagerDelegate;
 ```
 
-Add the following code to `AppDelegate.m` (to support iOS 10, React Navigation deep linking and overriding browser behavior in the authorization process)
+Add the following code to `AppDelegate.m` (for React Navigation deep linking and custom browsers)
 
 ```diff
 + - (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<NSString *, id> *) options {

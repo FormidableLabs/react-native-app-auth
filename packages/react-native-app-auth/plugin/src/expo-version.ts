@@ -4,12 +4,12 @@ import * as path from 'path';
 interface ExpoConfig {
   sdkVersion?: string;
   _internal?: {
-    [key: string]: any;
     projectRoot?: string;
+    [key: string]: any;
   };
 }
 
-export const MIN_EXPO_SDK_MAJOR_VERSION = 53;
+export const MIN_EXPO_SDK_MAJOR_VERSION = 57;
 
 const parseMajorVersion = (version?: string): number | null => {
   if (!version) {
@@ -34,7 +34,11 @@ const readExpoPackageVersion = (projectRoot?: string): string | undefined => {
     return undefined;
   }
 
-  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8')) as {
+    dependencies?: Record<string, string>;
+    devDependencies?: Record<string, string>;
+  };
+
   return packageJson.dependencies?.expo || packageJson.devDependencies?.expo;
 };
 
@@ -42,22 +46,20 @@ export const getExpoSdkMajorVersion = (
   config: ExpoConfig,
   projectRoot = config._internal?.projectRoot
 ): number | null => {
-  return (
-    parseMajorVersion(config.sdkVersion) ??
-    parseMajorVersion(readExpoPackageVersion(projectRoot))
-  );
+  return parseMajorVersion(config.sdkVersion) ?? parseMajorVersion(readExpoPackageVersion(projectRoot));
 };
 
-export const isExpo53OrLater = (config: ExpoConfig, projectRoot?: string): boolean => {
+export const isSupportedExpoSdk = (config: ExpoConfig, projectRoot?: string): boolean => {
   const major = getExpoSdkMajorVersion(config, projectRoot);
   return major != null && major >= MIN_EXPO_SDK_MAJOR_VERSION;
 };
 
-export const assertExpo53OrLater = (config: ExpoConfig, projectRoot?: string): void => {
+export const assertSupportedExpoSdk = (config: ExpoConfig, projectRoot?: string): void => {
   const major = getExpoSdkMajorVersion(config, projectRoot);
+
   if (major != null && major < MIN_EXPO_SDK_MAJOR_VERSION) {
     throw new Error(
-      `react-native-app-auth iOS Swift AppDelegate patch requires Expo SDK ${MIN_EXPO_SDK_MAJOR_VERSION} or later. Detected Expo SDK ${major}.`
+      `react-native-app-auth config plugin requires Expo SDK ${MIN_EXPO_SDK_MAJOR_VERSION} or later. Detected Expo SDK ${major}.`
     );
   }
 };

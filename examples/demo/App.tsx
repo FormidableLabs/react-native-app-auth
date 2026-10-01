@@ -11,12 +11,12 @@ import {
   StatusBar,
   useColorScheme,
   Text,
-  SafeAreaView,
   StyleSheet,
   Pressable,
   View,
   ScrollView,
 } from 'react-native';
+import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import {
   AuthConfiguration,
   authorize,
@@ -196,49 +196,51 @@ function App(): React.JSX.Element {
   }, [authState]);
 
   return (
-    <SafeAreaView>
-      <ScrollView>
-        <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+    <SafeAreaProvider>
+      <SafeAreaView>
+        <ScrollView>
+          <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
 
-        <Header title="React Native App Auth Demo" />
+          <Header title="React Native App Auth Demo" />
 
-        <KeyValueLabel
-          label="Access Token"
-          value={authState.accessToken || 'N/A'}
-        />
-        <KeyValueLabel
-          label="Access Token Expiration Date"
-          value={authState.accessTokenExpirationDate || 'N/A'}
-        />
-        <KeyValueLabel
-          label="Refresh Token"
-          value={authState.refreshToken || 'N/A'}
-        />
-        <KeyValueLabel label="Provider" value={authState.provider || 'N/A'} />
-        <KeyValueLabel
-          label="Scopes"
-          value={authState.scopes?.join(', ') || 'N/A'}
-        />
-        <Row>
-          <Button
-            title="Login with Auth0"
-            onPress={() => handleAuthorize('auth0')}
+          <KeyValueLabel
+            label="Access Token"
+            value={authState.accessToken || 'N/A'}
           />
-          <Button
-            title="Login with IdentityServer"
-            onPress={() => handleAuthorize('identityserver')}
+          <KeyValueLabel
+            label="Access Token Expiration Date"
+            value={authState.accessTokenExpirationDate || 'N/A'}
           />
-        </Row>
-        <Row>
-          {authState.refreshToken ? (
-            <Button onPress={handleRefresh} title="Refresh" />
-          ) : null}
-          {showRevoke ? (
-            <Button onPress={handleRevoke} title="Revoke" color="#EF525B" />
-          ) : null}
-        </Row>
-      </ScrollView>
-    </SafeAreaView>
+          <KeyValueLabel
+            label="Refresh Token"
+            value={authState.refreshToken || 'N/A'}
+          />
+          <KeyValueLabel label="Provider" value={authState.provider || 'N/A'} />
+          <KeyValueLabel
+            label="Scopes"
+            value={authState.scopes?.join(', ') || 'N/A'}
+          />
+          <Row>
+            <Button
+              title="Login with Auth0"
+              onPress={() => handleAuthorize('auth0')}
+            />
+            <Button
+              title="Login with IdentityServer"
+              onPress={() => handleAuthorize('identityserver')}
+            />
+          </Row>
+          <Row>
+            {authState.refreshToken ? (
+              <Button onPress={handleRefresh} title="Refresh" />
+            ) : null}
+            {showRevoke ? (
+              <Button onPress={handleRevoke} title="Revoke" color="#EF525B" />
+            ) : null}
+          </Row>
+        </ScrollView>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
