@@ -54,11 +54,23 @@ If you're using **Expo with Continuous Native Generation (CNG)**, you can use ou
         {
           "redirectUrls": ["com.yourapp.scheme://oauth"]
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "enableSceneSupport": true
+          }
+        }
       ]
     ]
   }
 }
 ```
+
+For iOS scenes, install `expo-build-properties` with `npx expo install expo-build-properties`
+and keep it after `react-native-app-auth` in the plugins array. The reverse order
+can cause the scene transformation to fail during prebuild.
 
 Then run `expo prebuild` to generate your iOS and Android projects with the correct OAuth URL scheme configuration.
 

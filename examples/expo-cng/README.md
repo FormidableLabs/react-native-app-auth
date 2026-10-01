@@ -34,7 +34,10 @@ This will:
 - Apply the react-native-app-auth config plugin
 - Configure URL schemes and native project settings
 
-`expo-build-properties` is listed after `react-native-app-auth` so scene support can rewrite the SDK 57 AppDelegate before this plugin adds the authorization-flow protocol.
+Keep `react-native-app-auth` before `expo-build-properties` in `app.json`, with
+`ios.enableSceneSupport` set to `true`. The reverse order can cause the scene
+transformation to fail during prebuild. The SDK 57 scene delegate forwards OAuth
+callbacks to the AppDelegate configured by App Auth.
 
 ### 3. Run the App
 

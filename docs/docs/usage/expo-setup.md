@@ -22,9 +22,17 @@ npm install react-native-app-auth
 yarn add react-native-app-auth
 ```
 
+For iOS scene support, also install `expo-build-properties`:
+
+```bash
+npx expo install expo-build-properties
+```
+
 ### 2. Configure the Plugin
 
-Add the plugin to your `app.json` or `app.config.js`:
+Add the plugins to your `app.json` or `app.config.js`. For iOS scenes, keep
+`react-native-app-auth` **before** `expo-build-properties`, as shown below.
+The reverse order can cause the scene transformation to fail during prebuild.
 
 ```json
 {
@@ -34,6 +42,14 @@ Add the plugin to your `app.json` or `app.config.js`:
         "react-native-app-auth",
         {
           "redirectUrls": ["com.yourapp.scheme://oauth"]
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "enableSceneSupport": true
+          }
         }
       ]
     ]
@@ -63,8 +79,6 @@ The plugin also forwards Android activity results for `resumePendingAuthorize()`
 Call that method at startup with the same token-exchange options as `authorize()`
 to recover a browser flow after Android recreates the application process.
 
-For iOS scene support, put `expo-build-properties` after `react-native-app-auth`
-in the plugins array and set its `ios.enableSceneSupport` option to `true`.
 The SDK 57 scene delegate forwards URL callbacks to the patched AppDelegate.
 
 ### 4. Use the Library
