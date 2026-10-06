@@ -78,7 +78,7 @@ To validate the plugin is working correctly:
 
 1. **Check Native Files**: After running `npx expo prebuild`, inspect the generated native files:
    - iOS: Check `ios/expocng/Info.plist` for URL schemes containing `io.identityserver.demo`
-   - Android: Check `android/app/build.gradle` for `appAuthRedirectScheme: 'io.identityserver.demo'`
+   - Android: Check `android/app/build.gradle` for `manifestPlaceholders.appAuthRedirectScheme = 'io.identityserver.demo'`
 
 2. **TypeScript Compilation**: The app should compile without TypeScript errors
 

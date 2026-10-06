@@ -281,7 +281,7 @@ class MainActivity : ReactActivity() {
 }`;
     const patched = applyAppAuthRedirectSchemeManifestPlaceholder(appBuildGradle, 'com.example');
 
-    expect(patched).toContain("appAuthRedirectScheme: 'com.example'");
+    expect(patched).toContain("manifestPlaceholders.appAuthRedirectScheme = 'com.example'");
     expect(applyAppAuthRedirectSchemeManifestPlaceholder(patched, 'com.example')).toBe(patched);
 
     const existingPlaceholders = `android {
@@ -297,12 +297,37 @@ class MainActivity : ReactActivity() {
     );
 
     expect(merged).toContain("otherScheme: 'other'");
-    expect(merged).toContain("appAuthRedirectScheme: 'com.example'");
+    expect(merged).toContain("manifestPlaceholders.appAuthRedirectScheme = 'com.example'");
     expect(countOccurrences(merged, 'appAuthRedirectScheme')).toBe(1);
     expect(applyAppAuthRedirectSchemeManifestPlaceholder(merged, 'com.example')).toBe(merged);
   });
 
-  it('updates an existing Android appAuthRedirectScheme placeholder instead of duplicating it', () => {
+  it.each([
+    'manifestPlaceholders = [:]',
+    "manifestPlaceholders += [other: 'keep']",
+    "manifestPlaceholders = [appAuthRedirectScheme: oldScheme, other: 'keep']",
+    'manifestPlaceholders = project.ext.nativeManifestPlaceholders',
+    "manifestPlaceholders = [other: 'keep']; manifestPlaceholders += [extra: 'also-keep', appAuthRedirectScheme: oldScheme]",
+    'manifestPlaceholders.appAuthRedirectScheme = oldScheme',
+  ])('preserves existing Gradle configuration and sets the redirect afterward: %s', declaration => {
+    const source = `android {
+    defaultConfig {
+        ${declaration}
+    }
+}`;
+    const patched = applyAppAuthRedirectSchemeManifestPlaceholder(source, 'new.scheme');
+    const assignment = "manifestPlaceholders.appAuthRedirectScheme = 'new.scheme'";
+
+    expect(patched).toContain(declaration);
+    expect(patched.indexOf(assignment)).toBeGreaterThan(patched.indexOf(declaration));
+    expect(applyAppAuthRedirectSchemeManifestPlaceholder(patched, 'new.scheme')).toBe(patched);
+    const updated = applyAppAuthRedirectSchemeManifestPlaceholder(patched, 'newer.scheme');
+    expect(updated).toContain(declaration);
+    expect(updated).toContain("manifestPlaceholders.appAuthRedirectScheme = 'newer.scheme'");
+    expect(countOccurrences(updated, "manifestPlaceholders.appAuthRedirectScheme = 'newer.scheme'")).toBe(1);
+  });
+
+  it('preserves an existing map and overrides only its redirect scheme afterward', () => {
     const appBuildGradle = `android {
     defaultConfig {
         manifestPlaceholders = [appAuthRedirectScheme: 'old.scheme', other: 'value']
@@ -310,9 +335,9 @@ class MainActivity : ReactActivity() {
 }`;
     const patched = applyAppAuthRedirectSchemeManifestPlaceholder(appBuildGradle, 'new.scheme');
 
-    expect(patched).toContain("appAuthRedirectScheme: 'new.scheme'");
-    expect(patched).not.toContain('old.scheme');
-    expect(countOccurrences(patched, 'appAuthRedirectScheme')).toBe(1);
+    expect(patched).toContain("[appAuthRedirectScheme: 'old.scheme', other: 'value']");
+    expect(patched).toContain("manifestPlaceholders.appAuthRedirectScheme = 'new.scheme'");
+    expect(applyAppAuthRedirectSchemeManifestPlaceholder(patched, 'new.scheme')).toBe(patched);
   });
 
   it.each(['', "manifestPlaceholders = [other: 'default-value']"])(
@@ -331,7 +356,7 @@ class MainActivity : ReactActivity() {
 }`;
       const patched = applyAppAuthRedirectSchemeManifestPlaceholder(source, 'com.example');
       expect(patched).toContain(debugBlock);
-      expect(patched.slice(patched.indexOf('defaultConfig'))).toContain("appAuthRedirectScheme: 'com.example'");
+      expect(patched.slice(patched.indexOf('defaultConfig'))).toContain("manifestPlaceholders.appAuthRedirectScheme = 'com.example'");
       if (defaults) expect(patched).toContain("other: 'default-value'");
       expect(applyAppAuthRedirectSchemeManifestPlaceholder(patched, 'com.example')).toBe(patched);
     }
@@ -353,14 +378,16 @@ class MainActivity : ReactActivity() {
     }
 }`;
     const patched = applyAppAuthRedirectSchemeManifestPlaceholder(source, 'com.example');
-    expect(patched).toContain(`appAuthRedirectScheme: 'com.example',\n            ${entries}`);
+    expect(patched).toContain(`[\n            ${entries}\n        ]`);
+    expect(patched).toContain("manifestPlaceholders.appAuthRedirectScheme = 'com.example'");
     expect(applyAppAuthRedirectSchemeManifestPlaceholder(patched, 'com.example')).toBe(patched);
   });
 
   it('preserves inline block comments in Gradle map entries', () => {
     const source = "android { defaultConfig { manifestPlaceholders = [other: 'value' /* keep */] } }";
     const patched = applyAppAuthRedirectSchemeManifestPlaceholder(source, 'com.example');
-    expect(patched).toContain("[appAuthRedirectScheme: 'com.example', other: 'value' /* keep */]");
+    expect(patched).toContain("[other: 'value' /* keep */]");
+    expect(patched).toContain("manifestPlaceholders.appAuthRedirectScheme = 'com.example'");
     expect(applyAppAuthRedirectSchemeManifestPlaceholder(patched, 'com.example')).toBe(patched);
   });
 
@@ -377,7 +404,7 @@ class MainActivity : ReactActivity() {
 }`;
     const patched = applyAppAuthRedirectSchemeManifestPlaceholder(source, 'com.example');
     expect(patched).toContain(comment);
-    expect(patched).toContain("manifestPlaceholders = [\n            appAuthRedirectScheme: 'com.example',");
+    expect(patched).toContain("manifestPlaceholders.appAuthRedirectScheme = 'com.example'");
     expect(applyAppAuthRedirectSchemeManifestPlaceholder(patched, 'com.example')).toBe(patched);
   });
 
@@ -395,12 +422,12 @@ class MainActivity : ReactActivity() {
 }`;
     const patched = applyAppAuthRedirectSchemeManifestPlaceholder(source, 'com.example');
     expect(patched).toContain(comment);
-    expect(patched).toContain("appAuthRedirectScheme: 'com.example',");
+    expect(patched).toContain("manifestPlaceholders.appAuthRedirectScheme = 'com.example'");
     expect(patched).toContain("other: 'https://fixture.example/path',");
     expect(applyAppAuthRedirectSchemeManifestPlaceholder(patched, 'com.example')).toBe(patched);
   });
 
-  it('updates the active quoted key while preserving commented keys and string contents', () => {
+  it('preserves quoted map keys, commented keys and string contents', () => {
     const source = `android {
     defaultConfig {
         // manifestPlaceholders = [appAuthRedirectScheme: 'unused']
@@ -414,10 +441,62 @@ class MainActivity : ReactActivity() {
     const patched = applyAppAuthRedirectSchemeManifestPlaceholder(source, 'com.example');
     expect(patched).toContain("// manifestPlaceholders = [appAuthRedirectScheme: 'unused']");
     expect(patched).toContain("// appAuthRedirectScheme: 'old-comment'");
-    expect(patched).toContain(`"appAuthRedirectScheme": 'com.example'`);
+    expect(patched).toContain(`"appAuthRedirectScheme": 'old-active'`);
+    expect(patched).toContain("manifestPlaceholders.appAuthRedirectScheme = 'com.example'");
     expect(patched).toContain("other: 'a ] bracket // and /* literal */'");
-    expect(patched).not.toContain('old-active');
     expect(applyAppAuthRedirectSchemeManifestPlaceholder(patched, 'com.example')).toBe(patched);
+  });
+
+  it('updates a final redirect assignment while preserving trailing comments', () => {
+    const source = `android {
+    defaultConfig {
+        manifestPlaceholders += [other: 'keep']
+        manifestPlaceholders.appAuthRedirectScheme = "old.scheme"; // keep inline comment
+        /* keep trailing comment */
+    }
+}`;
+    const patched = applyAppAuthRedirectSchemeManifestPlaceholder(source, 'new.scheme');
+
+    expect(patched).toContain("manifestPlaceholders += [other: 'keep']");
+    expect(patched).toContain("manifestPlaceholders.appAuthRedirectScheme = 'new.scheme'; // keep inline comment");
+    expect(patched).toContain('/* keep trailing comment */');
+    expect(countOccurrences(patched, 'manifestPlaceholders.appAuthRedirectScheme')).toBe(1);
+    expect(applyAppAuthRedirectSchemeManifestPlaceholder(patched, 'new.scheme')).toBe(patched);
+  });
+
+  it('places the redirect after an earlier assignment that a later map overrides', () => {
+    const declaration = `manifestPlaceholders.appAuthRedirectScheme = 'early.scheme'
+        manifestPlaceholders = [other: 'keep']`;
+    const source = `android { defaultConfig {
+        ${declaration}
+    } }`;
+    const patched = applyAppAuthRedirectSchemeManifestPlaceholder(source, 'new.scheme');
+
+    expect(patched).toContain(declaration);
+    expect(patched.lastIndexOf("manifestPlaceholders.appAuthRedirectScheme = 'new.scheme'"))
+      .toBeGreaterThan(patched.indexOf("manifestPlaceholders = [other: 'keep']"));
+    expect(applyAppAuthRedirectSchemeManifestPlaceholder(patched, 'new.scheme')).toBe(patched);
+  });
+
+  it.each([
+    "// manifestPlaceholders.appAuthRedirectScheme = 'unused'",
+    "/* manifestPlaceholders.appAuthRedirectScheme = 'unused' */",
+    "def example = \"manifestPlaceholders.appAuthRedirectScheme = 'unused'\"",
+    "def nested = [manifestPlaceholders: [:]]; nested.manifestPlaceholders.appAuthRedirectScheme = 'unused'",
+    "def example = (manifestPlaceholders.appAuthRedirectScheme = 'unused')",
+  ])('ignores inactive property assignments: %s', declaration => {
+    const source = `android { defaultConfig {\n    ${declaration}\n} }`;
+    const patched = applyAppAuthRedirectSchemeManifestPlaceholder(source, 'new.scheme');
+    expect(patched).toContain(declaration);
+    expect(patched).toContain("manifestPlaceholders.appAuthRedirectScheme = 'new.scheme'");
+    expect(applyAppAuthRedirectSchemeManifestPlaceholder(patched, 'new.scheme')).toBe(patched);
+  });
+
+  it('preserves Windows line endings when setting the redirect scheme', () => {
+    const source = 'android {\r\n    defaultConfig {\r\n        manifestPlaceholders = [:]\r\n    }\r\n}';
+    const patched = applyAppAuthRedirectSchemeManifestPlaceholder(source, 'new.scheme');
+    expect(patched.replace(/\r\n/g, '')).not.toContain('\n');
+    expect(applyAppAuthRedirectSchemeManifestPlaceholder(patched, 'new.scheme')).toBe(patched);
   });
 
   it('discovers existing Swift bridging headers recursively without choosing arbitrary headers', () => {

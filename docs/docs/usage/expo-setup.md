@@ -131,12 +131,13 @@ Check that the manifest placeholder was added to `android/app/build.gradle`:
 ```gradle
 android {
   defaultConfig {
-    manifestPlaceholders = [
-      appAuthRedirectScheme: 'com.yourapp.scheme',
-    ]
+    manifestPlaceholders.appAuthRedirectScheme = 'com.yourapp.scheme'
   }
 }
 ```
+
+The plugin sets this key after existing placeholder configuration, preserving
+unrelated entries, map expressions, and additive assignments.
 
 ## TypeScript Support
 
