@@ -1,6 +1,8 @@
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import { compileModsAsync, withMod } from '@expo/config-plugins';
+import plist from '@expo/plist';
 import {
   MIN_EXPO_SDK_MAJOR_VERSION,
   assertSupportedExpoSdk,
@@ -16,7 +18,7 @@ import {
   ensureXcodeBridgingHeaderBuildSetting,
   findBridgingHeader,
 } from './plugin/src/ios/bridging-header';
-import { addUrlScheme } from './plugin/src/ios/info-plist';
+import { addUrlScheme, withUrlSchemes } from './plugin/src/ios/info-plist';
 import { insertProtocolDeclaration } from './plugin/src/ios/utils/insert-protocol-declaration';
 
 const createXcodeProjectFixture = () => {
@@ -331,6 +333,75 @@ class MainActivity : ReactActivity() {
         CFBundleURLSchemes: ['com.example.secondary'],
       },
     ]);
+  });
+
+  it.each([undefined, { infoPlist: { CFBundleDisplayName: 'Raw config' } }])(
+    'adds the OAuth scheme to modResults independently of raw iOS config: %j',
+    async ios => {
+      const config = withAppAuth({ name: 'Example', slug: 'example', sdkVersion: '57.0.0', ios, _internal: { projectRoot: tempDir } }, {
+        redirectUrls: ['com.example.auth:/callback'],
+      });
+      const nativePlist = {
+        CFBundleDisplayName: 'Native app',
+        CFBundleURLTypes: [{ CFBundleURLName: 'existing', CFBundleURLSchemes: ['com.example.existing'] }],
+      };
+      const result = await config.mods!.ios!.infoPlist!({
+        ...config,
+        modResults: nativePlist,
+        modRequest: { projectRoot: tempDir, platformProjectRoot: path.join(tempDir, 'ios'), platform: 'ios', modName: 'infoPlist' },
+      } as any);
+      expect(result.modResults.CFBundleDisplayName).toBe('Native app');
+      expect(result.modResults.CFBundleURLTypes).toEqual([
+        { CFBundleURLName: 'existing', CFBundleURLSchemes: ['com.example.existing'] },
+        { CFBundleURLName: '$(PRODUCT_BUNDLE_IDENTIFIER)', CFBundleURLSchemes: ['com.example.auth'] },
+      ]);
+      expect(result.ios!.infoPlist).toBe(result.modResults);
+      const repeated = await config.mods!.ios!.infoPlist!(result);
+      expect(repeated.modResults.CFBundleURLTypes).toHaveLength(2);
+    }
+  );
+
+  it('leaves the native plist unchanged when no OAuth URL scheme is configured', async () => {
+    const config = withUrlSchemes({ name: 'Example', slug: 'example' }, {});
+    const nativePlist = { CFBundleDisplayName: 'Native app' };
+    const result = await config.mods!.ios!.infoPlist!({
+      ...config,
+      modResults: nativePlist,
+      modRequest: { projectRoot: tempDir, platformProjectRoot: path.join(tempDir, 'ios'), platform: 'ios', modName: 'infoPlist' },
+    } as any);
+    expect(result.modResults).toBe(nativePlist);
+    expect(result.modResults).toEqual({ CFBundleDisplayName: 'Native app' });
+  });
+
+  it.each([false, true])('writes the OAuth scheme to disk when another mod replaces the plist: %s', async replacePlist => {
+    const plistPath = path.join(tempDir, 'ios', 'Example', 'Info.plist');
+    fs.mkdirSync(path.dirname(plistPath), { recursive: true });
+    fs.writeFileSync(plistPath, plist.build({
+      CFBundleDisplayName: 'Native app',
+      CFBundleURLTypes: [{ CFBundleURLName: 'existing', CFBundleURLSchemes: ['com.example.existing'] }],
+    }));
+    let config = withUrlSchemes({ name: 'Example', slug: 'example' }, { ios: { urlScheme: 'com.example.auth' } });
+    if (replacePlist) {
+      // A mod may return a new plist object rather than mutate the provider's object.
+      config = withMod(config, {
+        platform: 'ios',
+        mod: 'infoPlist',
+        action: cfg => {
+          cfg.modResults = { ...JSON.parse(JSON.stringify(cfg.modResults)), OtherPluginValue: 'preserved' };
+          return cfg;
+        },
+      });
+    }
+    await compileModsAsync(config, { projectRoot: tempDir, platforms: ['ios'] });
+    const first = plist.parse(fs.readFileSync(plistPath, 'utf8')) as any;
+    expect(first.CFBundleURLTypes).toEqual([
+      { CFBundleURLName: 'existing', CFBundleURLSchemes: ['com.example.existing'] },
+      { CFBundleURLName: '$(PRODUCT_BUNDLE_IDENTIFIER)', CFBundleURLSchemes: ['com.example.auth'] },
+    ]);
+    expect(first.CFBundleDisplayName).toBe('Native app');
+    if (replacePlist) expect(first.OtherPluginValue).toBe('preserved');
+    await compileModsAsync(withUrlSchemes({ name: 'Example', slug: 'example' }, { ios: { urlScheme: 'com.example.auth' } }), { projectRoot: tempDir, platforms: ['ios'] });
+    expect(plist.parse(fs.readFileSync(plistPath, 'utf8'))).toEqual(first);
   });
 
   it('adds and merges Android manifestPlaceholders idempotently', () => {
