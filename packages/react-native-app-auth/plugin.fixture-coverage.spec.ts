@@ -105,10 +105,70 @@ class MainActivity : ReactActivity() {
     expect(applyAppAuthActivityResultPatch(patched)).toBe(patched);
   });
 
-  it('requires explicit integration when an activity already overrides result handling', () => {
+  it.each([
+    'fun onActivityResult',
+    'fun  onActivityResult',
+    'fun\tonActivityResult',
+    'fun\nonActivityResult',
+    'fun /* existing handler */ onActivityResult',
+    'fun /* outer /* nested */ comment */ onActivityResult',
+    'fun `onActivityResult`',
+  ])('requires explicit integration for an existing callback: %s', declaration => {
     expect(() => applyAppAuthActivityResultPatch(`package com.example
 class MainActivity : ReactActivity() {
-  override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {}
+  override ${declaration}(requestCode: Int, resultCode: Int, data: Intent?) {}
+}
+`)).toThrow('existing onActivityResult');
+  });
+
+  it.each([
+    '// fun onActivityResult(...) {}',
+    '/* fun onActivityResult(...) {} */',
+    '/* outer /* nested */ fun onActivityResult(...) {} */',
+    'val example = "fun onActivityResult(...) {}"',
+    'val example = """fun onActivityResult(...) {}"""',
+    '// RNAppAuthModule.stashAuthorizationResult(data)',
+    '/* RNAppAuthModule.stashAuthorizationResult(data) */',
+    'val example = "RNAppAuthModule.stashAuthorizationResult(data)"',
+    'val example = """RNAppAuthModule.stashAuthorizationResult(data)"""',
+  ])('ignores Kotlin comments and strings when detecting result handling: %s', snippet => {
+    const source = `package com.example
+import com.facebook.react.ReactActivity
+class MainActivity : ReactActivity() {
+  ${snippet}
+}
+`;
+    const patched = applyAppAuthActivityResultPatch(source);
+    expect(patched).toContain(snippet);
+    expect(patched).toContain('override fun onActivityResult(requestCode: Int');
+    expect(applyAppAuthActivityResultPatch(patched)).toBe(patched);
+  });
+
+  it.each([
+    'RNAppAuthModule . stashAuthorizationResult ( data )',
+    'RNAppAuthModule\n. stashAuthorizationResult(\ndata\n)',
+    'RNAppAuthModule/* preserve */.stashAuthorizationResult(data)',
+  ])('preserves an already integrated callback with formatted forwarding: %s', forwarding => {
+    const source = `package com.example
+class MainActivity : ReactActivity() {
+  override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+    if (requestCode == RNAppAuthModule.AUTHORIZATION_REQUEST_CODE) {
+      ${forwarding}
+    }
+    super.onActivityResult(requestCode, resultCode, data)
+  }
+}
+`;
+    expect(applyAppAuthActivityResultPatch(source)).toBe(source);
+  });
+
+  it('does not treat commented-out forwarding as an integrated callback', () => {
+    expect(() => applyAppAuthActivityResultPatch(`package com.example
+class MainActivity : ReactActivity() {
+  override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+    // RNAppAuthModule.stashAuthorizationResult(data)
+    super.onActivityResult(requestCode, resultCode, data)
+  }
 }
 `)).toThrow('existing onActivityResult');
   });

@@ -76,13 +76,17 @@ To learn more, read [this short introduction to OAuth and PKCE](https://formidab
 
 Please see our [contributing guide](./.github/CONTRIBUTING.md).
 
+The demo is a Yarn workspace. Install dependencies from the repository root with
+Yarn 1.22.22; the root `yarn.lock` also resolves the local library for the demo.
+
 ### Running the iOS app
 
 After cloning the repository, run the following:
 
 ```sh
-cd react-native-app-auth/Example
-yarn
+cd react-native-app-auth
+yarn install --frozen-lockfile
+cd examples/demo
 (cd ios && pod install)
 npx react-native run-ios
 ```
@@ -92,8 +96,9 @@ npx react-native run-ios
 After cloning the repository, run the following:
 
 ```sh
-cd react-native-app-auth/Example
-yarn
+cd react-native-app-auth
+yarn install --frozen-lockfile
+cd examples/demo
 npx react-native run-android
 ```
 

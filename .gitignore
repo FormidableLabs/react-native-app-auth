@@ -59,4 +59,5 @@ examples/expo-cng/ios
 examples/expo-cng/android
 examples/expo-cng/*.tsbuildinfo
 
-
+# The demo uses the repository root Yarn workspace lockfile.
+/examples/demo/package-lock.json
