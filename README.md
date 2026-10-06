@@ -11,7 +11,9 @@
 
 </p>
 
-This versions supports `react-native@0.63+`. The last pre-0.63 compatible version is [`v5.1.3`](https://github.com/FormidableLabs/react-native-app-auth/tree/v5.1.3).
+This version supports React Native 0.86+, iOS 15.1+, Android API 24+, and Expo SDK 57+ with development builds. Use the 8.x release line for older React Native applications.
+
+For Expo apps using iOS scenes, list `react-native-app-auth` before `expo-build-properties` and enable `ios.enableSceneSupport`. See the [Expo setup guide](./docs/docs/usage/expo-setup.md) for the complete configuration.
 
 React Native bridge for [AppAuth-iOS](https://github.com/openid/AppAuth-iOS) and
 [AppAuth-Android](https://github.com/openid/AppAuth-Android) SDKS for communicating with
@@ -74,13 +76,17 @@ To learn more, read [this short introduction to OAuth and PKCE](https://formidab
 
 Please see our [contributing guide](./.github/CONTRIBUTING.md).
 
+The demo is a Yarn workspace. Install dependencies from the repository root with
+Yarn 1.22.22; the root `yarn.lock` also resolves the local library for the demo.
+
 ### Running the iOS app
 
 After cloning the repository, run the following:
 
 ```sh
-cd react-native-app-auth/Example
-yarn
+cd react-native-app-auth
+yarn install --frozen-lockfile
+cd examples/demo
 (cd ios && pod install)
 npx react-native run-ios
 ```
@@ -90,8 +96,9 @@ npx react-native run-ios
 After cloning the repository, run the following:
 
 ```sh
-cd react-native-app-auth/Example
-yarn
+cd react-native-app-auth
+yarn install --frozen-lockfile
+cd examples/demo
 npx react-native run-android
 ```
 
