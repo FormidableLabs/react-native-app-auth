@@ -51,4 +51,4 @@ See specific example [configurations for your provider](/docs/category/providers
 - **androidPrefersEphemeralSession** - (`boolean`) (default: `false`) _ANDROID_ indicates whether the session should ask the browser for a private authentication session when supported.
 - **androidAllowCustomBrowsers** - (`string[]`) (default: undefined) _ANDROID_ override the used browser for authorization. If no value is provided, all browsers are allowed.
 - **androidTrustedWebActivity** - (`boolean`) (default: `false`) _ANDROID_ Use [`EXTRA_LAUNCH_AS_TRUSTED_WEB_ACTIVITY`](https://developer.chrome.com/docs/android/trusted-web-activity/) when opening web view.
-- **connectionTimeoutSeconds** - (`number`) configure the request timeout interval in seconds. This must be a positive number. The default values are 60 seconds on iOS and 15 seconds on Android.
+- **connectionTimeoutSeconds** - (`number`) configure the request timeout interval in seconds. Use a finite, non-negative number; zero preserves the native platform's timeout behavior. The default values are 60 seconds on iOS and 15 seconds on Android.
