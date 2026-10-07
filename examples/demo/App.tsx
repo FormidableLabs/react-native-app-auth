@@ -5,7 +5,7 @@
  * @format
  */
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import {
   Alert,
   StatusBar,
@@ -31,7 +31,7 @@ const configs: Record<string, AuthConfiguration> = {
     clientId: 'interactive.public',
     redirectUrl: 'io.identityserver.demo:/oauthredirect',
     additionalParameters: {},
-    scopes: ['openid', 'profile', 'email', 'offline_access'] as const,
+    scopes: ['openid', 'profile', 'email', 'offline_access'],
 
     // serviceConfiguration: {
     //   authorizationEndpoint: 'https://demo.duendesoftware.com/connect/authorize',
@@ -44,7 +44,7 @@ const configs: Record<string, AuthConfiguration> = {
     clientId: 'VtXdAoGFcYzZ3IJaNy4UIS5RNHhdbKbU',
     redirectUrl: 'rnaa-demo://oauthredirect',
     additionalParameters: {},
-    scopes: ['openid', 'profile', 'email', 'offline_access'] as const,
+    scopes: ['openid', 'profile', 'email', 'offline_access'],
 
     // serviceConfiguration: {
     //   authorizationEndpoint: 'https://samples.auth0.com/authorize',
@@ -74,14 +74,18 @@ interface ButtonProps {
   title: string;
   onPress: () => void;
   color?: string;
+  disabled?: boolean;
 }
 
-const Button: React.FC<ButtonProps> = ({title, onPress, color = '#007AFF'}) => (
+const Button: React.FC<ButtonProps> = ({title, onPress, color = '#007AFF', disabled = false}) => (
   <Pressable
     onPress={onPress}
+    accessibilityRole="button"
+    accessibilityState={{disabled}}
+    disabled={disabled}
     style={({pressed}) => [
       styles.button,
-      {opacity: pressed ? 0.5 : 1, backgroundColor: color},
+      {opacity: pressed || disabled ? 0.5 : 1, backgroundColor: color},
     ]}>
     <Text style={styles.buttonText}>{title}</Text>
   </Pressable>
@@ -118,82 +122,86 @@ const Row: React.FC<RowProps> = ({children}) => (
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
   const [authState, setAuthState] = useState(defaultAuthState);
+  const [isBusy, setIsBusy] = useState(false);
+  const pending = useRef(false);
+  const mounted = useRef(false);
   React.useEffect(() => {
+    mounted.current = true;
     prefetchConfiguration({
       warmAndPrefetchChrome: true,
       connectionTimeoutSeconds: 5,
       ...configs.auth0,
+    }).catch(() => {
+      // Prefetch is optional; authorize will retry discovery when needed.
     });
+    return () => {
+      mounted.current = false;
+    };
   }, []);
 
-  const handleAuthorize = useCallback(
-    async (provider: keyof typeof configs) => {
+  const runAuthOperation = useCallback(
+    async (errorTitle: string, operation: () => Promise<AuthState>) => {
+      if (pending.current || !mounted.current) {
+        return;
+      }
+      pending.current = true;
+      setIsBusy(true);
       try {
-        const config = configs[provider];
-        const newAuthState = await authorize({
-          ...config,
-          connectionTimeoutSeconds: 5,
-          iosPrefersEphemeralSession: true,
-        });
-
-        setAuthState({
-          hasLoggedInOnce: true,
-          provider: provider,
-          ...newAuthState,
-        });
+        const nextState = await operation();
+        if (mounted.current) {
+          setAuthState(nextState);
+        }
       } catch (error: any) {
-        Alert.alert('Failed to log in', error.message);
+        if (mounted.current) {
+          Alert.alert(errorTitle, error.message);
+        }
+      } finally {
+        pending.current = false;
+        if (mounted.current) {
+          setIsBusy(false);
+        }
       }
     },
     [],
   );
 
-  const handleRefresh = useCallback(async () => {
-    try {
-      const config = configs[authState.provider];
-      const newAuthState = await refresh(config, {
+  const handleAuthorize = (provider: keyof typeof configs) =>
+    runAuthOperation('Failed to log in', async () => {
+      const result = await authorize({
+        ...configs[provider],
+        connectionTimeoutSeconds: 5,
+        iosPrefersEphemeralSession: true,
+      });
+      return {...result, hasLoggedInOnce: true, provider};
+    });
+
+  const handleRefresh = () =>
+    runAuthOperation('Failed to refresh token', async () => {
+      const result = await refresh(configs[authState.provider], {
         refreshToken: authState.refreshToken,
       });
+      return {
+        ...authState,
+        ...result,
+        refreshToken: result.refreshToken || authState.refreshToken,
+      };
+    });
 
-      setAuthState(current => ({
-        ...current,
-        ...newAuthState,
-        refreshToken: newAuthState.refreshToken || current.refreshToken,
-      }));
-    } catch (error: any) {
-      Alert.alert('Failed to refresh token', error.message);
-    }
-  }, [authState]);
-
-  const handleRevoke = useCallback(async () => {
-    try {
-      const config = configs[authState.provider];
-      await revoke(config, {
+  const handleRevoke = () =>
+    runAuthOperation('Failed to revoke token', async () => {
+      await revoke(configs[authState.provider], {
         tokenToRevoke: authState.accessToken,
         sendClientId: true,
       });
+      return defaultAuthState;
+    });
 
-      setAuthState({
-        hasLoggedInOnce: false,
-        provider: '',
-        accessToken: '',
-        accessTokenExpirationDate: '',
-        refreshToken: '',
-      });
-    } catch (error: any) {
-      Alert.alert('Failed to revoke token', error.message);
-    }
-  }, [authState]);
-
-  const showRevoke = useMemo(() => {
-    if (authState.accessToken) {
-      const config = configs[authState.provider];
-      if (config.issuer || config?.serviceConfiguration?.revocationEndpoint) {
-        return true;
-      }
-    }
-    return false;
-  }, [authState]);
+  const providerConfig = configs[authState.provider];
+  const showRevoke = Boolean(
+    authState.accessToken &&
+      (providerConfig?.issuer ||
+        providerConfig?.serviceConfiguration?.revocationEndpoint),
+  );
 
   return (
     <SafeAreaView>
@@ -201,6 +209,11 @@ function App(): React.JSX.Element {
         <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
 
         <Header title="React Native App Auth Demo" />
+        {isBusy ? (
+          <Text accessibilityLiveRegion="polite">
+            Authentication request in progress…
+          </Text>
+        ) : null}
 
         <KeyValueLabel
           label="Access Token"
@@ -222,19 +235,21 @@ function App(): React.JSX.Element {
         <Row>
           <Button
             title="Login with Auth0"
+            disabled={isBusy}
             onPress={() => handleAuthorize('auth0')}
           />
           <Button
             title="Login with IdentityServer"
+            disabled={isBusy}
             onPress={() => handleAuthorize('identityserver')}
           />
         </Row>
         <Row>
           {authState.refreshToken ? (
-            <Button onPress={handleRefresh} title="Refresh" />
+            <Button onPress={handleRefresh} title="Refresh" disabled={isBusy} />
           ) : null}
           {showRevoke ? (
-            <Button onPress={handleRevoke} title="Revoke" color="#EF525B" />
+            <Button onPress={handleRevoke} title="Revoke" color="#EF525B" disabled={isBusy} />
           ) : null}
         </Row>
       </ScrollView>
@@ -247,6 +262,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#007AFF',
     paddingHorizontal: 20,
     paddingVertical: 10,
+    minHeight: 44,
+    justifyContent: 'center',
     borderRadius: 5,
     alignItems: 'center',
     marginVertical: 10,
@@ -263,6 +280,7 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-around',
     marginVertical: 10,
   },
