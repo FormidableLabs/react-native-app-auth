@@ -9,7 +9,7 @@
 #import "RNAppAuthAuthorizationFlowManager.h"
 #import "RNAppAuthPresentation.h"
 
-@interface RNAppAuth()<RNAppAuthAuthorizationFlowManagerDelegate> {
+@interface RNAppAuth()<RNAppAuthAuthorizationFlowManagerDelegate, NSURLSessionTaskDelegate> {
     id<OIDExternalUserAgentSession> _currentSession;
 }
 @end
@@ -561,8 +561,19 @@ RCT_REMAP_METHOD(logout,
 
     configuration.timeoutIntervalForRequest = sessionTimeout;
 
-    NSURLSession* session = [NSURLSession sessionWithConfiguration:configuration];
+    NSURLSession* session = headers.count > 0
+        ? [NSURLSession sessionWithConfiguration:configuration delegate:self delegateQueue:nil]
+        : [NSURLSession sessionWithConfiguration:configuration];
     [OIDURLSessionProvider setSession:session];
+}
+
+- (void)URLSession:(NSURLSession *)session
+              task:(NSURLSessionTask *)task
+willPerformHTTPRedirection:(NSHTTPURLResponse *)response
+        newRequest:(NSURLRequest *)request
+ completionHandler:(void (^)(NSURLRequest *_Nullable))completionHandler
+{
+    completionHandler(nil);
 }
 
 /*
