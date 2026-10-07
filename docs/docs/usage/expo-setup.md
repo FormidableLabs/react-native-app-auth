@@ -44,7 +44,8 @@ Add the plugin to your `app.json` or `app.config.js`:
 **Configuration Options:**
 
 - `redirectUrls` (required): Array of OAuth redirect URLs for your app
-  - The URL scheme (before `://`) will be automatically configured for both iOS and Android
+  - The first URL's scheme (before `:`) is configured for both iOS and Android; URLs may use either `scheme:/path` or `scheme://path`
+  - Additional redirect URLs must use that same scheme, or their schemes need separate native configuration
   - Example: `"com.myapp://oauth"` → scheme is `com.myapp`
 
 ### 3. Generate Native Projects
@@ -74,7 +75,7 @@ const config: AuthConfiguration = {
 // Perform authentication
 try {
   const result = await authorize(config);
-  console.log('Access token:', result.accessToken);
+  // Use result.accessToken for authenticated requests. Do not log tokens.
 } catch (error) {
   console.error('Auth error:', error);
 }
@@ -109,9 +110,7 @@ Check that the manifest placeholder was added to `android/app/build.gradle`:
 ```gradle
 android {
   defaultConfig {
-    manifestPlaceholders = [
-      appAuthRedirectScheme: 'com.yourapp.scheme',
-    ]
+    manifestPlaceholders.appAuthRedirectScheme = 'com.yourapp.scheme'
   }
 }
 ```
@@ -169,8 +168,8 @@ If you have React Navigation deep linking, ensure your OAuth scheme is different
 
 If you're migrating from manual iOS/Android setup:
 
-1. Remove manual URL scheme configurations from `Info.plist` and `build.gradle`
-2. Remove manual AppDelegate modifications (the plugin handles this automatically for Expo SDK 53+)
+1. Keep unrelated URL schemes and manifest placeholders; the plugin preserves them
+2. Keep existing bridging-header imports; the plugin adds its import to the header selected by each application build configuration
 3. Add the plugin configuration to `app.json`
 4. Run `npx expo prebuild --clean`
 
