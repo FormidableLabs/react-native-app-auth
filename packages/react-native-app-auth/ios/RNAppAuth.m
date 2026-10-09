@@ -17,7 +17,18 @@
 @implementation RNAppAuth
 
 -(BOOL)resumeExternalUserAgentFlowWithURL:(NSURL *)url {
-    return [_currentSession resumeExternalUserAgentFlowWithURL:url];
+    id<OIDExternalUserAgentSession> session = _currentSession;
+    if (session == nil) {
+        return NO;
+    }
+    BOOL handled = [session resumeExternalUserAgentFlowWithURL:url];
+    // A session consumes at most one redirect. Once it has accepted one, stop forwarding URLs to
+    // it: the code exchange that may still be running does not need the session, and AppAuth
+    // < 2.1.0 raises an NSException when a completed session is resumed again.
+    if (handled && _currentSession == session) {
+        _currentSession = nil;
+    }
+    return handled;
 }
 
 - (dispatch_queue_t)methodQueue
@@ -374,6 +385,9 @@ RCT_REMAP_METHOD(logout,
     }
     appDelegate.authorizationFlowManagerDelegate = self;
     __weak typeof(self) weakSelf = self;
+    // Set when the flow's callback has run. The callback can run synchronously, before the
+    // presenting call below returns (e.g. when the user-agent fails to open).
+    __block BOOL flowCompleted = NO;
 
     rnAppAuthTaskId = [UIApplication.sharedApplication beginBackgroundTaskWithExpirationHandler:^{
         [UIApplication.sharedApplication endBackgroundTask:rnAppAuthTaskId];
@@ -388,6 +402,7 @@ RCT_REMAP_METHOD(logout,
     
     OIDAuthorizationCallback callback = ^(OIDAuthorizationResponse *_Nullable authorizationResponse, NSError *_Nullable error) {
                                                    typeof(self) strongSelf = weakSelf;
+                                                   flowCompleted = YES;
                                                    strongSelf->_currentSession = nil;
                                                    [UIApplication.sharedApplication endBackgroundTask:rnAppAuthTaskId];
                                                    rnAppAuthTaskId = UIBackgroundTaskInvalid;
@@ -424,6 +439,7 @@ RCT_REMAP_METHOD(logout,
                                                        NSError *_Nullable error
                                                        ) {
                                                            typeof(self) strongSelf = weakSelf;
+                                                           flowCompleted = YES;
                                                            strongSelf->_currentSession = nil;
                                                            [UIApplication.sharedApplication endBackgroundTask:rnAppAuthTaskId];
                                                            rnAppAuthTaskId = UIBackgroundTaskInvalid;
@@ -455,6 +471,12 @@ RCT_REMAP_METHOD(logout,
                                                                                  callback:callback];
             }
         }
+    }
+
+    // If the callback already ran, the session returned above has completed: do not keep it,
+    // otherwise a later redirect would be forwarded to a finished session.
+    if (flowCompleted) {
+        _currentSession = nil;
     }
 }
 
@@ -523,6 +545,9 @@ RCT_REMAP_METHOD(logout,
     }
     appDelegate.authorizationFlowManagerDelegate = self;
     __weak typeof(self) weakSelf = self;
+    // Set when the flow's callback has run. The callback can run synchronously, before the
+    // presenting call below returns (e.g. when the user-agent fails to open).
+    __block BOOL flowCompleted = NO;
 
     rnAppAuthTaskId = [UIApplication.sharedApplication beginBackgroundTaskWithExpirationHandler:^{
         [UIApplication.sharedApplication endBackgroundTask:rnAppAuthTaskId];
@@ -540,6 +565,7 @@ RCT_REMAP_METHOD(logout,
                                                       externalUserAgent: externalUserAgent
                                              callback: ^(OIDEndSessionResponse *_Nullable response, NSError *_Nullable error) {
                                                           typeof(self) strongSelf = weakSelf;
+                                                          flowCompleted = YES;
                                                           strongSelf->_currentSession = nil;
                                                           [UIApplication.sharedApplication endBackgroundTask:rnAppAuthTaskId];
                                                           rnAppAuthTaskId = UIBackgroundTaskInvalid;
@@ -551,6 +577,10 @@ RCT_REMAP_METHOD(logout,
                                                                           error:error];
                                                           }
                                                         }];
+
+    if (flowCompleted) {
+        _currentSession = nil;
+    }
 }
 
 - (void)configureUrlSession: (NSDictionary*) headers sessionTimeout: (double) sessionTimeout{
