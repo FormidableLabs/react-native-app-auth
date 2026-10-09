@@ -578,6 +578,7 @@ RCT_REMAP_METHOD(logout,
                                                           }
                                                         }];
 
+    // As in authorizeWithConfiguration:, do not keep a session whose callback already ran.
     if (flowCompleted) {
         _currentSession = nil;
     }
