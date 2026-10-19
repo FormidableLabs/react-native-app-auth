@@ -59,5 +59,9 @@
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "packageManager": "yarn@1.22.22",
+  "resolutions": {
+    "@babel/helper-compilation-targets/lru-cache": "5.1.1"
   }
 }
