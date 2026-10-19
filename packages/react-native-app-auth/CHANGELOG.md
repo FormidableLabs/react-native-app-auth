@@ -1,5 +1,11 @@
 # react-native-app-auth
 
+## 8.5.1
+
+### Patch Changes
+
+- Fix an iOS crash ("An OAuth redirect was sent to a OIDExternalUserAgentSession after it already completed") by not keeping an authorization or logout session that completed synchronously, and by forwarding at most one redirect to each session. ([#1154](https://github.com/FormidableLabs/react-native-app-auth/pull/1154))
+
 ## 8.5.0
 
 ### Minor Changes
