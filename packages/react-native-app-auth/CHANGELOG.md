@@ -1,5 +1,29 @@
 # react-native-app-auth
 
+## 9.0.0
+
+### Major Changes
+
+- Require React Native 0.86+, iOS 15.1+, Android API 24+, and Expo SDK 57+ for the config plugin. Update the CLI example to React Native 0.87 and update the Expo development-build example to SDK 57. Applications on older React Native versions should remain on the 8.x release line. ([#1150](https://github.com/FormidableLabs/react-native-app-auth/pull/1150))
+
+### Patch Changes
+
+- Configure the Android redirect scheme in defaultConfig while preserving build-type-specific manifest placeholders, and recognize Kotlin imports with inline comments. ([#1150](https://github.com/FormidableLabs/react-native-app-auth/pull/1150))
+
+* Preserve existing Kotlin imports when configuring Android authorization recovery, including imports with inline comments. ([#1150](https://github.com/FormidableLabs/react-native-app-auth/pull/1150))
+
+- Respect configured Swift bridging headers, including inherited and configuration-specific paths, and use a fallback header when inheritance is empty. Preserve Gradle comments and ignore commented-out declarations and keys when adding Android redirect placeholders. Keep repeated plugin application idempotent. ([#1150](https://github.com/FormidableLabs/react-native-app-auth/pull/1150))
+
+* Fix an iOS crash ("An OAuth redirect was sent to a OIDExternalUserAgentSession after it already completed") by not keeping an authorization or logout session that completed synchronously, and by forwarding at most one redirect to each session. ([#1152](https://github.com/FormidableLabs/react-native-app-auth/pull/1152))
+
+- Set the Android Expo redirect placeholder without rewriting existing Gradle maps. Preserve empty maps, additive assignments, expression values, and unrelated placeholders, and keep repeated plugin application idempotent. ([#1150](https://github.com/FormidableLabs/react-native-app-auth/pull/1150))
+
+* Register the iOS OAuth callback scheme in the generated Info.plist mod result, including when another Expo mod supplies a separate plist object. ([#1150](https://github.com/FormidableLabs/react-native-app-auth/pull/1150))
+
+- Detect existing Kotlin activity-result callbacks regardless of whitespace or comments, ignore commented-out integration, and preserve formatted AppAuth forwarding calls. ([#1150](https://github.com/FormidableLabs/react-native-app-auth/pull/1150))
+
+* Form-encode tokens and optional client IDs in revocation requests so special characters are sent unchanged to the provider. ([#1150](https://github.com/FormidableLabs/react-native-app-auth/pull/1150))
+
 ## 8.5.0
 
 ### Minor Changes

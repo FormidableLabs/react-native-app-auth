@@ -1,6 +1,6 @@
 {
   "name": "react-native-app-auth",
-  "version": "8.5.0",
+  "version": "9.0.0",
   "description": "React Native bridge for AppAuth for supporting any OAuth 2 provider",
   "main": "index.js",
   "types": "index.d.ts",
@@ -63,7 +63,9 @@
   },
   "jest": {
     "preset": "@react-native/jest-preset",
-    "transformIgnorePatterns": ["node_modules/(?!((@)?react-native|react-native-base64)/)"]
+    "transformIgnorePatterns": [
+      "node_modules/(?!((@)?react-native|react-native-base64)/)"
+    ]
   },
   "publishConfig": {
     "provenance": true
