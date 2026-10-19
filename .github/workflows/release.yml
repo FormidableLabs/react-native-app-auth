@@ -2,7 +2,9 @@ name: Release
 on:
   push:
     branches:
-      - main
+      - release/8.x
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
   release:
@@ -14,12 +16,12 @@ jobs:
       pull-requests: write
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Use Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 20
+          node-version: 22
           cache: 'yarn'
 
       - name: Upgrade npm for OIDC
@@ -38,9 +40,9 @@ jobs:
 
       - name: PR or Publish
         id: changesets
-        uses: changesets/action@v1
+        uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # v1.9.0
         with:
           version: yarn changeset version
-          publish: yarn changeset publish
+          publish: yarn changeset publish --tag latest-8
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -7,5 +7,5 @@
 		}
 	],
 	"access": "public",
-	"baseBranch": "main"
+	"baseBranch": "release/8.x"
 }

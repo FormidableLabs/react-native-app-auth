@@ -108,3 +108,32 @@ On a merge of a feature PR, the changesets GitHub action will open a new PR titl
 ### Publishing packages
 
 On the merge of a version packages PR, the changesets GitHub action will publish the packages to npm.
+
+### Maintaining 8.x
+
+`release/8.x` starts at the `react-native-app-auth@8.5.0` release tag. It retains
+the 8.x React Native and platform requirements. Bring specific compatible fixes
+and their patch changesets onto this branch; do not merge `main` into it.
+Fixes should also reach `main`, which is the 9.x release line.
+
+Open backport PRs against `release/8.x`. The release workflow creates a separate
+`changeset-release/release/8.x` version PR targeting that branch. Merging the
+version PR publishes with the existing Production environment and npm trusted
+publisher. The initial maintenance-branch setup contains no changesets and does
+not introduce a new package version by itself.
+
+Maintenance releases use the npm tag `latest-8`. This lets existing 8.x semver
+ranges receive patches without replacing the default `latest` tag used by 9.x.
+For an explicit 8.x installation, use `react-native-app-auth@latest-8`.
+Before 9.0 is published, `latest` remains on the previously published release;
+the maintenance workflow does not promote its releases to `latest`.
+
+For the initial 8.5.1 release:
+
+1. Push the prepared `release/8.x` baseline branch.
+2. Push `feat/8.x-ios-completed-session-crash` and open a PR targeting `release/8.x`.
+3. Check the PR and merge the fix. Confirm the generated version PR contains only
+   an 8.5.0 to 8.5.1 bump and the iOS crash changelog entry.
+4. Merge that version PR to publish 8.5.1 under `latest-8`.
+5. On `main`, merge the iOS fix and compatible release-action fix before merging
+   the 9.0.0 version PR. Publish 9.0.0 after the 8.5.1 release succeeds.
