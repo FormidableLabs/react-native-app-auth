@@ -20,6 +20,18 @@ const normalizeNativeAuthError = error => {
 const wrapNativeAuthPromise = promise =>
   Promise.resolve(promise).catch(error => Promise.reject(normalizeNativeAuthError(error)));
 
+const encodeFormComponent = value =>
+  encodeURIComponent(value)
+    .replace(
+      /[!'()~]/g,
+      character =>
+        `%${character
+          .charCodeAt(0)
+          .toString(16)
+          .toUpperCase()}`
+    )
+    .replace(/%20/g, '+');
+
 const validateIssuer = issuer => typeof issuer === 'string' && issuer.length;
 const validateIssuerOrServiceConfigurationEndpoints = (issuer, serviceConfiguration) => {
   invariant(
@@ -397,7 +409,9 @@ export const revoke = async (
   return await fetch(revocationEndpoint, {
     method: 'POST',
     headers,
-    body: `token=${tokenToRevoke}${sendClientId ? `&client_id=${clientId}` : ''}`,
+    body: `token=${encodeFormComponent(tokenToRevoke)}${
+      sendClientId ? `&client_id=${encodeFormComponent(clientId)}` : ''
+    }`,
   }).catch(error => {
     throw new Error('Failed to revoke token', error);
   });

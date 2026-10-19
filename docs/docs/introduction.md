@@ -5,6 +5,8 @@ slug: /
 
 # Introduction
 
+This version requires React Native 0.86+, iOS 15.1+, and Android API 24+. Expo applications require SDK 57+ and a development build; Expo Go does not include this native module. Use the 8.x release line for older applications.
+
 Get started by installing the dependencies in your application
 
 ```sh
@@ -39,7 +41,7 @@ try {
 }
 ```
 
-## Expo Setup (SDK 53+)
+## Expo Setup (SDK 57+)
 
 If you're using **Expo with Continuous Native Generation (CNG)**, you can use our config plugin for automatic setup:
 
@@ -52,11 +54,23 @@ If you're using **Expo with Continuous Native Generation (CNG)**, you can use ou
         {
           "redirectUrls": ["com.yourapp.scheme://oauth"]
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "enableSceneSupport": true
+          }
+        }
       ]
     ]
   }
 }
 ```
+
+For iOS scenes, install `expo-build-properties` with `npx expo install expo-build-properties`
+and keep it after `react-native-app-auth` in the plugins array. The reverse order
+can cause the scene transformation to fail during prebuild.
 
 Then run `expo prebuild` to generate your iOS and Android projects with the correct OAuth URL scheme configuration.
 
@@ -115,8 +129,7 @@ AppAuth supports three options for dependency management.
 
 #### Register redirect URL scheme
 
-If you intend to support iOS 10 and older, you need to define the supported redirect URL schemes in
-your `Info.plist` as follows:
+Define your redirect URL scheme in `Info.plist` so iOS can route OAuth callbacks to your app:
 
 ```xml
 <key>CFBundleURLTypes</key>
@@ -272,7 +285,7 @@ If you want to support universal links, add the following to `AppDelegate.mm` un
 + @property(nonatomic, weak)id<RNAppAuthAuthorizationFlowManagerDelegate>authorizationFlowManagerDelegate;
 ```
 
-Add the following code to `AppDelegate.m` (to support iOS 10, React Navigation deep linking and overriding browser behavior in the authorization process)
+Add the following code to `AppDelegate.m` (for React Navigation deep linking and custom browsers)
 
 ```diff
 + - (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<NSString *, id> *) options {

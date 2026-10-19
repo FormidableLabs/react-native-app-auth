@@ -11,6 +11,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate,
 
   var reactNativeDelegate: ReactNativeDelegate?
   var reactNativeFactory: RCTReactNativeFactory?
+  var launchOptions: [UIApplication.LaunchOptionsKey: Any]?
 
   // Required by RNAppAuthAuthorizationFlowManager protocol
   public weak var authorizationFlowManagerDelegate:
@@ -28,13 +29,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate,
     reactNativeDelegate = delegate
     reactNativeFactory = factory
 
-    window = UIWindow(frame: UIScreen.main.bounds)
-
-    factory.startReactNative(
-      withModuleName: "Example",
-      in: window,
-      launchOptions: launchOptions
-    )
+    self.launchOptions = launchOptions
 
     return true
   }
@@ -87,7 +82,14 @@ class ReactNativeDelegate: RCTDefaultReactNativeFactoryDelegate {
 
   override func bundleURL() -> URL? {
     #if DEBUG
-      RCTBundleURLProvider.sharedSettings().jsBundleURL(forBundleRoot: "index")
+      let provider = RCTBundleURLProvider.sharedSettings()
+      // Prebuilt React Native fixes its default port at compile time. Honor the app build setting.
+      if let port = Bundle.main.object(forInfoDictionaryKey: "ReactNativeDevServerPort") as? String,
+        !port.isEmpty
+      {
+        provider.jsLocation = "localhost:\(port)"
+      }
+      return provider.jsBundleURL(forBundleRoot: "index")
     #else
       Bundle.main.url(forResource: "main", withExtension: "jsbundle")
     #endif

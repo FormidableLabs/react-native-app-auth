@@ -1,12 +1,12 @@
 import * as fs from 'fs';
 import { IOSConfig, withDangerousMod, ConfigPlugin } from '@expo/config-plugins';
-import { isExpo53OrLater } from '../expo-version';
+import { isSupportedExpoSdk } from '../expo-version';
 import { insertProtocolDeclaration } from './utils/insert-protocol-declaration';
 
 const codeModIOs = require('@expo/config-plugins/build/ios/codeMod');
 
 export const withAppAuthAppDelegateHeader: ConfigPlugin = rootConfig => {
-  if (isExpo53OrLater(rootConfig)) {
+  if (isSupportedExpoSdk(rootConfig)) {
     return rootConfig;
   }
 

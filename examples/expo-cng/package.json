@@ -1,8 +1,8 @@
 {
   "name": "expo-cng",
   "version": "1.0.0",
-  "packageManager": "yarn@1.22.22",
   "main": "index.ts",
+  "packageManager": "yarn@4.14.1",
   "scripts": {
     "start": "expo start",
     "android": "expo run:android",
@@ -10,16 +10,17 @@
     "web": "expo start --web"
   },
   "dependencies": {
-    "expo": "~56.0.14",
-    "expo-status-bar": "~56.0.4",
+    "expo": "~57.0.24",
+    "expo-build-properties": "~57.0.21",
+    "expo-status-bar": "~57.0.1",
     "react": "19.2.3",
-    "react-native": "0.85.3",
+    "react-native": "0.86.3",
     "react-native-app-auth": "file:../../packages/react-native-app-auth"
   },
   "devDependencies": {
-    "@babel/core": "^7.29.0",
-    "@types/react": "~19.2.14",
-    "typescript": "~6.0.3"
+    "@babel/core": "^7.25.2",
+    "@types/react": "~19.2.2",
+    "typescript": "~5.8.3"
   },
   "private": true
 }

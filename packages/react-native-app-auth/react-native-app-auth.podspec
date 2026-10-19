@@ -9,7 +9,7 @@ Pod::Spec.new do |s|
   s.license      = package['license']
   s.authors      = package['author']
   s.homepage     = package['homepage']
-  s.platform     = :ios, '10.0'
+  s.platform     = :ios, '15.1'
   s.source       = { :git => 'https://github.com/FormidableLabs/react-native-app-auth.git', :tag => "v#{s.version}" }
   s.source_files  = 'ios/**/*.{h,m}'
   s.requires_arc = true

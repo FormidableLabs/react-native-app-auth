@@ -1,86 +1,165 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { withDangerousMod, withXcodeProject, ConfigPlugin } from '@expo/config-plugins';
-import { isExpo53OrLater } from '../expo-version';
+import { IOSConfig, withXcodeProject, ConfigPlugin } from '@expo/config-plugins';
+import { assertSupportedExpoSdk } from '../expo-version';
+
+type XcodeProject = Parameters<typeof IOSConfig.XcodeUtils.getBuildConfigurationsForListId>[0];
 
 const BRIDGING_HEADER_NAME = 'AppDelegate+RNAppAuth.h';
-const BRIDGING_HEADER_CONTENT = '#import "RNAppAuthAuthorizationFlowManager.h"\n';
+const BRIDGING_HEADER_IMPORT = '#import "RNAppAuthAuthorizationFlowManager.h"';
+const XCODE_BRIDGING_HEADER_SETTING = 'SWIFT_OBJC_BRIDGING_HEADER';
 
-interface ConfigWithBridgingHeader {
-  _createdBridgingHeader?: string;
-  [key: string]: any;
-}
+const ignoredDirectoryNames = new Set([
+  'Pods',
+  'build',
+  'DerivedData',
+  '.git',
+]);
 
-const findBridgingHeader = (dir: string): string | null => {
-  const files = fs.readdirSync(dir);
-
-  // First check current directory
-  const headerInCurrentDir = files.find(f => f.endsWith('-Bridging-Header.h') || f.endsWith('.h'));
-  if (headerInCurrentDir) {
-    return path.join(dir, headerInCurrentDir);
+export const findBridgingHeader = (dir: string): string | null => {
+  if (!fs.existsSync(dir)) {
+    return null;
   }
 
-  // Then check subdirectories
-  for (const file of files) {
-    const fullPath = path.join(dir, file);
-    if (fs.statSync(fullPath).isDirectory()) {
-      const found = findBridgingHeader(fullPath);
-      if (found) {
-        return found;
-      }
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  const headerInCurrentDir = entries.find(
+    entry => entry.isFile() && entry.name.endsWith('-Bridging-Header.h')
+  );
+
+  if (headerInCurrentDir) {
+    return path.join(dir, headerInCurrentDir.name);
+  }
+
+  for (const entry of entries) {
+    if (!entry.isDirectory() || ignoredDirectoryNames.has(entry.name)) {
+      continue;
+    }
+
+    if (entry.name.endsWith('.xcodeproj') || entry.name.endsWith('.xcworkspace')) {
+      continue;
+    }
+
+    const found = findBridgingHeader(path.join(dir, entry.name));
+    if (found) {
+      return found;
     }
   }
 
   return null;
 };
 
-export const withBridgingHeader: ConfigPlugin = rootConfig => {
-  if (!isExpo53OrLater(rootConfig)) {
-    return rootConfig;
+export const ensureBridgingHeaderImport = (contents: string): string => {
+  if (contents.includes(BRIDGING_HEADER_IMPORT)) {
+    return contents;
   }
 
-  return withDangerousMod(rootConfig, [
-    'ios',
-    config => {
-      const iosPath = path.join(config.modRequest.projectRoot, 'ios');
-
-      // Search for existing bridging header in the project and subfolders
-      const existingHeaderPath = findBridgingHeader(iosPath);
-      const importLine = BRIDGING_HEADER_CONTENT;
-      let headerPath: string;
-
-      if (existingHeaderPath) {
-        headerPath = existingHeaderPath;
-        const content = fs.readFileSync(headerPath, 'utf8');
-
-        if (!content.includes(importLine)) {
-          fs.writeFileSync(headerPath, `${importLine}\n${content}`);
-        }
-      } else {
-        // Default to new file if none found
-        headerPath = path.join(iosPath, BRIDGING_HEADER_NAME);
-        fs.writeFileSync(headerPath, `${importLine}\n`);
-        (config as ConfigWithBridgingHeader)._createdBridgingHeader = BRIDGING_HEADER_NAME;
-      }
-
-      return config;
-    },
-  ]);
+  return `${BRIDGING_HEADER_IMPORT}\n${contents}`;
 };
 
-export const withXcodeBuildSettings: ConfigPlugin = rootConfig =>
+export const createBridgingHeaderContents = (): string => `${BRIDGING_HEADER_IMPORT}\n`;
+
+export const createXcodeBridgingHeaderBuildSetting = (relativeHeaderPath: string): string =>
+  `$(SRCROOT)/${relativeHeaderPath}`;
+
+const getTargetConfigurations = (project: XcodeProject, target: string) =>
+  IOSConfig.XcodeUtils.getBuildConfigurationsForListId(
+    project,
+    project.pbxNativeTargetSection()[target].buildConfigurationList
+  );
+
+const getInheritedSettings = (
+  project: XcodeProject,
+  configuration: ReturnType<typeof getTargetConfigurations>[number][1]
+) => {
+  const projectConfigurations = IOSConfig.XcodeUtils.getBuildConfigurationsForListId(
+    project,
+    project.getFirstProject().firstProject.buildConfigurationList
+  );
+  return projectConfigurations.find(([, entry]) => entry.name === configuration.name)?.[1].buildSettings;
+};
+
+const getConfiguredBridgingHeader = (
+  project: XcodeProject,
+  configuration: ReturnType<typeof getTargetConfigurations>[number][1]
+): string | undefined => {
+  return configuration.buildSettings[XCODE_BRIDGING_HEADER_SETTING] ||
+    getInheritedSettings(project, configuration)?.[XCODE_BRIDGING_HEADER_SETTING];
+};
+
+export const ensureXcodeBridgingHeaderBuildSetting = (
+  project: XcodeProject,
+  target: string,
+  relativeHeaderPath?: string,
+  iosPath = path.dirname(path.dirname(project.filepath))
+): boolean => {
+  if (!relativeHeaderPath) {
+    return false;
+  }
+
+  let added = false;
+  for (const [, configuration] of getTargetConfigurations(project, target)) {
+    const setting = getConfiguredBridgingHeader(project, configuration);
+    if (!setting || !resolveConfiguredHeaderPath(setting, iosPath, project, configuration)) {
+      configuration.buildSettings[XCODE_BRIDGING_HEADER_SETTING] =
+        createXcodeBridgingHeaderBuildSetting(relativeHeaderPath);
+      added = true;
+    }
+  }
+  return added;
+};
+
+const resolveConfiguredHeaderPath = (
+  setting: string,
+  iosPath: string,
+  project: XcodeProject,
+  configuration: ReturnType<typeof getTargetConfigurations>[number][1]
+): string | undefined => {
+  const variables: Record<string, unknown> = {
+    ...getInheritedSettings(project, configuration),
+    ...configuration.buildSettings,
+    SRCROOT: iosPath,
+    PROJECT_DIR: iosPath,
+    PROJECT_NAME: path.basename(path.dirname(project.filepath), '.xcodeproj'),
+    TARGET_NAME: project.getFirstTarget().firstTarget.name,
+    inherited: getInheritedSettings(project, configuration)?.[XCODE_BRIDGING_HEADER_SETTING] || '',
+  };
+  let headerPath = setting.replace(/^"|"$/g, '');
+  for (let pass = 0; pass < 10 && headerPath.includes('$'); pass++) {
+    const expanded = headerPath.replace(/\$\((\w+)\)|\$\{(\w+)\}/g, (match, parenthesized, braced) => {
+      const value = variables[parenthesized || braced];
+      return typeof value === 'string' ? value.replace(/^"|"$/g, '') : match;
+    });
+    if (expanded === headerPath) break;
+    headerPath = expanded;
+  }
+  if (headerPath.includes('$')) {
+    throw new Error(`react-native-app-auth cannot resolve SWIFT_OBJC_BRIDGING_HEADER: ${setting}`);
+  }
+  return headerPath.trim() ? path.resolve(iosPath, headerPath) : undefined;
+};
+
+export const withBridgingHeader: ConfigPlugin = rootConfig =>
   withXcodeProject(rootConfig, config => {
+    assertSupportedExpoSdk(config, config.modRequest.projectRoot);
+
+    const iosPath = config.modRequest.platformProjectRoot;
     const project = config.modResults;
     const target = project.getFirstTarget().uuid;
+    const configurations = getTargetConfigurations(project, target);
+    const configuredHeaders = configurations
+      .map(([, configuration]) => {
+        const setting = getConfiguredBridgingHeader(project, configuration);
+        return setting ? resolveConfiguredHeaderPath(setting, iosPath, project, configuration) : undefined;
+      })
+      .filter((headerPath): headerPath is string => Boolean(headerPath));
+    const fallbackHeader = configuredHeaders[0] || findBridgingHeader(iosPath) ||
+      path.join(iosPath, BRIDGING_HEADER_NAME);
 
-    const currentSetting = project.getBuildProperty('SWIFT_OBJC_BRIDGING_HEADER', target);
-
-    if (!currentSetting && (config as ConfigWithBridgingHeader)._createdBridgingHeader) {
-      project.addBuildProperty(
-        'SWIFT_OBJC_BRIDGING_HEADER',
-        `$(SRCROOT)/${(config as ConfigWithBridgingHeader)._createdBridgingHeader}`,
-        target
-      );
+    ensureXcodeBridgingHeaderBuildSetting(project, target, path.relative(iosPath, fallbackHeader), iosPath);
+    for (const headerPath of new Set([...configuredHeaders, fallbackHeader])) {
+      const contents = fs.existsSync(headerPath) ? fs.readFileSync(headerPath, 'utf8') : '';
+      fs.mkdirSync(path.dirname(headerPath), { recursive: true });
+      fs.writeFileSync(headerPath, ensureBridgingHeaderImport(contents), 'utf8');
     }
 
     return config;
