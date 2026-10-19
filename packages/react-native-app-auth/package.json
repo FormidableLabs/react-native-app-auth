@@ -7,6 +7,7 @@
   "scripts": {
     "test": "jest",
     "test:ios-presenter": "bash native-tests/ios-presentation.sh",
+    "test:ios-session": "bash native-tests/ios-session.sh",
     "lint": "eslint .",
     "build": "expo-module build plugin",
     "clean": "expo-module clean plugin",
