@@ -57,7 +57,8 @@ public final class CustomConnectionBuilder implements ConnectionBuilder {
     public HttpURLConnection openConnection(@NonNull Uri uri) throws IOException {
         HttpURLConnection conn = connectionBuilder.openConnection(uri);
 
-        if (headers != null) {
+        if (headers != null && !headers.isEmpty()) {
+            conn.setInstanceFollowRedirects(false);
             for (Map.Entry<String, String> header: headers.entrySet()) {
                 conn.setRequestProperty(header.getKey(), header.getValue());
             }
