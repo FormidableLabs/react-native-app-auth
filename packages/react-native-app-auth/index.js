@@ -371,6 +371,11 @@ export const refresh = (
   return wrapNativeAuthPromise(RNAppAuth.refresh(...nativeMethodArguments));
 };
 
+const encodeFormComponent = value =>
+  encodeURIComponent(value)
+    .replace(/[!'()~]/g, character => `%${character.charCodeAt(0).toString(16).toUpperCase()}`)
+    .replace(/%20/g, '+');
+
 export const revoke = async (
   { clientId, issuer, serviceConfiguration, clientSecret },
   { tokenToRevoke, sendClientId = false, includeBasicAuth = false }
@@ -383,7 +388,10 @@ export const revoke = async (
   if (serviceConfiguration && serviceConfiguration.revocationEndpoint) {
     revocationEndpoint = serviceConfiguration.revocationEndpoint;
   } else {
-    const response = await fetch(`${issuer}/.well-known/openid-configuration`);
+    const response = await fetch(`${issuer.replace(/\/$/, '')}/.well-known/openid-configuration`);
+    if (response.ok === false) {
+      throw new Error(`Failed to fetch the openid config: HTTP ${response.status}`);
+    }
     const openidConfig = await response.json();
 
     invariant(
@@ -398,7 +406,9 @@ export const revoke = async (
     'Content-Type': 'application/x-www-form-urlencoded',
   };
   if (includeBasicAuth) {
-    headers.Authorization = `Basic ${base64.encode(`${clientId}:${clientSecret}`)}`;
+    headers.Authorization = `Basic ${base64.encode(
+      `${encodeFormComponent(clientId)}:${encodeFormComponent(clientSecret == null ? '' : clientSecret)}`
+    )}`;
   }
   /**
     Identity Server insists on client_id being passed in the body,
@@ -413,7 +423,9 @@ export const revoke = async (
       sendClientId ? `&client_id=${encodeFormComponent(clientId)}` : ''
     }`,
   }).catch(error => {
-    throw new Error('Failed to revoke token', error);
+    const revocationError = new Error('Failed to revoke token');
+    revocationError.cause = error;
+    throw revocationError;
   });
 };
 
