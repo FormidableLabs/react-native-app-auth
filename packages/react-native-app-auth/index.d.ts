@@ -59,6 +59,8 @@ interface BuiltInParameters {
   display?: 'page' | 'popup' | 'touch' | 'wap';
   login_prompt?: string;
   prompt?: 'consent' | 'login' | 'none' | 'select_account';
+  /** Custom state. Pass null to omit the parameter, for providers that do not echo it back. */
+  state?: string | null;
 }
 
 export type BaseAuthConfiguration = BaseConfiguration & {
