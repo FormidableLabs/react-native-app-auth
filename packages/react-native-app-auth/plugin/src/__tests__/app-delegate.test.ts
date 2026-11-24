@@ -278,6 +278,40 @@ describe('applyExpoAppDelegatePatch', () => {
     expect(result.endsWith(`}\n\n${reactNativeDelegate}\n`)).toBe(true);
   });
 
+  it('finds the end of the AppDelegate class past a brace in a nested block comment', () => {
+    const withNestedComment = expo58AppDelegate.replace(
+      '  var window: UIWindow?',
+      `  var window: UIWindow?
+  /* outer /* nested */ } */`
+    );
+
+    const result = applyExpoAppDelegatePatch(withNestedComment);
+
+    expect(result).toContain('  /* outer /* nested */ } */\n');
+    expect(
+      result.endsWith(
+        `return super.application(application, continue: userActivity, restorationHandler: restorationHandler)\n  }\n}\n\n${reactNativeDelegate}\n`
+      )
+    ).toBe(true);
+  });
+
+  it.each([
+    [
+      'a multi-line string literal',
+      `  let banner = """
+}
+"""`,
+    ],
+    ['a raw string literal', '  let pattern = #"\\"}"#'],
+    ['a string inside an interpolation', '  let label = "\\(name ?? "}")"'],
+  ])('fails instead of guessing the end of the AppDelegate class when it holds %s', (what, member) => {
+    const withString = expo58AppDelegate.replace('  var window: UIWindow?', `  var window: UIWindow?\n${member}`);
+
+    expect(() => applyExpoAppDelegatePatch(withString)).toThrow(
+      `could not find the end of the AppDelegate class (it holds ${what})`
+    );
+  });
+
   it('fails when there is no Expo AppDelegate class to add the URL callbacks to', () => {
     expect(() =>
       applyExpoAppDelegatePatch(expo58AppDelegate.replace('class AppDelegate: ExpoAppDelegate', 'class AppDelegate: UIResponder'))

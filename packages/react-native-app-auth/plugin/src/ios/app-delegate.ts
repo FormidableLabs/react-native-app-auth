@@ -47,7 +47,78 @@ const USER_ACTIVITY_OVERRIDE = `  public override func application(
     return super.application(application, continue: userActivity, restorationHandler: restorationHandler)
   }`;
 
-// Index of the brace that closes the AppDelegate class, skipping comments and string literals.
+class UnreadableSwift extends Error {
+  constructor(readonly what: string) {
+    super(what);
+  }
+}
+
+// Reads the comment or string literal that starts at `i` as Swift's lexer does, and returns the index
+// of its last character, or null when neither starts there. `//` runs to the end of the line, and
+// `/* */` comments nest. Only single-line strings are read: a form the scan does not model (a
+// multi-line or raw string, a string inside an interpolation) or an unterminated string throws.
+const readCommentOrString = (contents: string, i: number): { end: number } | null => {
+  if (contents.startsWith('//', i)) {
+    const lineEnd = contents.indexOf('\n', i);
+    return { end: (lineEnd === -1 ? contents.length : lineEnd) - 1 };
+  }
+  if (contents.startsWith('/*', i)) {
+    let depth = 0;
+    for (let j = i; j < contents.length; j++) {
+      if (contents.startsWith('/*', j)) {
+        depth++;
+        j++;
+      } else if (contents.startsWith('*/', j)) {
+        depth--;
+        j++;
+        if (depth === 0) {
+          return { end: j };
+        }
+      }
+    }
+    return { end: contents.length - 1 };
+  }
+  if (contents[i] === '#' && /^#+"/.test(contents.slice(i))) {
+    throw new UnreadableSwift('a raw string literal');
+  }
+  if (contents[i] !== '"') {
+    return null;
+  }
+  if (contents.startsWith('"""', i)) {
+    throw new UnreadableSwift('a multi-line string literal');
+  }
+  i++;
+  while (contents[i] !== '"') {
+    if (i >= contents.length || contents[i] === '\n') {
+      throw new UnreadableSwift('an unterminated string literal');
+    }
+    if (contents[i] === '\\' && contents[i + 1] === '(') {
+      // Interpolation: skip to its closing parenthesis; a string inside it is not read.
+      let parens = 0;
+      for (i++; i < contents.length; i++) {
+        if (contents[i] === '"') {
+          throw new UnreadableSwift('a string inside an interpolation');
+        }
+        if (contents[i] === '\n') {
+          throw new UnreadableSwift('an unterminated string literal');
+        }
+        if (contents[i] === '(') {
+          parens++;
+        } else if (contents[i] === ')' && --parens === 0) {
+          break;
+        }
+      }
+      i++;
+    } else {
+      i += contents[i] === '\\' ? 2 : 1;
+    }
+  }
+  return { end: i };
+};
+
+// Index of the brace that closes the AppDelegate class, skipping comments and single-line string
+// literals, or -1 when there is no Expo AppDelegate class. Anything the scan cannot read for certain
+// throws, so the plugin never adds methods inside a comment or a string.
 const findAppDelegateClassEnd = (contents: string): number => {
   const declaration = APP_DELEGATE_CLASS_PATTERN.exec(contents);
   if (!declaration) {
@@ -57,17 +128,19 @@ const findAppDelegateClassEnd = (contents: string): number => {
   let depth = 0;
   for (let i = declaration.index + declaration[0].length - 1; i < contents.length; i++) {
     const char = contents[i];
-    if (char === '/' && contents[i + 1] === '/') {
-      const lineEnd = contents.indexOf('\n', i);
-      i = lineEnd === -1 ? contents.length : lineEnd;
-    } else if (char === '/' && contents[i + 1] === '*') {
-      const commentEnd = contents.indexOf('*/', i + 2);
-      i = commentEnd === -1 ? contents.length : commentEnd + 1;
-    } else if (char === '"') {
-      i++;
-      while (i < contents.length && contents[i] !== '"' && contents[i] !== '\n') {
-        i += contents[i] === '\\' ? 2 : 1;
+    let token: ReturnType<typeof readCommentOrString>;
+    try {
+      token = readCommentOrString(contents, i);
+    } catch (error) {
+      if (!(error instanceof UnreadableSwift)) {
+        throw error;
       }
+      throw new Error(
+        `react-native-app-auth could not find the end of the AppDelegate class (it holds ${error.what}). Add application(_:open:options:) and application(_:continue:restorationHandler:) to AppDelegate.swift by hand, as shown in the Manual Setup section of the react-native-app-auth docs`
+      );
+    }
+    if (token) {
+      i = token.end;
     } else if (char === '{') {
       depth++;
     } else if (char === '}') {
