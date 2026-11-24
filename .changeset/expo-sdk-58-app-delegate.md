@@ -1,5 +1,5 @@
 ---
-'react-native-app-auth': patch
+'react-native-app-auth': minor
 ---
 
-Fix `expo prebuild` on Expo SDK 58. The SDK 58 AppDelegate template has no `application(_:open:options:)` or `application(_:continue:restorationHandler:)`, so the config plugin now adds them, with the AppAuth redirect handling, instead of failing. On SDK 58 and later, `expo-build-properties` with `ios.enableSceneSupport` is no longer needed.
+Support Expo SDK 58. On iOS, an Expo AppDelegate subscriber now forwards redirect URLs and universal links to the library, so the config plugin no longer edits `AppDelegate.swift` or adds a bridging header. This fixes `expo prebuild` on SDK 58, whose AppDelegate template has no URL callbacks (#1158). Expo autolinking adds the subscriber's `ExpoAdapterRNAppAuth` pod; bare React Native apps are unchanged and keep their manual AppDelegate setup. On SDK 58 and later, `expo-build-properties` with `ios.enableSceneSupport` is no longer needed.

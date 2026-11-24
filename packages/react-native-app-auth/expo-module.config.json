@@ -1,0 +1,7 @@
+{
+  "platforms": ["apple"],
+  "apple": {
+    "appDelegateSubscribers": ["RNAppAuthAppDelegateSubscriber"],
+    "podspecPath": "expo/ios/ExpoAdapterRNAppAuth.podspec"
+  }
+}

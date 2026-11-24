@@ -1,12 +1,7 @@
 import { withPlugins, createRunOncePlugin } from '@expo/config-plugins';
 import { AppAuthConfigPlugin, AppAuthProps } from './types';
 import { assertSupportedExpoSdk } from './expo-version';
-import {
-  withAppAuthAppDelegate,
-  withAppAuthAppDelegateHeader,
-  withUrlSchemes,
-  withBridgingHeader,
-} from './ios';
+import { withUrlSchemes } from './ios';
 import { withAppAuthAppBuildGradle, withAppAuthMainActivity } from './android';
 
 const packageJson = require('../../package.json');
@@ -31,10 +26,7 @@ const withAppAuth: AppAuthConfigPlugin = (config, props) => {
   } : (props || {});
 
   return withPlugins(config, [
-    // iOS
-    withBridgingHeader,
-    withAppAuthAppDelegate,
-    withAppAuthAppDelegateHeader,
+    // iOS: an Expo AppDelegate subscriber in the ExpoAdapterRNAppAuth pod forwards redirect URLs.
     [withUrlSchemes, transformedProps],
 
     // Android

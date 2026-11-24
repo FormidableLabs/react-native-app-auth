@@ -68,10 +68,8 @@ If you're using **Expo with Continuous Native Generation (CNG)**, you can use ou
 }
 ```
 
-For iOS scenes on Expo SDK 57, install `expo-build-properties` with `npx expo install expo-build-properties`
-and keep it after `react-native-app-auth` in the plugins array. The reverse order
-can cause the scene transformation to fail during prebuild. Expo SDK 58 and later
-include scene support, so leave out the `expo-build-properties` entry there.
+For iOS scenes on Expo SDK 57, install `expo-build-properties` with `npx expo install expo-build-properties`.
+Expo SDK 58 and later include scene support, so leave out the `expo-build-properties` entry there.
 
 Then run `expo prebuild` to generate your iOS and Android projects with the correct OAuth URL scheme configuration.
 
