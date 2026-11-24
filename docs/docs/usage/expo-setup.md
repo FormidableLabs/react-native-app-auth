@@ -80,9 +80,9 @@ to recover a browser flow after Android recreates the application process.
 
 On iOS, the plugin does not change `AppDelegate.swift`. Expo autolinking adds the
 `ExpoAdapterRNAppAuth` pod, whose AppDelegate subscriber receives redirect URLs and
-universal links from Expo's AppDelegate and scene delegate. An `AppDelegate.swift` that an
-earlier version of the plugin changed keeps working. Run `npx expo prebuild --clean` to
-remove those changes.
+universal links from Expo's AppDelegate and scene delegate. When you upgrade from 9.0 or
+earlier, run `npx expo prebuild --clean` to remove the changes that the earlier plugin made
+to `AppDelegate.swift` and the bridging header.
 
 ### 4. Use the Library
 
