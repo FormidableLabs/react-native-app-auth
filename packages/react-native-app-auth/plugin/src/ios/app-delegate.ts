@@ -20,9 +20,81 @@ const APP_AUTH_RESUME_BLOCK = `if let authorizationFlowManagerDelegate = self.au
       }
     }`;
 
+const APP_DELEGATE_CLASS_PATTERN = /^(\s*(?:public\s+)?class\s+AppDelegate\s*:\s*ExpoAppDelegate)([^{]*)(\{)/m;
+const OPEN_URL_PATTERN =
+  /((?:public\s+)?override\s+func\s+application\s*\(\s*_\s+\w+\s*:\s*UIApplication\s*,\s*open\s+url\s*:\s*URL[^{]*\{)/m;
+const USER_ACTIVITY_PATTERN =
+  /((?:public\s+)?(?:override\s+)?func\s+application\s*\(\s*_\s+\w+\s*:\s*UIApplication\s*,\s*continue\s+userActivity\s*:\s*NSUserActivity[^{]*\{)/m;
+
+// Expo SDK 58 templates no longer override these; ExpoAppSceneDelegate still routes
+// scene URLs and user activities through them, so the plugin adds them when missing.
+const OPEN_URL_OVERRIDE = `  public override func application(
+    _ app: UIApplication,
+    open url: URL,
+    options: [UIApplication.OpenURLOptionsKey: Any] = [:]
+  ) -> Bool {
+    ${APP_AUTH_RESUME_BLOCK}
+
+    return super.application(app, open: url, options: options)
+  }`;
+const USER_ACTIVITY_OVERRIDE = `  public override func application(
+    _ application: UIApplication,
+    continue userActivity: NSUserActivity,
+    restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void
+  ) -> Bool {
+    ${APP_AUTH_USER_ACTIVITY_BLOCK}
+
+    return super.application(application, continue: userActivity, restorationHandler: restorationHandler)
+  }`;
+
+// Index of the brace that closes the AppDelegate class, skipping comments and string literals.
+const findAppDelegateClassEnd = (contents: string): number => {
+  const declaration = APP_DELEGATE_CLASS_PATTERN.exec(contents);
+  if (!declaration) {
+    return -1;
+  }
+
+  let depth = 0;
+  for (let i = declaration.index + declaration[0].length - 1; i < contents.length; i++) {
+    const char = contents[i];
+    if (char === '/' && contents[i + 1] === '/') {
+      const lineEnd = contents.indexOf('\n', i);
+      i = lineEnd === -1 ? contents.length : lineEnd;
+    } else if (char === '/' && contents[i + 1] === '*') {
+      const commentEnd = contents.indexOf('*/', i + 2);
+      i = commentEnd === -1 ? contents.length : commentEnd + 1;
+    } else if (char === '"') {
+      i++;
+      while (i < contents.length && contents[i] !== '"' && contents[i] !== '\n') {
+        i += contents[i] === '\\' ? 2 : 1;
+      }
+    } else if (char === '{') {
+      depth++;
+    } else if (char === '}') {
+      depth--;
+      if (depth === 0) {
+        return i;
+      }
+    }
+  }
+
+  return -1;
+};
+
+const appendToAppDelegateClass = (contents: string, member: string, description: string): string => {
+  const classEnd = findAppDelegateClassEnd(contents);
+  if (classEnd === -1) {
+    throw new Error(
+      `react-native-app-auth could not add ${description} because it could not find the Expo AppDelegate class`
+    );
+  }
+
+  return `${contents.slice(0, classEnd).replace(/\s*$/, '')}\n\n${member}\n${contents.slice(classEnd)}`;
+};
+
 export const applyExpoAppDelegatePatch = (contents: string): string => {
   contents = contents.replace(
-    /^(\s*(?:public\s+)?class\s+AppDelegate\s*:\s*ExpoAppDelegate)([^{]*)(\{)/m,
+    APP_DELEGATE_CLASS_PATTERN,
     (match, declaration, conformances, openingBrace) => {
       if (conformances.includes(APP_AUTH_PROTOCOL)) {
         return match;
@@ -52,24 +124,19 @@ export const applyExpoAppDelegatePatch = (contents: string): string => {
   }
 
   if (!contents.includes('resumeExternalUserAgentFlow(with: url)')) {
-    contents = contents.replace(
-      /((?:public\s+)?override\s+func\s+application\s*\([\s\S]*?open\s+url\s*:\s*URL[\s\S]*?\)\s*->\s*Bool\s*\{)/m,
-      match => `${match}\n    ${APP_AUTH_RESUME_BLOCK}\n`
-    );
+    contents = OPEN_URL_PATTERN.test(contents)
+      ? contents.replace(OPEN_URL_PATTERN, match => `${match}\n    ${APP_AUTH_RESUME_BLOCK}\n`)
+      : appendToAppDelegateClass(contents, OPEN_URL_OVERRIDE, 'application(_:open:options:)');
   }
 
   if (!contents.includes('resumeExternalUserAgentFlow(with: webpageURL)')) {
-    const userActivityPattern =
-      /((?:public\s+)?(?:override\s+)?func\s+application\s*\([\s\S]*?continue\s+userActivity\s*:\s*NSUserActivity[\s\S]*?\)\s*->\s*Bool\s*\{)/m;
-    if (!userActivityPattern.test(contents)) {
-      throw new Error(
-        'react-native-app-auth could not find application(_:continue:restorationHandler:) in the Expo AppDelegate'
-      );
-    }
-    contents = contents.replace(
-      userActivityPattern,
-      match => `${match}\n    ${APP_AUTH_USER_ACTIVITY_BLOCK}\n`
-    );
+    contents = USER_ACTIVITY_PATTERN.test(contents)
+      ? contents.replace(USER_ACTIVITY_PATTERN, match => `${match}\n    ${APP_AUTH_USER_ACTIVITY_BLOCK}\n`)
+      : appendToAppDelegateClass(
+          contents,
+          USER_ACTIVITY_OVERRIDE,
+          'application(_:continue:restorationHandler:)'
+        );
   }
 
   return contents;

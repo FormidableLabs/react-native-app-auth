@@ -22,7 +22,8 @@ npm install react-native-app-auth
 yarn add react-native-app-auth
 ```
 
-For iOS scene support, also install `expo-build-properties`:
+For iOS scene support on Expo SDK 57, also install `expo-build-properties`. Expo SDK 58
+and later include scene support, so skip this step and the `expo-build-properties` entry below.
 
 ```bash
 npx expo install expo-build-properties
@@ -79,7 +80,8 @@ The plugin also forwards Android activity results for `resumePendingAuthorize()`
 Call that method at startup with the same token-exchange options as `authorize()`
 to recover a browser flow after Android recreates the application process.
 
-The SDK 57 scene delegate forwards URL callbacks to the patched AppDelegate.
+The Expo scene delegate forwards URL callbacks to the patched AppDelegate. On Expo SDK 58
+and later, the AppDelegate template has no URL callbacks, so the plugin adds them.
 
 ### 4. Use the Library
 

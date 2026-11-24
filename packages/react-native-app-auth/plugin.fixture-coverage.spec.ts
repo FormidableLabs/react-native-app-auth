@@ -215,6 +215,9 @@ class MainActivity : ReactActivity() {
     writePackageJson(tempDir, '~57.0.24');
     expect(isSupportedExpoSdk({}, tempDir)).toBe(true);
 
+    writePackageJson(tempDir, '~58.0.19');
+    expect(isSupportedExpoSdk({}, tempDir)).toBe(true);
+
     writePackageJson(tempDir, '~56.0.0');
     expect(isSupportedExpoSdk({}, tempDir)).toBe(false);
     expect(() => assertSupportedExpoSdk({}, tempDir)).toThrow(
@@ -255,15 +258,20 @@ class MainActivity : ReactActivity() {
     });
   });
 
-  it('fails when the Expo AppDelegate has no universal-link callback to resume', () => {
+  it('adds the universal-link callback when the Expo AppDelegate has none', () => {
     const withoutUserActivity = createExpoAppDelegateFixture().replace(
       /public override func application\(\s*_ application: UIApplication,\s*continue userActivity:[\s\S]*$/,
       '}'
     );
 
-    expect(() => applyExpoAppDelegatePatch(withoutUserActivity)).toThrow(
-      'application(_:continue:restorationHandler:)'
+    const patched = applyExpoAppDelegatePatch(withoutUserActivity);
+
+    expect(countOccurrences(patched, 'continue userActivity: NSUserActivity')).toBe(1);
+    expect(countOccurrences(patched, 'resumeExternalUserAgentFlow(with: webpageURL)')).toBe(1);
+    expect(patched).toContain(
+      'return super.application(application, continue: userActivity, restorationHandler: restorationHandler)\n  }\n}'
     );
+    expect(applyExpoAppDelegatePatch(patched)).toBe(patched);
   });
 
   it('patches a scene-enabled Expo AppDelegate without dropping factory provider conformance', () => {

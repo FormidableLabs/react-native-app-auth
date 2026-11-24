@@ -13,7 +13,7 @@
 
 This version supports React Native 0.86+, iOS 15.1+, Android API 24+, and Expo SDK 57+ with development builds. Use the 8.x release line for older React Native applications.
 
-For Expo apps using iOS scenes, list `react-native-app-auth` before `expo-build-properties` and enable `ios.enableSceneSupport`. See the [Expo setup guide](./docs/docs/usage/expo-setup.md) for the complete configuration.
+For Expo SDK 57 apps using iOS scenes, list `react-native-app-auth` before `expo-build-properties` and enable `ios.enableSceneSupport`. Expo SDK 58 and later include scene support, so they need neither. See the [Expo setup guide](./docs/docs/usage/expo-setup.md) for the complete configuration.
 
 React Native bridge for [AppAuth-iOS](https://github.com/openid/AppAuth-iOS) and
 [AppAuth-Android](https://github.com/openid/AppAuth-Android) SDKS for communicating with
