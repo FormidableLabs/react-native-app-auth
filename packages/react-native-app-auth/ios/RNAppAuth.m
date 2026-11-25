@@ -8,6 +8,7 @@
 #import <React/RCTConvert.h>
 #import "RNAppAuthAuthorizationFlowManager.h"
 #import "RNAppAuthPresentation.h"
+#import "RNAppAuthRedirects.h"
 
 @interface RNAppAuth()<RNAppAuthAuthorizationFlowManagerDelegate> {
     id<OIDExternalUserAgentSession> _currentSession;
@@ -29,6 +30,15 @@
         _currentSession = nil;
     }
     return handled;
+}
+
+- (void)routeRedirectsToSelf
+{
+    id<UIApplicationDelegate> appDelegate = UIApplication.sharedApplication.delegate;
+    if (!RNAppAuthRouteRedirectsTo(self, appDelegate)) {
+        [NSException raise:@"RNAppAuth Missing protocol conformance"
+                    format:@"%@ does not conform to RNAppAuthAuthorizationFlowManager, and no Expo AppDelegate subscriber forwards redirect URLs", appDelegate];
+    }
 }
 
 - (dispatch_queue_t)methodQueue
@@ -373,17 +383,12 @@ RCT_REMAP_METHOD(logout,
                                       additionalParameters:[mutableDict copy]];
 
     // performs authentication request
-    id<UIApplicationDelegate, RNAppAuthAuthorizationFlowManager> appDelegate = (id<UIApplicationDelegate, RNAppAuthAuthorizationFlowManager>)[UIApplication sharedApplication].delegate;
-    if (![[appDelegate class] conformsToProtocol:@protocol(RNAppAuthAuthorizationFlowManager)]) {
-        [NSException raise:@"RNAppAuth Missing protocol conformance"
-                    format:@"%@ does not conform to RNAppAuthAuthorizationFlowManager", appDelegate];
-    }
+    [self routeRedirectsToSelf];
     UIViewController *presentingViewController = RNAppAuthPresentingViewController(UIApplication.sharedApplication);
     if (presentingViewController == nil) {
         reject(@"authentication_failed", @"No foreground window is available to present authorization.", nil);
         return;
     }
-    appDelegate.authorizationFlowManagerDelegate = self;
     __weak typeof(self) weakSelf = self;
     // Set when the flow's callback has run. The callback can run synchronously, before the
     // presenting call below returns (e.g. when the user-agent fails to open).
@@ -533,17 +538,12 @@ RCT_REMAP_METHOD(logout,
                                     postLogoutRedirectURL: [NSURL URLWithString:postLogoutRedirectURL]
                                      additionalParameters: additionalParameters];
 
-    id<UIApplicationDelegate, RNAppAuthAuthorizationFlowManager> appDelegate = (id<UIApplicationDelegate, RNAppAuthAuthorizationFlowManager>)[UIApplication sharedApplication].delegate;
-    if (![[appDelegate class] conformsToProtocol:@protocol(RNAppAuthAuthorizationFlowManager)]) {
-        [NSException raise:@"RNAppAuth Missing protocol conformance"
-                    format:@"%@ does not conform to RNAppAuthAuthorizationFlowManager", appDelegate];
-    }
+    [self routeRedirectsToSelf];
     UIViewController *presentingViewController = RNAppAuthPresentingViewController(UIApplication.sharedApplication);
     if (presentingViewController == nil) {
         reject(@"end_session_failed", @"No foreground window is available to present logout.", nil);
         return;
     }
-    appDelegate.authorizationFlowManagerDelegate = self;
     __weak typeof(self) weakSelf = self;
     // Set when the flow's callback has run. The callback can run synchronously, before the
     // presenting call below returns (e.g. when the user-agent fails to open).

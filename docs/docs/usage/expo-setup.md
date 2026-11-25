@@ -22,7 +22,8 @@ npm install react-native-app-auth
 yarn add react-native-app-auth
 ```
 
-For iOS scene support, also install `expo-build-properties`:
+For iOS scene support on Expo SDK 57, also install `expo-build-properties`. Expo SDK 58
+and later include scene support, so skip this step and the `expo-build-properties` entry below.
 
 ```bash
 npx expo install expo-build-properties
@@ -30,9 +31,7 @@ npx expo install expo-build-properties
 
 ### 2. Configure the Plugin
 
-Add the plugins to your `app.json` or `app.config.js`. For iOS scenes, keep
-`react-native-app-auth` **before** `expo-build-properties`, as shown below.
-The reverse order can cause the scene transformation to fail during prebuild.
+Add the plugins to your `app.json` or `app.config.js`. The order of the two plugins does not matter.
 
 ```json
 {
@@ -72,14 +71,18 @@ npx expo prebuild --clean
 ```
 
 This automatically:
-- **iOS**: Adds URL scheme to `Info.plist` and configures bridging headers
+- **iOS**: Adds URL scheme to `Info.plist`
 - **Android**: Sets up manifest placeholders in `build.gradle`
 
 The plugin also forwards Android activity results for `resumePendingAuthorize()`.
 Call that method at startup with the same token-exchange options as `authorize()`
 to recover a browser flow after Android recreates the application process.
 
-The SDK 57 scene delegate forwards URL callbacks to the patched AppDelegate.
+On iOS, the plugin does not change `AppDelegate.swift`. Expo autolinking adds the
+`ExpoAdapterRNAppAuth` pod, whose AppDelegate subscriber receives redirect URLs and
+universal links from Expo's AppDelegate and scene delegate. When you upgrade from 9.0 or
+earlier, run `npx expo prebuild --clean` to remove the changes that the earlier plugin made
+to `AppDelegate.swift` and the bridging header.
 
 ### 4. Use the Library
 
@@ -193,7 +196,7 @@ If you have React Navigation deep linking, ensure your OAuth scheme is different
 If you're migrating from manual iOS/Android setup:
 
 1. Remove manual URL scheme configurations from `Info.plist` and `build.gradle`
-2. Remove manual AppDelegate modifications (the plugin handles this automatically for Expo SDK 57+)
+2. Remove manual AppDelegate modifications (on Expo SDK 57+, the library's Expo AppDelegate subscriber receives redirect URLs)
 3. Add the plugin configuration to `app.json`
 4. Run `npx expo prebuild --clean`
 
